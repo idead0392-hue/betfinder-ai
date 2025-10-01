@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -9,9 +9,6 @@ import json
 from datetime import datetime, timedelta
 import os
 from bet_db import db
-
-app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 class BetAnalyzer:
     def __init__(self):
@@ -110,199 +107,170 @@ class BetAnalyzer:
 
 analyzer = BetAnalyzer()
 
-@app.route('/')
-def index():
-    """Main dashboard"""
-    recent_bets = db.get_bets()[:5]  # Get last 5 bets
-    stats = db.get_betting_stats()
-    return render_template('index.html', bets=recent_bets, stats=stats)
+# Streamlit App
+st.set_page_config(page_title="BetFinder AI", page_icon="🎲", layout="wide")
 
-@app.route('/odds')
-def odds():
-    """Odds comparison page"""
+st.title("🎲 BetFinder AI Dashboard")
+
+# Sidebar navigation
+page = st.sidebar.selectbox("Navigate", ["Dashboard", "Odds Comparison", "Analyze Bet", "My Bets"])
+
+if page == "Dashboard":
+    st.header("Betting Statistics")
+    
+    recent_bets = db.get_bets()[:5]
+    stats = db.get_betting_stats()
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Bets", stats.get('total_bets', 0))
+    with col2:
+        st.metric("Win Rate", f"{stats.get('win_rate', 0)}%")
+    with col3:
+        st.metric("Profit/Loss", f"${stats.get('profit_loss', 0)}")
+    
+    st.subheader("Recent Bets")
+    if recent_bets:
+        df = pd.DataFrame(recent_bets)
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No bets recorded yet.")
+
+elif page == "Odds Comparison":
+    st.header("Odds Comparison")
+    
+    if st.button("Refresh Odds"):
+        with st.spinner("Fetching latest odds..."):
+            odds_data = analyzer.scrape_odds()
+        st.success("Odds updated!")
+    
     odds_data = analyzer.scrape_odds()
-    return render_template('odds.html', odds=odds_data)
+    
+    for odds in odds_data:
+        with st.expander(f"{odds['event']} - {odds['bookmaker']}"):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Home Win", odds['home_odds'])
+            with col2:
+                st.metric("Draw", odds['draw_odds'])
+            with col3:
+                st.metric("Away Win", odds['away_odds'])
+            st.caption(f"Date: {odds['date'].strftime('%Y-%m-%d %H:%M')}")
 
-@app.route('/analyze', methods=['GET', 'POST'])
-def analyze():
-    """Betting analysis page"""
-    if request.method == 'POST':
-        event_name = request.form['event_name']
-        sport = request.form['sport']
-        bet_type = request.form['bet_type']
-        odds = float(request.form['odds'])
+elif page == "Analyze Bet":
+    st.header("Betting Analysis")
+    
+    with st.form("analysis_form"):
+        event_name = st.text_input("Event Name", placeholder="e.g., Manchester United vs Chelsea")
+        sport = st.selectbox("Sport", ["Football", "Basketball", "Tennis", "Other"])
+        bet_type = st.selectbox("Bet Type", ["1X2 - Home Win", "1X2 - Draw", "1X2 - Away Win", "Over/Under", "Handicap"])
+        odds = st.number_input("Odds", min_value=1.01, max_value=100.0, value=2.0, step=0.1)
         
-        # Get team statistics
-        teams = event_name.split(' vs ')
-        if len(teams) == 2:
-            home_stats = analyzer.get_team_stats(teams[0])
-            away_stats = analyzer.get_team_stats(teams[1])
+        submitted = st.form_submit_button("Analyze")
+        
+        if submitted and event_name:
+            teams = event_name.split(' vs ')
+            if len(teams) == 2:
+                home_stats = analyzer.get_team_stats(teams[0])
+                away_stats = analyzer.get_team_stats(teams[1])
+                
+                home_win_prob = home_stats['wins'] / (home_stats['wins'] + home_stats['draws'] + home_stats['losses'])
+                away_win_prob = away_stats['wins'] / (away_stats['wins'] + away_stats['draws'] + away_stats['losses'])
+                
+                if 'Home' in bet_type:
+                    implied_prob = home_win_prob
+                elif 'Away' in bet_type:
+                    implied_prob = away_win_prob
+                else:
+                    implied_prob = 1 - home_win_prob - away_win_prob
+            else:
+                implied_prob = 0.5
             
-            # Calculate implied probability based on team stats
-            home_win_prob = home_stats['wins'] / (home_stats['wins'] + home_stats['draws'] + home_stats['losses'])
-            away_win_prob = away_stats['wins'] / (away_stats['wins'] + away_stats['draws'] + away_stats['losses'])
+            analysis = analyzer.analyze_value(odds, implied_prob)
             
-            if 'Home' in bet_type:
-                implied_prob = home_win_prob
-            elif 'Away' in bet_type:
-                implied_prob = away_win_prob
-            else:  # Draw
-                implied_prob = 1 - home_win_prob - away_win_prob
-        else:
-            implied_prob = 0.5  # Default probability
-        
-        # Analyze value
-        analysis = analyzer.analyze_value(odds, implied_prob)
-        
-        # Save analysis to database
-        analysis_data = {
-            'odds': odds,
-            'implied_probability': implied_prob,
-            'bet_type': bet_type
-        }
-        
-        db.save_analysis_result(
-            event_name=event_name,
-            sport=sport,
-            analysis_data=analysis_data,
-            recommendation=analysis['recommendation'],
-            confidence_score=analysis['confidence']
-        )
-        
-        return render_template('analysis_result.html', 
-                             event=event_name, 
-                             analysis=analysis,
-                             odds=odds,
-                             bet_type=bet_type)
-    
-    return render_template('analyze.html')
+            analysis_data = {
+                'odds': odds,
+                'implied_probability': implied_prob,
+                'bet_type': bet_type
+            }
+            
+            db.save_analysis_result(
+                event_name=event_name,
+                sport=sport,
+                analysis_data=analysis_data,
+                recommendation=analysis['recommendation'],
+                confidence_score=analysis['confidence']
+            )
+            
+            st.subheader("Analysis Results")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Recommendation", analysis['recommendation'])
+                st.metric("Confidence", f"{analysis['confidence']:.1f}%")
+            with col2:
+                st.metric("Has Value", "Yes" if analysis['has_value'] else "No")
+                if analysis['has_value']:
+                    st.metric("Value %", f"{analysis['value_percentage']:.2f}%")
+            
+            if analysis['recommendation'] == 'BET':
+                st.success("This bet appears to offer good value!")
+            else:
+                st.warning("Consider avoiding this bet.")
 
-@app.route('/place_bet', methods=['POST'])
-def place_bet():
-    """Place a new bet"""
-    data = request.get_json()
+elif page == "My Bets":
+    st.header("My Bets")
     
-    bet_id = db.add_bet(
-        event_name=data['event_name'],
-        sport=data['sport'],
-        bet_type=data['bet_type'],
-        odds=float(data['odds']),
-        stake=float(data['stake']),
-        bookmaker=data['bookmaker']
-    )
-    
-    return jsonify({'success': True, 'bet_id': bet_id})
-
-@app.route('/bets')
-def bets():
-    """View all bets"""
     all_bets = db.get_bets()
-    return render_template('bets.html', bets=all_bets)
-
-@app.route('/update_bet/<int:bet_id>', methods=['POST'])
-def update_bet(bet_id):
-    """Update bet status"""
-    status = request.form['status']
-    result = request.form.get('result')
     
-    db.update_bet_status(bet_id, status, result)
-    return redirect(url_for('bets'))
-
-@app.route('/api/stats')
-def api_stats():
-    """API endpoint for statistics"""
-    stats = db.get_betting_stats()
-    return jsonify(stats)
-
-@app.route('/api/odds/<event_name>')
-def api_odds(event_name):
-    """API endpoint for odds comparison"""
-    odds = db.get_best_odds(event_name, '1X2 - Home Win')
-    return jsonify(odds)
-
-# Create templates directory and basic templates
-@app.before_first_request
-def create_templates():
-    """Create basic HTML templates"""
-    import os
-    
-    templates_dir = 'templates'
-    if not os.path.exists(templates_dir):
-        os.makedirs(templates_dir)
-    
-    # Basic index template
-    index_html = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BetFinder AI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1>BetFinder AI Dashboard</h1>
+    if all_bets:
+        df = pd.DataFrame(all_bets)
+        st.dataframe(df, use_container_width=True)
         
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">Betting Statistics</div>
-                    <div class="card-body">
-                        <p>Total Bets: {{ stats.total_bets }}</p>
-                        <p>Win Rate: {{ stats.win_rate }}%</p>
-                        <p>Profit/Loss: ${{ stats.profit_loss }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">Quick Actions</div>
-                    <div class="card-body">
-                        <a href="/analyze" class="btn btn-primary">Analyze Bet</a>
-                        <a href="/odds" class="btn btn-info">View Odds</a>
-                        <a href="/bets" class="btn btn-secondary">My Bets</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        st.subheader("Place New Bet")
+        with st.form("place_bet_form"):
+            event_name = st.text_input("Event Name")
+            sport = st.selectbox("Sport", ["Football", "Basketball", "Tennis", "Other"])
+            bet_type = st.selectbox("Bet Type", ["1X2 - Home Win", "1X2 - Draw", "1X2 - Away Win", "Over/Under", "Handicap"])
+            odds = st.number_input("Odds", min_value=1.01, value=2.0, step=0.1)
+            stake = st.number_input("Stake ($)", min_value=1.0, value=10.0, step=1.0)
+            bookmaker = st.text_input("Bookmaker", placeholder="e.g., Bet365")
+            
+            place_bet = st.form_submit_button("Place Bet")
+            
+            if place_bet and event_name and bookmaker:
+                bet_id = db.add_bet(
+                    event_name=event_name,
+                    sport=sport,
+                    bet_type=bet_type,
+                    odds=odds,
+                    stake=stake,
+                    bookmaker=bookmaker
+                )
+                st.success(f"Bet placed successfully! Bet ID: {bet_id}")
+                st.rerun()
+    else:
+        st.info("No bets recorded yet. Place your first bet below!")
         
-        <div class="mt-4">
-            <h3>Recent Bets</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Bet Type</th>
-                        <th>Odds</th>
-                        <th>Stake</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for bet in bets %}
-                    <tr>
-                        <td>{{ bet.event_name }}</td>
-                        <td>{{ bet.bet_type }}</td>
-                        <td>{{ bet.odds }}</td>
-                        <td>${{ bet.stake }}</td>
-                        <td>{{ bet.status }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
-</html>
-    '''
-    
-    with open(os.path.join(templates_dir, 'index.html'), 'w') as f:
-        f.write(index_html)
-
-if __name__ == '__main__':
-    # Initialize database
-    print("Starting BetFinder AI...")
-    print("Database initialized successfully!")
-    
-    # Run the Flask app
-    app.run(debug=True, host='0.0.0.0', port=5000)
+        st.subheader("Place New Bet")
+        with st.form("place_bet_form"):
+            event_name = st.text_input("Event Name")
+            sport = st.selectbox("Sport", ["Football", "Basketball", "Tennis", "Other"])
+            bet_type = st.selectbox("Bet Type", ["1X2 - Home Win", "1X2 - Draw", "1X2 - Away Win", "Over/Under", "Handicap"])
+            odds = st.number_input("Odds", min_value=1.01, value=2.0, step=0.1)
+            stake = st.number_input("Stake ($)", min_value=1.0, value=10.0, step=1.0)
+            bookmaker = st.text_input("Bookmaker", placeholder="e.g., Bet365")
+            
+            place_bet = st.form_submit_button("Place Bet")
+            
+            if place_bet and event_name and bookmaker:
+                bet_id = db.add_bet(
+                    event_name=event_name,
+                    sport=sport,
+                    bet_type=bet_type,
+                    odds=odds,
+                    stake=stake,
+                    bookmaker=bookmaker
+                )
+                st.success(f"Bet placed successfully! Bet ID: {bet_id}")
+                st.rerun()
