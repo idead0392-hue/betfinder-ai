@@ -78,10 +78,8 @@ betting_status = rapidapi_get("betting-status")
 # ============================================================================
 
 # Rest of the application code follows...
-st.warning("⚠️ No top picks available at this time.")
-    
-else:
-    st.dataframe(value_candidates.sort_values("edge_pct", ascending=False).head(10), use_container_width=True)
+# Note: The following code assumes that nav_tabs, filtered_df, and value_candidates
+# are defined earlier in the application. This is a partial file.
 
 # TENNIS TAB
 with nav_tabs[2]:
