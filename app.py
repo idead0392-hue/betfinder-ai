@@ -16,14 +16,12 @@ st.set_page_config(
 
 # Load API key securely: env var first, then Streamlit secrets
 API_KEY = (
-    os.environ.get("SPORTBEX_API_KEY")
-    or os.environ.get("ODDS_API_KEY")
-    or st.secrets.get("SPORTBEX_API_KEY", None)
+    os.environ.get("ODDS_API_KEY")
     or st.secrets.get("ODDS_API_KEY", None)
 )
 API_BASE = "https://api.the-odds-api.com/v4"
 
-st.markdown("<div class='app-bg'>", unsafe_allow_html=True)
+st.markdown("<div class=\"app-bg\">", unsafe_allow_html=True)
 
 # Robust odds fetcher with retries and clearer errors
 def fetch_live_odds(
@@ -35,7 +33,7 @@ def fetch_live_odds(
 ) -> List[Dict[str, Any]]:
     if not API_KEY:
         raise RuntimeError(
-            "Missing API key. Set SPORTBEX_API_KEY/ODDS_API_KEY env var or st.secrets."
+            "Missing API key. Set ODDS_API_KEY env var or st.secrets."
         )
     url = f"{API_BASE}/sports/{sport}/odds/"
     params = {"apiKey": API_KEY, "regions": regions, "markets": markets}
@@ -222,3 +220,4 @@ with nav_tabs[1]:
 with nav_tabs[2]:
     st.markdown('<div class="section-title">Upcoming Matches<span class="time">Next 48 hours</span></div>', unsafe_allow_html=True)
     st.write("Coming soon: curated upcoming matches view.")
+</div>
