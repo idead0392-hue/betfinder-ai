@@ -14,7 +14,6 @@ st.set_page_config(
 
 st.markdown(
     """
-    <style>
       :root{
         --green:#10b981;           /* vivid green */
         --green-dark:#059669;
@@ -57,7 +56,6 @@ st.markdown(
       .stTabs [data-baseweb=tab] {border-radius:999px; padding:8px 14px; background:#0f172a; color:#e5e7eb; font-weight:700}
       .stTabs [aria-selected=true] {background: var(--green) !important; color:#04120a !important}
       .sidebar-brand img {border-radius:8px}
-    </style>
     """,
     unsafe_allow_html=True,
 )
@@ -109,7 +107,7 @@ with st.sidebar:
     st.markdown('<div class="sidebar-brand">', unsafe_allow_html=True)
     st.image("https://via.placeholder.com/300x90/10b981/04120a?text=BetFinder+AI", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown("### ⚙️ Filters & Settings")
+    st.markdown("### ⚙️ Filters &amp; Settings")
 
 with st.spinner("Fetching latest odds..."):
     try:
@@ -163,20 +161,20 @@ with colh1:
     st.markdown(
         """
         <div>
-          <h1>BetFinder AI</h1>
-          <div class="kpis">
-            <div class="kpi"><div class="v">Live</div><div class="l">Events</div></div>
-            <div class="kpi"><div class="v">Upcoming</div><div class="l">Matches</div></div>
-            <div class="kpi"><div class="v">Value</div><div class="l">Signals</div></div>
-          </div>
-        </div>
+BetFinder AI
+<div class="kpis">
+<div class="kpi"><div class="v">Live</div><div class="l">Events</div></div>
+<div class="kpi"><div class="v">Upcoming</div><div class="l">Matches</div></div>
+<div class="kpi"><div class="v">Value</div><div class="l">Signals</div></div>
+</div>
+</div>
         """,
         unsafe_allow_html=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
 with colh2:
     st.markdown(
-        f"<div class='panel'><b>Today</b><div class='divider'></div><div>🗓 {datetime.now().strftime('%a, %b %d')}</div><div>⏰ {datetime.now().strftime('%I:%M %p')}</div></div>",
+        f"<div class=\"panel\">Today<div class=\"divider\"></div>🗓 {datetime.now().strftime('%a, %b %d')}⏰ {datetime.now().strftime('%I:%M %p')}</div>",
         unsafe_allow_html=True,
     )
 
@@ -185,7 +183,7 @@ nav_tabs = st.tabs(["🎯 Value Bets", "📺 Live Events", "📅 Upcoming", "�
 
 # VALUE BETS
 with nav_tabs[0]:
-    st.markdown('<div class="section-title"><h3>Top Value Opportunities</h3><span class="time">Auto-screened across books</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Top Value Opportunities<span class="time">Auto-screened across books</span></div>', unsafe_allow_html=True)
     if st.button("🔍 Analyze Odds", type="primary", use_container_width=True):
         with st.spinner("Analyzing odds from multiple bookmakers..."):
             time.sleep(2)
@@ -194,16 +192,16 @@ with nav_tabs[0]:
     for i in range(3):
         st.markdown(
             f"""
-            <div class='card'>
-              <div class='banner' style="background-image:url('https://images.unsplash.com/photo-1542574271-7f3b92e6c821?q=80&w=1600&auto=format&fit=crop')"></div>
-              <div class='body'>
-                <span class='badge'>Value {5+i*2}%</span>
-                <div class='teams'><span>Team A</span><span>vs</span><span>Team B</span></div>
-                <div class='meta'><span>Market: Match Winner</span><span>Book: Best</span></div>
-                <div class='odds'>
-                  <div class='pill'>A 2.10</div>
-                  <div class='pill best'>B 2.35</div>
-                  <div class='pill'>Draw 3.20</div>
+            <div class="card">
+              <div class="banner" style="background-image:url('https://images.unsplash.com/photo-1542574271-7f3b92e6c821?q=80&w=1600&auto=format&fit=crop')"></div>
+              <div class="body">
+                <span class="badge">Value {5+i*2}%</span>
+                <div class="teams">Team AvsTeam B</div>
+                <div class="meta">Market: Match WinnerBook: Best</div>
+                <div class="odds">
+                  <div class="pill">A 2.10</div>
+                  <div class="pill best">B 2.35</div>
+                  <div class="pill">Draw 3.20</div>
                 </div>
               </div>
             </div>
@@ -214,7 +212,7 @@ with nav_tabs[0]:
 
 # LIVE EVENTS
 with nav_tabs[1]:
-    st.markdown('<div class="section-title"><h3>Live Events</h3><span class="time">Right now</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Live Events<span class="time">Right now</span></div>', unsafe_allow_html=True)
     display_cols = ["commence_time", "sport_title", "home_team", "away_team", "market", "name", "price", "point", "bookmaker"]
     df_live = filtered_df[display_cols] if not filtered_df.empty else pd.DataFrame(columns=display_cols)
     if df_live.empty:
@@ -226,16 +224,16 @@ with nav_tabs[1]:
             tm = (row["commence_time"] or "").replace("T"," ").replace("Z"," UTC")
             st.markdown(
                 f"""
-                <div class='card'>
-                  <div class='banner' style="background-image:url('{banner}')"></div>
-                  <div class='body'>
-                    <span class='badge'>Live</span>
-                    <div class='teams'><span>{row['home_team'] or ''}</span><span>vs</span><span>{row['away_team'] or ''}</span></div>
-                    <div class='meta'><span>{row['sport_title'] or ''}</span><span>{tm}</span><span>{row['bookmaker'] or ''}</span></div>
-                    <div class='odds'>
-                      <div class='pill'>{row['name'] or ''} {row['price'] or ''}</div>
-                      <div class='pill best'>{row['market'] or ''}</div>
-                      <div class='pill'>{row['point'] if pd.notna(row['point']) else ''}</div>
+                <div class="card">
+                  <div class="banner" style="background-image:url('{banner}')"></div>
+                  <div class="body">
+                    <span class="badge">Live</span>
+                    <div class="teams"><span>{row['home_team'] or ''}</span>vs<span>{row['away_team'] or ''}</span></div>
+                    <div class="meta"><span>{row['sport_title'] or ''}</span><span>{tm}</span><span>{row['bookmaker'] or ''}</span></div>
+                    <div class="odds">
+                      <div class="pill">{row['name'] or ''} {row['price'] or ''}</div>
+                      <div class="pill best">{row['market'] or ''}</div>
+                      <div class="pill">{row['point'] if pd.notna(row['point']) else ''}</div>
                     </div>
                   </div>
                 </div>
@@ -246,18 +244,25 @@ with nav_tabs[1]:
 
 # UPCOMING
 with nav_tabs[2]:
-    st.markdown('<div class="section-title"><h3>Upcoming Matches</h3><span class="time">Next 48 hours</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Upcoming Matches<span class="time">Next 48 hours</span></div>', unsafe_allow_html=True)
     # Simulated upcoming layout using cards
     st.markdown('<div class="card-grid">', unsafe_allow_html=True)
     for i in range(6):
         banner = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1600&auto=format&fit=crop"
         st.markdown(
             f"""
-            <div class='card'>
-              <div class='banner' style="background-image:url('{banner}')"></div>
-              <div class='body'>
-                <span class='badge'>Kickoff {i+1}h</span>
-                <div class='teams'><span>Club {i+1}</span><span>vs</span><span>Rivals {i+2}</span></div>
-                <div class='meta'><span>Tournament</span><span>{datetime.now().strftime('%b %d')}</span></div>
-                <div class='odds'>
-                  <div class='pill'>Home 1.{i}0</div>
+            <div class="card">
+              <div class="banner" style="background-image:url('{banner}')"></div>
+              <div class="body">
+                <span class="badge">Kickoff {i+1}h</span>
+                <div class="teams"><span>Club {i+1}</span>vs<span>Rivals {i+2}</span></div>
+                <div class="meta">Tournament<span>{datetime.now().strftime('%b %d')}</span></div>
+                <div class="odds">
+                  <div class="pill">Home 1.{i}0</div>
+                </div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
