@@ -21,8 +21,6 @@ API_KEY = (
 )
 API_BASE = "https://api.the-odds-api.com/v4"
 
-st.markdown("<div class=\"app-bg\">", unsafe_allow_html=True)
-
 # Robust odds fetcher with retries and clearer errors
 def fetch_live_odds(
     sport: str = "tennis",
@@ -220,4 +218,3 @@ with nav_tabs[1]:
 with nav_tabs[2]:
     st.markdown('<div class="section-title">Upcoming Matches<span class="time">Next 48 hours</span></div>', unsafe_allow_html=True)
     st.write("Coming soon: curated upcoming matches view.")
-</div>
