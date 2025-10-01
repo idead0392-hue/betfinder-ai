@@ -48,6 +48,41 @@ if not filtered_df.empty:
     agg["edge_pct"] = agg.apply(lambda r: price_improvement(r["avg_market_prob"], r["best_implied_prob"]), axis=1)
     value_candidates = agg[(agg["edge_pct"].notna()) & (agg["edge_pct"] > value_threshold)].copy()
 # VALUE PICKS TAB
+# Mapping of available props for each sport/esport
+SPORT_PROPS = {
+    "Tennis": ["Match Winner", "Set Winner", "Total Games", "Aces"],
+    "Basketball": ["Points", "Assists", "Rebounds", "Threes Made", "Steals", "Blocks"],
+    "Football": ["Passing Yards", "Rushing Yards", "Receiving Yards", "Touchdowns"],
+    "Baseball": ["Home Runs", "RBIs", "Hits", "Strikeouts"],
+    "Hockey": ["Goals", "Assists", "Saves", "Shots"],
+    "Soccer": ["Goals", "Assists", "Yellow Cards", "Shots", "Saves"],
+    "Golf": ["Finish Position", "Score"],
+    "MMA": ["Knockouts", "Rounds", "Winner"],
+    "Cricket": ["Runs", "Wickets", "Sixes"],
+    "Rugby": ["Tries", "Goals", "Points"],
+    "CS2": ["Kills", "Deaths", "Maps Won", "MVP Awards"],
+    "League of Legends": ["Kills", "Deaths", "Assists", "Turrets", "CS"],
+    "Dota 2": ["Kills", "Deaths", "Assists", "Towers", "Last Hits"],
+    "Valorant": ["Kills", "First Bloods", "Spike Plants", "Defuses"]
+}
+
+for idx, tab_name in enumerate([
+    "Tennis", "Basketball", "Football", "Baseball", "Hockey", "Soccer",
+    "Golf", "MMA", "Cricket", "Rugby", "CS2", "League of Legends", "Dota 2", "Valorant"
+]):
+    with nav_tabs[idx + 2]:  # Offset by 2 for Value Picks and BFAI Top 10
+        st.markdown(f"**Available Props for {tab_name}:**")
+        prop_list = SPORT_PROPS.get(tab_name, [])
+        if prop_list:
+            st.write(", ".join(prop_list))
+        else:
+            st.info(f"No props defined for {tab_name}.")
+        sport_df = filtered_df[filtered_df["sport_title"] == tab_name] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
+        if not sport_df.empty:
+            st.dataframe(sport_df.head(100), use_container_width=True)
+        else:
+            st.info(f"No {tab_name} events available.")
+
 with nav_tabs[0]:
     st.markdown('<div class="section-title">Value Picks<span class="time">Auto-screened across books</span></div>', unsafe_allow_html=True)
     if value_candidates.empty:
