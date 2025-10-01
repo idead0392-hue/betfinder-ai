@@ -1,24 +1,77 @@
+# BetFinder AI - Instagram Sport Bar Template Revamp
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
 import time
 
-# API Configuration
+st.set_page_config(
+    page_title="BetFinder AI - Sport Bar Vibes",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown(
+    """
+    <style>
+      :root{
+        --green:#10b981;           /* vivid green */
+        --green-dark:#059669;
+        --green-ghost:#d1fae5;
+        --ink:#0b1220;
+        --ink-2:#111827;
+        --card:#0f172a;            /* slate card */
+        --muted:#6b7280;
+        --accent:#22d3ee;          /* cyan accents */
+        --warning:#f59e0b;
+        --danger:#ef4444;
+        --panel:#111827aa;         /* translucent panels */
+      }
+      .app-bg { background: radial-gradient(1200px 600px at 10% -10%, rgba(34,211,238,.25), transparent),
+                              radial-gradient(1000px 500px at 110% 10%, rgba(16,185,129,.25), transparent),
+                              linear-gradient(180deg, #0b1220, #0b1220); padding:0; margin:0; }
+      .hero { background: linear-gradient(135deg, var(--green), var(--green-dark)); border-radius: 16px; padding: 18px; color: white; display:flex; align-items:center; gap:18px; }
+      .hero h1 {font-size: 2.1rem; line-height:1.1; margin:0; font-weight:900;}
+      .hero .kpis {display:flex; gap:12px; flex-wrap:wrap}
+      .kpi {background: rgba(255,255,255,.15); padding:10px 12px; border-radius:12px;}
+      .kpi .v {font-size:1.15rem; font-weight:800}
+      .kpi .l {font-size:.8rem; opacity:.95}
+      .section-title {display:flex; align-items:center; justify-content:space-between; margin: 14px 0 8px 0;}
+      .section-title h3 {color:#e5e7eb; font-size:1.05rem; letter-spacing:.25px; margin:0;}
+      .section-title .time {color:#9ca3af; font-size:.85rem}
+      .card-grid {display:grid; grid-template-columns: repeat(12, 1fr); gap:12px;}
+      .card {grid-column: span 4; background: var(--card); border-radius:16px; overflow:hidden; border: 1px solid #1f2937;}
+      .card .banner {height:120px; background-size:cover; background-position:center;}
+      .card .body {padding:12px 14px;}
+      .badge {display:inline-block; padding:4px 10px; background: var(--green-ghost); color:var(--green-dark); border-radius:999px; font-weight:700; font-size:.75rem}
+      .teams {display:flex; align-items:center; justify-content:space-between; color:#e5e7eb; font-weight:800; font-size:1rem}
+      .teams span {display:inline-block}
+      .meta {display:flex; gap:10px; margin-top:8px; color:#9ca3af; font-size:.8rem}
+      .odds {margin-top:8px; display:flex; gap:8px}
+      .odds .pill {flex:1; text-align:center; padding:8px; border-radius:10px; background:#0b1220; color:#e5e7eb; border:1px solid #1f2937}
+      .odds .best {background: linear-gradient(180deg, #064e3b, #065f46); border-color:#059669;}
+      .panel {background: var(--panel); border:1px solid #1f2937; border-radius:14px; padding:12px}
+      .divider {height:1px; background:#1f2937; margin: 8px 0}
+      .stTabs [data-baseweb=tab-list] {gap: 8px}
+      .stTabs [data-baseweb=tab] {border-radius:999px; padding:8px 14px; background:#0f172a; color:#e5e7eb; font-weight:700}
+      .stTabs [aria-selected=true] {background: var(--green) !important; color:#04120a !important}
+      .sidebar-brand img {border-radius:8px}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div class="app-bg">', unsafe_allow_html=True)
+
 API_KEY = "ede96651f63959b778ed2e2bbb2331f1"
 
 def fetch_live_odds(sport="tennis", regions="us", markets="h2h,totals,spreads,outrights,player_props,team_props"):
-    """Fetch live odds from The Odds API"""
     url = f"https://api.the-odds-api.com/v4/sports/{sport}/odds/"
     params = {"apiKey": API_KEY, "regions": regions, "markets": markets}
     r = requests.get(url, params=params)
     r.raise_for_status()
-    odds_json = r.json()
-    # Diagnostic: dump raw API response
-    st.write("Raw odds feed:", odds_json)
-    return odds_json
-
-# Helper to normalize odds JSON into a flat dataframe catching all market types
+    return r.json()
 
 def normalize_odds_json(odds_json):
     rows = []
@@ -35,9 +88,8 @@ def normalize_odds_json(odds_json):
             bookmaker = bk.get("title") or bk.get("key")
             for mk in bk.get("markets", []):
                 market_key = mk.get("key")
-                market_name = mk.get("key")
                 for out in mk.get("outcomes", []):
-                    row = {
+                    rows.append({
                         "event_id": event_id,
                         "sport_key": sport_key,
                         "sport_title": sport_title,
@@ -45,149 +97,52 @@ def normalize_odds_json(odds_json):
                         "home_team": home_team,
                         "away_team": away_team,
                         "bookmaker": bookmaker,
-                        "market": market_key or market_name,
+                        "market": market_key,
                         "name": out.get("name"),
                         "price": out.get("price"),
                         "point": out.get("point"),
-                    }
-                    rows.append(row)
-    df = pd.DataFrame(rows)
-    return df
+                    })
+    return pd.DataFrame(rows)
 
-# Page config
-st.set_page_config(
-    page_title="BetFinder AI - Sports Betting Analytics",
-    page_icon="🎯",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Sidebar
+with st.sidebar:
+    st.markdown('<div class="sidebar-brand">', unsafe_allow_html=True)
+    st.image("https://via.placeholder.com/300x90/10b981/04120a?text=BetFinder+AI", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("### ⚙️ Filters & Settings")
 
-# Custom CSS for StatKing.ai inspired design
-st.markdown(
-    """    .main-header {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-    }
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.5rem;
-        border-radius: 10px;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-    }
-    .metric-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin: 0;
-    }
-    .odds-table {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    .value-bet-badge {
-        background: #10b981;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }""",
-    unsafe_allow_html=True
-)
-
-# Main header
-st.markdown('<h1 class="main-header">🎯 BetFinder AI</h1>', unsafe_allow_html=True)
-st.markdown("**Advanced Sports Betting Analytics Platform** - Powered by AI")
-st.divider()
-
-# Fetch data upfront with try/except and build df for dynamic filters
 with st.spinner("Fetching latest odds..."):
     try:
         odds_json = fetch_live_odds()
         df = normalize_odds_json(odds_json)
-        # Diagnostic: normalized dataframe
-        st.write("Normalized DataFrame:", df)
     except Exception as e:
         st.error(f"Failed to fetch odds: {e}")
         df = pd.DataFrame()
 
-# Sidebar
+sports_list = sorted(df["sport_title"].dropna().unique().tolist()) if not df.empty else []
+leagues_list = sorted(df["sport_key"].dropna().unique().tolist()) if not df.empty else []
+bookmakers_list = sorted(df["bookmaker"].dropna().unique().tolist()) if not df.empty else []
+markets_list = sorted(df["market"].dropna().unique().tolist()) if not df.empty else []
+
 with st.sidebar:
-    st.image("https://via.placeholder.com/150x50/667eea/ffffff?text=BetFinder+AI", use_column_width=True)
-    st.markdown("### ⚙️ Filters & Settings")
-
-    # Dynamic unique values from df for filters (fallbacks to empty lists)
-    sports_list = sorted(df["sport_title"].dropna().unique().tolist()) if not df.empty else []
-    leagues_list = sorted(df["sport_key"].dropna().unique().tolist()) if not df.empty else []
-    bookmakers_list = sorted(df["bookmaker"].dropna().unique().tolist()) if not df.empty else []
-    markets_list = sorted(df["market"].dropna().unique().tolist()) if not df.empty else []
-
-    # Use sensible defaults only from available values
-    selected_sport = st.selectbox(
-        "🏆 Select Sport",
-        options=sports_list,
-        index=0 if sports_list else None,
-        placeholder="Select sport" if not sports_list else None,
-    )
-    selected_leagues = st.multiselect(
-        "📊 Select Leagues",
-        options=leagues_list,
-        default=leagues_list,
-    )
-    selected_markets = st.multiselect(
-        "🧭 Select Markets",
-        options=markets_list,
-        default=markets_list,
-    )
-    selected_bookmakers = st.multiselect(
-        "🏪 Select Bookmakers",
-        options=bookmakers_list,
-        default=bookmakers_list,
-    )
-
-    st.markdown("### 💰 Odds Range")
+    selected_sport = st.selectbox("🏆 Select Sport", options=(sports_list or ["All"]))
+    selected_leagues = st.multiselect("📊 Select Leagues", options=leagues_list, default=leagues_list)
+    selected_markets = st.multiselect("🧭 Select Markets", options=markets_list, default=markets_list)
+    selected_bookmakers = st.multiselect("🏪 Select Bookmakers", options=bookmakers_list, default=bookmakers_list)
     min_odds, max_odds = st.slider(
-        "Select range",
+        "💰 Odds Range",
         min_value=float(df["price"].min()) if not df.empty else 1.0,
         max_value=float(df["price"].max()) if not df.empty else 10.0,
-        value=(
-            float(max(1.0, df["price"].min())) if not df.empty else 1.5,
-            float(min(10.0, df["price"].max())) if not df.empty else 5.0,
-        ),
+        value=(float(max(1.0, df["price"].min())) if not df.empty else 1.5,
+               float(min(10.0, df["price"].max())) if not df.empty else 5.0),
         step=0.1,
         disabled=df.empty,
     )
-    value_threshold = st.slider(
-        "📈 Value Bet Threshold (%)",
-        min_value=0,
-        max_value=20,
-        value=5,
-        step=1,
-    )
+    value_threshold = st.slider("📈 Value Bet Threshold (%)", 0, 20, 5, 1)
 
-# Debug: echo sidebar selections
-st.write("Selected sport:", selected_sport)
-st.write("Selected leagues:", selected_leagues)
-st.write("Selected markets:", selected_markets)
-st.write("Selected bookmakers:", selected_bookmakers)
-st.write("Selected odds range:", (min_odds, max_odds))
-st.write("Selected value threshold (%):", value_threshold)
-
-# Apply filters to df for display
 filtered_df = df.copy()
 if not filtered_df.empty:
-    if selected_sport:
+    if selected_sport and selected_sport != "All":
         filtered_df = filtered_df[filtered_df["sport_title"] == selected_sport]
     if selected_leagues:
         filtered_df = filtered_df[filtered_df["sport_key"].isin(selected_leagues)]
@@ -197,184 +152,112 @@ if not filtered_df.empty:
         filtered_df = filtered_df[filtered_df["bookmaker"].isin(selected_bookmakers)]
     filtered_df = filtered_df[(filtered_df["price"].fillna(0) >= min_odds) & (filtered_df["price"].fillna(0) <= max_odds)]
 
-# Main content area
-# Top metrics row
-col1, col2, col3, col4 = st.columns(4)
-with col1:
+# HERO
+colh1, colh2 = st.columns([2.2, 1])
+with colh1:
+    st.markdown('<div class="hero">', unsafe_allow_html=True)
+    st.image(
+        "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1600&auto=format&fit=crop",
+        use_column_width=True,
+    )
     st.markdown(
         """
-    <div class="stat-card">
-        <p class="metric-label">📈 Value Bets Found</p>
-        <p class="metric-value">0</p>
-    </div>
-    """,
+        <div>
+          <h1>BetFinder AI</h1>
+          <div class="kpis">
+            <div class="kpi"><div class="v">Live</div><div class="l">Events</div></div>
+            <div class="kpi"><div class="v">Upcoming</div><div class="l">Matches</div></div>
+            <div class="kpi"><div class="v">Value</div><div class="l">Signals</div></div>
+          </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
-with col2:
+    st.markdown('</div>', unsafe_allow_html=True)
+with colh2:
     st.markdown(
-        """
-    <div class="stat-card">
-        <p class="metric-label">💵 Potential Value</p>
-        <p class="metric-value">$0</p>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
-with col3:
-    st.markdown(
-        """
-    <div class="stat-card">
-        <p class="metric-label">🎲 Markets Analyzed</p>
-        <p class="metric-value">0</p>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
-with col4:
-    st.markdown(
-        """
-    <div class="stat-card">
-        <p class="metric-label">⚡ Last Update</p>
-        <p class="metric-value">Now</p>
-    </div>
-    """,
+        f"<div class='panel'><b>Today</b><div class='divider'></div><div>🗓 {datetime.now().strftime('%a, %b %d')}</div><div>⏰ {datetime.now().strftime('%I:%M %p')}</div></div>",
         unsafe_allow_html=True,
     )
 
-st.markdown("<br/>", unsafe_allow_html=True)
+# NAV TABS
+nav_tabs = st.tabs(["🎯 Value Bets", "📺 Live Events", "📅 Upcoming", "📊 Analytics", "📚 Odds Board", "💾 Tracker"])
 
-# Tabs for different sections
-if df.empty:
-    st.warning("No data found")
-else:
-    st.dataframe(df, use_container_width=True, hide_index=True)
-
-# Keep existing tabs below
-tab1, tab2, tab3, tab4 = st.tabs(["🎯 Value Bets", "📊 Live Odds", "📈 Analytics", "💾 Bet Tracker"])
-
-with tab1:
-    st.markdown("### 🎯 Top Value Betting Opportunities")
-    st.info("🔄 Click 'Analyze Odds' to find value bets based on your criteria")
+# VALUE BETS
+with nav_tabs[0]:
+    st.markdown('<div class="section-title"><h3>Top Value Opportunities</h3><span class="time">Auto-screened across books</span></div>', unsafe_allow_html=True)
     if st.button("🔍 Analyze Odds", type="primary", use_container_width=True):
         with st.spinner("Analyzing odds from multiple bookmakers..."):
             time.sleep(2)
             st.warning("⚠️ No value bets found matching your criteria. Try adjusting filters.")
-    # Sample data structure for value bets
-    st.markdown(
-        """
-    <div class="odds-table">
-        Expected Format:
-        <ul>
-            Match: Team A vs Team B
-            Market: Match Winner / Over/Under / Both Teams to Score
-            Bookmaker: Best available odds
-            Odds: Decimal odds
-            Value %: Expected value percentage
-            Recommended Stake: Kelly criterion based
-        </ul>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+    for i in range(3):
+        st.markdown(
+            f"""
+            <div class='card'>
+              <div class='banner' style="background-image:url('https://images.unsplash.com/photo-1542574271-7f3b92e6c821?q=80&w=1600&auto=format&fit=crop')"></div>
+              <div class='body'>
+                <span class='badge'>Value {5+i*2}%</span>
+                <div class='teams'><span>Team A</span><span>vs</span><span>Team B</span></div>
+                <div class='meta'><span>Market: Match Winner</span><span>Book: Best</span></div>
+                <div class='odds'>
+                  <div class='pill'>A 2.10</div>
+                  <div class='pill best'>B 2.35</div>
+                  <div class='pill'>Draw 3.20</div>
+                </div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with tab2:
-    st.markdown("### 📊 Live Odds Board")
-    st.info(
-        f"Showing odds for {selected_sport or 'All Sports'} | Leagues: {', '.join(selected_leagues) if selected_leagues else 'All'} | Markets: {', '.join(selected_markets) if selected_markets else 'All'}"
-    )
-    # Build a presentable view from filtered_df
-    display_cols = [
-        "commence_time",
-        "sport_title",
-        "sport_key",
-        "home_team",
-        "away_team",
-        "market",
-        "name",
-        "price",
-        "point",
-        "bookmaker",
-    ]
-    df_odds = filtered_df[display_cols] if not filtered_df.empty else pd.DataFrame(columns=display_cols)
-    # Empty warning section
-    if df_odds.empty:
-        st.warning("📭 No live odds available for current filters or feed is empty. Adjust filters or try again later.")
+# LIVE EVENTS
+with nav_tabs[1]:
+    st.markdown('<div class="section-title"><h3>Live Events</h3><span class="time">Right now</span></div>', unsafe_allow_html=True)
+    display_cols = ["commence_time", "sport_title", "home_team", "away_team", "market", "name", "price", "point", "bookmaker"]
+    df_live = filtered_df[display_cols] if not filtered_df.empty else pd.DataFrame(columns=display_cols)
+    if df_live.empty:
+        st.warning("📭 No live events available. Adjust filters or try later.")
     else:
-        st.dataframe(df_odds, use_container_width=True, hide_index=True)
+        st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+        for _, row in df_live.head(9).iterrows():
+            banner = "https://images.unsplash.com/photo-1521417531039-99f22f39a8f1?q=80&w=1600&auto=format&fit=crop"
+            tm = (row["commence_time"] or "").replace("T"," ").replace("Z"," UTC")
+            st.markdown(
+                f"""
+                <div class='card'>
+                  <div class='banner' style="background-image:url('{banner}')"></div>
+                  <div class='body'>
+                    <span class='badge'>Live</span>
+                    <div class='teams'><span>{row['home_team'] or ''}</span><span>vs</span><span>{row['away_team'] or ''}</span></div>
+                    <div class='meta'><span>{row['sport_title'] or ''}</span><span>{tm}</span><span>{row['bookmaker'] or ''}</span></div>
+                    <div class='odds'>
+                      <div class='pill'>{row['name'] or ''} {row['price'] or ''}</div>
+                      <div class='pill best'>{row['market'] or ''}</div>
+                      <div class='pill'>{row['point'] if pd.notna(row['point']) else ''}</div>
+                    </div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
 
-with tab3:
-    st.markdown("### 📈 Betting Analytics & Insights")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("#### 📊 Performance Overview")
-        st.line_chart(pd.DataFrame({"ROI": [0], "Profit": [0]}, index=[datetime.now()]))
-    with col2:
-        st.markdown("#### 🎯 Win Rate by Sport")
-        st.bar_chart(pd.DataFrame({"Win Rate": []}, index=[]))
-    st.markdown("#### 🔥 Hot Bookmakers")
-    st.info("Track which bookmakers offer the best value over time")
-    st.markdown("#### 📉 Odds Movement Tracker")
-    st.info("Monitor how odds change leading up to events")
-
-with tab4:
-    st.markdown("### 💾 Bet Tracking & History")
-    # Bet entry form
-    with st.expander("➕ Add New Bet", expanded=False):
-        with st.form("bet_form"):
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                bet_sport = st.selectbox("Sport", sorted(sports_list) or [""], index=0 if sports_list else 0)
-                bet_league = st.text_input("League")
-                bet_event = st.text_input("Event/Match")
-            with col2:
-                bet_type = st.selectbox(
-                    "Bet Type",
-                    sorted(selected_markets) if selected_markets else sorted(markets_list) or ["Other"],
-                )
-                bet_selection = st.text_input("Selection")
-                bet_odds = st.number_input("Odds", min_value=1.01, value=2.0, step=0.01)
-            with col3:
-                bet_stake = st.number_input("Stake ($)", min_value=0.0, value=10.0, step=1.0)
-                bet_bookmaker = st.selectbox("Bookmaker", sorted(bookmakers_list) or [""])
-                bet_date = st.date_input("Date")
-            submitted = st.form_submit_button("💾 Save Bet", use_container_width=True)
-            if submitted:
-                st.success("✅ Bet saved successfully!")
-
-    # Bet history table
-    st.markdown("#### 📋 Recent Bets")
-    bet_history = pd.DataFrame({
-        "Date": [],
-        "Sport": [],
-        "Event": [],
-        "Bet Type": [],
-        "Odds": [],
-        "Stake": [],
-        "Status": [],
-        "P/L": [],
-    })
-    if bet_history.empty:
-        st.info("📭 No bets recorded yet. Add your first bet above!")
-    else:
-        st.dataframe(bet_history, use_container_width=True, hide_index=True)
-        # Summary stats
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Bets", "0")
-        with col2:
-            st.metric("Total Staked", "$0")
-        with col3:
-            st.metric("Total Profit", "$0", delta="0%")
-        with col4:
-            st.metric("Win Rate", "0%")
-
-# Footer
-st.divider()
-col1, col2, col3 = st.columns([2, 1, 1])
-with col1:
-    st.markdown("**BetFinder AI** - Smart Sports Betting Analytics")
-with col2:
-    st.markdown("[📚 Documentation](#)")
-with col3:
-    st.markdown("[⚙️ Settings](#)")
-st.caption("⚠️ Responsible Gambling: Please bet responsibly. This tool is for informational purposes only.")
+# UPCOMING
+with nav_tabs[2]:
+    st.markdown('<div class="section-title"><h3>Upcoming Matches</h3><span class="time">Next 48 hours</span></div>', unsafe_allow_html=True)
+    # Simulated upcoming layout using cards
+    st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+    for i in range(6):
+        banner = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1600&auto=format&fit=crop"
+        st.markdown(
+            f"""
+            <div class='card'>
+              <div class='banner' style="background-image:url('{banner}')"></div>
+              <div class='body'>
+                <span class='badge'>Kickoff {i+1}h</span>
+                <div class='teams'><span>Club {i+1}</span><span>vs</span><span>Rivals {i+2}</span></div>
+                <div class='meta'><span>Tournament</span><span>{datetime.now().strftime('%b %d')}</span></div>
+                <div class='odds'>
+                  <div class='pill'>Home 1.{i}0</div>
