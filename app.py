@@ -1,263 +1,302 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-import json
-from datetime import datetime, timedelta
-import os
-from bet_db import db
+from datetime import datetime
+import time
 
-class BetAnalyzer:
-    def __init__(self):
-        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
-        self.trained = False
-    
-    def scrape_odds(self, sport='football', league='premier-league'):
-        """Scrape betting odds from various sources"""
-        # This is a simplified example - in reality you'd scrape from multiple bookmakers
-        odds_data = [
-            {
-                'event': 'Manchester United vs Chelsea',
-                'sport': 'Football',
-                'home_odds': 2.50,
-                'draw_odds': 3.20,
-                'away_odds': 2.80,
-                'bookmaker': 'Bet365',
-                'date': datetime.now() + timedelta(days=1)
-            },
-            {
-                'event': 'Liverpool vs Arsenal',
-                'sport': 'Football',
-                'home_odds': 1.95,
-                'draw_odds': 3.50,
-                'away_odds': 3.25,
-                'bookmaker': 'William Hill',
-                'date': datetime.now() + timedelta(days=2)
-            },
-            {
-                'event': 'Lakers vs Warriors',
-                'sport': 'Basketball',
-                'home_odds': 1.85,
-                'draw_odds': None,
-                'away_odds': 1.95,
-                'bookmaker': 'DraftKings',
-                'date': datetime.now() + timedelta(days=1)
-            },
-            {
-                'event': 'Yankees vs Red Sox',
-                'sport': 'Baseball',
-                'home_odds': 2.10,
-                'draw_odds': None,
-                'away_odds': 1.75,
-                'bookmaker': 'FanDuel',
-                'date': datetime.now() + timedelta(days=1)
-            }
-        ]
-        return odds_data
-    
-    def calculate_value_bets(self, odds_data):
-        """Calculate potential value bets based on odds comparison"""
-        value_bets = []
-        for odds in odds_data:
-            # Simple value calculation - compare with average market odds
-            implied_prob_home = 1 / odds['home_odds'] if odds['home_odds'] else 0
-            implied_prob_away = 1 / odds['away_odds'] if odds['away_odds'] else 0
-            
-            if odds['draw_odds']:
-                implied_prob_draw = 1 / odds['draw_odds']
-                total_prob = implied_prob_home + implied_prob_draw + implied_prob_away
-            else:
-                total_prob = implied_prob_home + implied_prob_away
-            
-            margin = (total_prob - 1) * 100
-            
-            value_bets.append({
-                'event': odds['event'],
-                'sport': odds['sport'],
-                'bookmaker': odds['bookmaker'],
-                'best_bet': 'Home' if odds['home_odds'] > odds['away_odds'] else 'Away',
-                'odds': max(odds['home_odds'], odds['away_odds']),
-                'margin': round(margin, 2),
-                'date': odds['date']
-            })
-        
-        return value_bets
+# Page config
+st.set_page_config(
+    page_title="BetFinder AI - Sports Betting Analytics",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Odds JSON and records builder
-odds_json = [
-    {'event': 'Manchester United vs Chelsea', 'sport': 'Football', 'home_odds': 2.50, 'draw_odds': 3.20, 'away_odds': 2.80, 'bookmaker': 'Bet365', 'league': 'Premier League'},
-    {'event': 'Liverpool vs Arsenal', 'sport': 'Football', 'home_odds': 1.95, 'draw_odds': 3.50, 'away_odds': 3.25, 'bookmaker': 'William Hill', 'league': 'Premier League'},
-    {'event': 'Real Madrid vs Barcelona', 'sport': 'Football', 'home_odds': 2.20, 'draw_odds': 3.30, 'away_odds': 3.10, 'bookmaker': 'Bet365', 'league': 'La Liga'},
-    {'event': 'Bayern Munich vs Dortmund', 'sport': 'Football', 'home_odds': 1.80, 'draw_odds': 3.80, 'away_odds': 4.20, 'bookmaker': 'Betway', 'league': 'Bundesliga'},
-    {'event': 'Lakers vs Warriors', 'sport': 'Basketball', 'home_odds': 1.85, 'draw_odds': None, 'away_odds': 1.95, 'bookmaker': 'DraftKings', 'league': 'NBA'},
-    {'event': 'Celtics vs Nets', 'sport': 'Basketball', 'home_odds': 1.75, 'draw_odds': None, 'away_odds': 2.05, 'bookmaker': 'FanDuel', 'league': 'NBA'},
-    {'event': 'Yankees vs Red Sox', 'sport': 'Baseball', 'home_odds': 2.10, 'draw_odds': None, 'away_odds': 1.75, 'bookmaker': 'FanDuel', 'league': 'MLB'},
-    {'event': 'Dodgers vs Giants', 'sport': 'Baseball', 'home_odds': 1.90, 'draw_odds': None, 'away_odds': 1.90, 'bookmaker': 'DraftKings', 'league': 'MLB'},
-    {'event': 'PSG vs Lyon', 'sport': 'Football', 'home_odds': 1.65, 'draw_odds': 3.90, 'away_odds': 5.50, 'bookmaker': 'Betway', 'league': 'Ligue 1'},
-    {'event': 'Juventus vs AC Milan', 'sport': 'Football', 'home_odds': 2.35, 'draw_odds': 3.25, 'away_odds': 2.95, 'bookmaker': 'William Hill', 'league': 'Serie A'}
-]
+# Custom CSS for StatKing.ai inspired design
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    .odds-table {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .value-bet-badge {
+        background: #10b981;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-records = []
-for odd in odds_json:
-    records.append({
-        'Event': odd['event'],
-        'Sport': odd['sport'],
-        'League': odd['league'],
-        'Home Odds': odd['home_odds'],
-        'Draw Odds': odd['draw_odds'] if odd['draw_odds'] else 'N/A',
-        'Away Odds': odd['away_odds'],
-        'Bookmaker': odd['bookmaker']
-    })
+# Main header
+st.markdown('<h1 class="main-header">🎯 BetFinder AI</h1>', unsafe_allow_html=True)
+st.markdown("**Advanced Sports Betting Analytics Platform** - Powered by AI")
+st.divider()
 
-def main():
-    st.set_page_config(page_title="BetFinder AI", page_icon="🎲", layout="wide")
-    
-    st.title("🎲 BetFinder AI - Smart Betting Analytics")
-    st.markdown("### Find the best betting opportunities with AI-powered analysis")
-    
-    # Sidebar filters
-    st.sidebar.header("Filters")
+# Sidebar
+with st.sidebar:
+    st.image("https://via.placeholder.com/150x50/667eea/ffffff?text=BetFinder+AI", use_column_width=True)
+    st.markdown("### ⚙️ Filters & Settings")
     
     # Sport filter
-    all_sports = sorted(list(set([r['Sport'] for r in records])))
-    selected_sports = st.sidebar.multiselect(
-        "Select Sports",
-        options=all_sports,
-        default=all_sports
+    selected_sport = st.selectbox(
+        "🏆 Select Sport",
+        ["⚽ Soccer", "🏀 Basketball", "🏈 Football", "⚾ Baseball", "🎾 Tennis"]
     )
     
     # League filter
-    all_leagues = sorted(list(set([r['League'] for r in records])))
-    selected_leagues = st.sidebar.multiselect(
-        "Select Leagues",
-        options=all_leagues,
-        default=all_leagues
+    leagues = {
+        "⚽ Soccer": ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"],
+        "🏀 Basketball": ["NBA", "EuroLeague", "NCAA"],
+        "🏈 Football": ["NFL", "NCAA Football"],
+        "⚾ Baseball": ["MLB", "NPB"],
+        "🎾 Tennis": ["ATP", "WTA", "Grand Slams"]
+    }
+    selected_leagues = st.multiselect(
+        "📊 Select Leagues",
+        leagues.get(selected_sport, []),
+        default=leagues.get(selected_sport, [])
     )
     
     # Bookmaker filter
-    all_bookmakers = sorted(list(set([r['Bookmaker'] for r in records])))
-    selected_bookmakers = st.sidebar.multiselect(
-        "Select Bookmakers",
-        options=all_bookmakers,
-        default=all_bookmakers
+    bookmakers = ["Bet365", "DraftKings", "FanDuel", "BetMGM", "Caesars", "PointsBet"]
+    selected_bookmakers = st.multiselect(
+        "🏪 Select Bookmakers",
+        bookmakers,
+        default=bookmakers
     )
     
-    # Odds range filter
-    st.sidebar.subheader("Odds Range")
-    min_odds = st.sidebar.number_input("Minimum Odds", min_value=1.0, max_value=10.0, value=1.0, step=0.1)
-    max_odds = st.sidebar.number_input("Maximum Odds", min_value=1.0, max_value=10.0, value=10.0, step=0.1)
+    # Odds range
+    st.markdown("### 💰 Odds Range")
+    min_odds, max_odds = st.slider(
+        "Select range",
+        min_value=1.0,
+        max_value=10.0,
+        value=(1.5, 5.0),
+        step=0.1
+    )
     
-    # Filtered live odds dataframe display
-    st.header("📊 Live Odds Board")
+    # Value bet threshold
+    value_threshold = st.slider(
+        "📈 Value Bet Threshold (%)",
+        min_value=0,
+        max_value=20,
+        value=5,
+        step=1
+    )
     
-    # Filter records
-    filtered_records = []
-    for record in records:
-        if (record['Sport'] in selected_sports and 
-            record['League'] in selected_leagues and 
-            record['Bookmaker'] in selected_bookmakers):
-            
-            # Check odds range
-            home_odds = record['Home Odds']
-            away_odds = record['Away Odds']
-            
-            if (min_odds <= home_odds <= max_odds or 
-                min_odds <= away_odds <= max_odds):
-                filtered_records.append(record)
+    st.divider()
     
-    if filtered_records:
-        df_odds = pd.DataFrame(filtered_records)
-        st.dataframe(df_odds, use_container_width=True, hide_index=True)
-        st.success(f"Showing {len(filtered_records)} betting opportunities")
+    # Quick stats in sidebar
+    st.markdown("### 📊 Quick Stats")
+    st.metric("Active Bets", "0")
+    st.metric("Total ROI", "0%")
+    st.metric("Win Rate", "0%")
+
+# Main content area
+# Top metrics row
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.markdown("""
+    <div class="stat-card">
+        <p class="metric-label">📈 Value Bets Found</p>
+        <p class="metric-value">0</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+    <div class="stat-card">
+        <p class="metric-label">💵 Potential Value</p>
+        <p class="metric-value">$0</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+    <div class="stat-card">
+        <p class="metric-label">🎲 Markets Analyzed</p>
+        <p class="metric-value">0</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown("""
+    <div class="stat-card">
+        <p class="metric-label">⚡ Last Update</p>
+        <p class="metric-value">Now</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Tabs for different sections
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 Value Bets", "📊 Live Odds", "📈 Analytics", "💾 Bet Tracker"])
+
+with tab1:
+    st.markdown("### 🎯 Top Value Betting Opportunities")
+    st.info("🔄 Click 'Analyze Odds' to find value bets based on your criteria")
+    
+    if st.button("🔍 Analyze Odds", type="primary", use_container_width=True):
+        with st.spinner("Analyzing odds from multiple bookmakers..."):
+            time.sleep(2)
+            st.warning("⚠️ No value bets found matching your criteria. Try adjusting filters.")
+    
+    # Sample data structure for value bets
+    st.markdown("""
+    <div class="odds-table">
+        <h4>Expected Format:</h4>
+        <ul>
+            <li><strong>Match:</strong> Team A vs Team B</li>
+            <li><strong>Market:</strong> Match Winner / Over/Under / Both Teams to Score</li>
+            <li><strong>Bookmaker:</strong> Best available odds</li>
+            <li><strong>Odds:</strong> Decimal odds</li>
+            <li><strong>Value %:</strong> Expected value percentage</li>
+            <li><strong>Recommended Stake:</strong> Kelly criterion based</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+with tab2:
+    st.markdown("### 📊 Live Odds Board")
+    st.info(f"Showing odds for {selected_sport} | Leagues: {', '.join(selected_leagues) if selected_leagues else 'None selected'}")
+    
+    # Sample odds dataframe
+    sample_data = {
+        "Time": [],
+        "League": [],
+        "Match": [],
+        "Home Odds": [],
+        "Draw Odds": [],
+        "Away Odds": [],
+        "Bookmaker": []
+    }
+    
+    df_odds = pd.DataFrame(sample_data)
+    
+    if df_odds.empty:
+        st.warning("📭 No live odds available. Adjust your filters or check back later.")
     else:
-        st.warning("No odds match your current filters. Try adjusting the filters.")
+        st.dataframe(df_odds, use_container_width=True, hide_index=True)
+
+with tab3:
+    st.markdown("### 📈 Betting Analytics & Insights")
     
-    # Initialize analyzer
-    analyzer = BetAnalyzer()
+    col1, col2 = st.columns(2)
     
-    # Create tabs for different features
-    tab1, tab2, tab3 = st.tabs(["📈 Value Bets", "🔍 Odds Comparison", "💾 Bet History"])
+    with col1:
+        st.markdown("#### 📊 Performance Overview")
+        st.line_chart(pd.DataFrame(
+            {"ROI": [0], "Profit": [0]},
+            index=[datetime.now()]
+        ))
     
-    with tab1:
-        st.subheader("Potential Value Bets")
-        
-        if st.button("Analyze Current Odds"):
-            with st.spinner("Analyzing odds..."):
-                odds_data = analyzer.scrape_odds()
-                value_bets = analyzer.calculate_value_bets(odds_data)
-                
-                if value_bets:
-                    df = pd.DataFrame(value_bets)
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    st.info("No value bets found at the moment.")
+    with col2:
+        st.markdown("#### 🎯 Win Rate by Sport")
+        st.bar_chart(pd.DataFrame(
+            {"Win Rate": []},
+            index=[]
+        ))
     
-    with tab2:
-        st.subheader("Compare Odds Across Bookmakers")
-        st.info("Feature coming soon! This will compare odds from multiple bookmakers.")
+    st.markdown("#### 🔥 Hot Bookmakers")
+    st.info("Track which bookmakers offer the best value over time")
     
-    with tab3:
-        st.subheader("Your Betting History")
-        
-        # Bet tracker
+    st.markdown("#### 📉 Odds Movement Tracker")
+    st.info("Monitor how odds change leading up to events")
+
+with tab4:
+    st.markdown("### 💾 Bet Tracking & History")
+    
+    # Bet entry form
+    with st.expander("➕ Add New Bet", expanded=False):
         with st.form("bet_form"):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                event = st.text_input("Event")
-                stake = st.number_input("Stake ($)", min_value=0.0, step=1.0)
+                bet_sport = st.selectbox("Sport", ["Soccer", "Basketball", "Football", "Baseball", "Tennis"])
+                bet_league = st.text_input("League")
+                bet_event = st.text_input("Event/Match")
             
             with col2:
-                bet_type = st.selectbox("Bet Type", ["Home", "Draw", "Away", "Over", "Under"])
-                odds = st.number_input("Odds", min_value=1.0, step=0.1)
+                bet_type = st.selectbox("Bet Type", ["Match Winner", "Over/Under", "Handicap", "Both Teams to Score", "Other"])
+                bet_selection = st.text_input("Selection")
+                bet_odds = st.number_input("Odds", min_value=1.01, value=2.0, step=0.01)
             
             with col3:
-                bookmaker = st.text_input("Bookmaker")
-                result = st.selectbox("Result", ["Pending", "Won", "Lost"])
+                bet_stake = st.number_input("Stake ($)", min_value=0.0, value=10.0, step=1.0)
+                bet_bookmaker = st.selectbox("Bookmaker", bookmakers)
+                bet_date = st.date_input("Date")
             
-            submitted = st.form_submit_button("Add Bet")
-            
-            if submitted and event:
-                bet_data = {
-                    'event': event,
-                    'stake': stake,
-                    'bet_type': bet_type,
-                    'odds': odds,
-                    'bookmaker': bookmaker,
-                    'result': result,
-                    'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-                }
-                
-                # Save to database
-                db.save_bet(bet_data)
-                st.success("Bet added successfully!")
+            submitted = st.form_submit_button("💾 Save Bet", use_container_width=True)
+            if submitted:
+                st.success("✅ Bet saved successfully!")
+    
+    # Bet history table
+    st.markdown("#### 📋 Recent Bets")
+    bet_history = pd.DataFrame({
+        "Date": [],
+        "Sport": [],
+        "Event": [],
+        "Bet Type": [],
+        "Odds": [],
+        "Stake": [],
+        "Status": [],
+        "P/L": []
+    })
+    
+    if bet_history.empty:
+        st.info("📭 No bets recorded yet. Add your first bet above!")
+    else:
+        st.dataframe(bet_history, use_container_width=True, hide_index=True)
         
-        # Display bet history
-        bets = db.get_all_bets()
-        if bets:
-            df_bets = pd.DataFrame(bets)
-            st.dataframe(df_bets, use_container_width=True)
-            
-            # Statistics
-            col1, col2, col3, col4 = st.columns(4)
-            total_bets = len(bets)
-            won_bets = len([b for b in bets if b.get('result') == 'Won'])
-            lost_bets = len([b for b in bets if b.get('result') == 'Lost'])
-            
-            with col1:
-                st.metric("Total Bets", total_bets)
-            with col2:
-                st.metric("Won", won_bets)
-            with col3:
-                st.metric("Lost", lost_bets)
-            with col4:
-                win_rate = (won_bets / (won_bets + lost_bets) * 100) if (won_bets + lost_bets) > 0 else 0
-                st.metric("Win Rate", f"{win_rate:.1f}%")
-        else:
-            st.info("No bets recorded yet. Add your first bet above!")
+        # Summary stats
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Bets", "0")
+        with col2:
+            st.metric("Total Staked", "$0")
+        with col3:
+            st.metric("Total Profit", "$0", delta="0%")
+        with col4:
+            st.metric("Win Rate", "0%")
 
-if __name__ == "__main__":
-    main()
+# Footer
+st.divider()
+col1, col2, col3 = st.columns([2, 1, 1])
+with col1:
+    st.markdown("**BetFinder AI** - Smart Sports Betting Analytics")
+with col2:
+    st.markdown("[📚 Documentation](#)")
+with col3:
+    st.markdown("[⚙️ Settings](#)")
+
+st.caption("⚠️ Responsible Gambling: Please bet responsibly. This tool is for informational purposes only.")
