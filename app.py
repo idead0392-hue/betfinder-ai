@@ -36,7 +36,7 @@ if not filtered_df.empty:
         filtered_df = filtered_df[filtered_df["bookmaker"].isin(selected_bookmakers)]
     filtered_df = filtered_df[(filtered_df["price"].fillna(0) >= min_odds) & (filtered_df["price"].fillna(0) <= max_odds)]
 # NAV TABS - Updated with Value Picks, Top 10, and Sports Categories
-nav_tabs = st.tabs(["Value Picks", "BFAI Top 10", "Tennis", "Basketball", "Football", "Baseball", "Hockey", "Soccer", "Golf", "MMA", "Cricket", "Rugby"])
+nav_tabs = st.tabs(["Value Picks", "BFAI Top 10", "Tennis", "Basketball", "Football", "Baseball", "Hockey", "Soccer", "Golf", "MMA", "Cricket", "Rugby", "CS2", "League of Legends", "Dota 2", "Valorant"])
 # Compute value bets
 value_candidates = pd.DataFrame()
 if not filtered_df.empty:
@@ -63,7 +63,7 @@ with nav_tabs[1]:
         st.dataframe(value_candidates.sort_values("edge_pct", ascending=False).head(10), use_container_width=True)
 # TENNIS TAB
 with nav_tabs[2]:
-    st.markdown('<div class="section-title">Tennis<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Tennis<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     tennis_df = filtered_df[filtered_df["sport_title"] == "Tennis"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if tennis_df.empty:
         st.info("No tennis events available.")
@@ -71,7 +71,7 @@ with nav_tabs[2]:
         st.dataframe(tennis_df.head(100), use_container_width=True)
 # BASKETBALL TAB
 with nav_tabs[3]:
-    st.markdown('<div class="section-title">Basketball<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Basketball<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     basketball_df = filtered_df[filtered_df["sport_title"] == "Basketball"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if basketball_df.empty:
         st.info("No basketball events available.")
@@ -79,7 +79,7 @@ with nav_tabs[3]:
         st.dataframe(basketball_df.head(100), use_container_width=True)
 # FOOTBALL TAB
 with nav_tabs[4]:
-    st.markdown('<div class="section-title">Football<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Football<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     football_df = filtered_df[filtered_df["sport_title"] == "Football"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if football_df.empty:
         st.info("No football events available.")
@@ -87,7 +87,7 @@ with nav_tabs[4]:
         st.dataframe(football_df.head(100), use_container_width=True)
 # BASEBALL TAB
 with nav_tabs[5]:
-    st.markdown('<div class="section-title">Baseball<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Baseball<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     baseball_df = filtered_df[filtered_df["sport_title"] == "Baseball"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if baseball_df.empty:
         st.info("No baseball events available.")
@@ -95,7 +95,7 @@ with nav_tabs[5]:
         st.dataframe(baseball_df.head(100), use_container_width=True)
 # HOCKEY TAB
 with nav_tabs[6]:
-    st.markdown('<div class="section-title">Hockey<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Hockey<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     hockey_df = filtered_df[filtered_df["sport_title"] == "Hockey"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if hockey_df.empty:
         st.info("No hockey events available.")
@@ -103,7 +103,7 @@ with nav_tabs[6]:
         st.dataframe(hockey_df.head(100), use_container_width=True)
 # SOCCER TAB
 with nav_tabs[7]:
-    st.markdown('<div class="section-title">Soccer<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Soccer<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     soccer_df = filtered_df[filtered_df["sport_title"] == "Soccer"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if soccer_df.empty:
         st.info("No soccer events available.")
@@ -111,7 +111,7 @@ with nav_tabs[7]:
         st.dataframe(soccer_df.head(100), use_container_width=True)
 # GOLF TAB
 with nav_tabs[8]:
-    st.markdown('<div class="section-title">Golf<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Golf<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     golf_df = filtered_df[filtered_df["sport_title"] == "Golf"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if golf_df.empty:
         st.info("No golf events available.")
@@ -119,7 +119,7 @@ with nav_tabs[8]:
         st.dataframe(golf_df.head(100), use_container_width=True)
 # MMA TAB
 with nav_tabs[9]:
-    st.markdown('<div class="section-title">MMA<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">MMA<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     mma_df = filtered_df[filtered_df["sport_title"] == "MMA"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if mma_df.empty:
         st.info("No MMA events available.")
@@ -127,7 +127,7 @@ with nav_tabs[9]:
         st.dataframe(mma_df.head(100), use_container_width=True)
 # CRICKET TAB
 with nav_tabs[10]:
-    st.markdown('<div class="section-title">Cricket<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Cricket<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     cricket_df = filtered_df[filtered_df["sport_title"] == "Cricket"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if cricket_df.empty:
         st.info("No cricket events available.")
@@ -135,9 +135,41 @@ with nav_tabs[10]:
         st.dataframe(cricket_df.head(100), use_container_width=True)
 # RUGBY TAB
 with nav_tabs[11]:
-    st.markdown('<div class="section-title">Rugby<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Rugby<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
     rugby_df = filtered_df[filtered_df["sport_title"] == "Rugby"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
     if rugby_df.empty:
         st.info("No rugby events available.")
     else:
         st.dataframe(rugby_df.head(100), use_container_width=True)
+# CS2 TAB
+with nav_tabs[12]:
+    st.markdown('<div class="section-title">CS2<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
+    cs2_df = filtered_df[filtered_df["sport_title"] == "CS2"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
+    if cs2_df.empty:
+        st.info("No CS2 events available.")
+    else:
+        st.dataframe(cs2_df.head(100), use_container_width=True)
+# LEAGUE OF LEGENDS TAB
+with nav_tabs[13]:
+    st.markdown('<div class="section-title">League of Legends<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
+    lol_df = filtered_df[filtered_df["sport_title"] == "League of Legends"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
+    if lol_df.empty:
+        st.info("No League of Legends events available.")
+    else:
+        st.dataframe(lol_df.head(100), use_container_width=True)
+# DOTA 2 TAB
+with nav_tabs[14]:
+    st.markdown('<div class="section-title">Dota 2<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
+    dota2_df = filtered_df[filtered_df["sport_title"] == "Dota 2"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
+    if dota2_df.empty:
+        st.info("No Dota 2 events available.")
+    else:
+        st.dataframe(dota2_df.head(100), use_container_width=True)
+# VALORANT TAB
+with nav_tabs[15]:
+    st.markdown('<div class="section-title">Valorant<span class="time">Live &amp; Upcoming</span></div>', unsafe_allow_html=True)
+    valorant_df = filtered_df[filtered_df["sport_title"] == "Valorant"] if not filtered_df.empty and "sport_title" in filtered_df.columns else pd.DataFrame()
+    if valorant_df.empty:
+        st.info("No Valorant events available.")
+    else:
+        st.dataframe(valorant_df.head(100), use_container_width=True)
