@@ -7,7 +7,6 @@ import time
 # API Configuration
 API_KEY = "ede96651f63959b778ed2e2bbb2331f1"
 
-
 def fetch_live_odds(sport="tennis", regions="us", markets="h2h,totals,spreads,outrights,player_props,team_props"):
     """Fetch live odds from The Odds API"""
     url = f"https://api.the-odds-api.com/v4/sports/{sport}/odds/"
@@ -16,11 +15,11 @@ def fetch_live_odds(sport="tennis", regions="us", markets="h2h,totals,spreads,ou
     r.raise_for_status()
     odds_json = r.json()
     # Diagnostic: dump raw API response
-    st.write(odds_json)
+    st.write("Raw odds feed:", odds_json)
     return odds_json
 
-
 # Helper to normalize odds JSON into a flat dataframe catching all market types
+
 def normalize_odds_json(odds_json):
     rows = []
     if not odds_json:
@@ -54,7 +53,6 @@ def normalize_odds_json(odds_json):
                     rows.append(row)
     df = pd.DataFrame(rows)
     return df
-
 
 # Page config
 st.set_page_config(
@@ -118,6 +116,8 @@ with st.spinner("Fetching latest odds..."):
     try:
         odds_json = fetch_live_odds()
         df = normalize_odds_json(odds_json)
+        # Diagnostic: normalized dataframe
+        st.write("Normalized DataFrame:", df)
     except Exception as e:
         st.error(f"Failed to fetch odds: {e}")
         df = pd.DataFrame()
@@ -140,19 +140,16 @@ with st.sidebar:
         index=0 if sports_list else None,
         placeholder="Select sport" if not sports_list else None,
     )
-
     selected_leagues = st.multiselect(
         "📊 Select Leagues",
         options=leagues_list,
         default=leagues_list,
     )
-
     selected_markets = st.multiselect(
         "🧭 Select Markets",
         options=markets_list,
         default=markets_list,
     )
-
     selected_bookmakers = st.multiselect(
         "🏪 Select Bookmakers",
         options=bookmakers_list,
@@ -171,7 +168,6 @@ with st.sidebar:
         step=0.1,
         disabled=df.empty,
     )
-
     value_threshold = st.slider(
         "📈 Value Bet Threshold (%)",
         min_value=0,
@@ -180,12 +176,13 @@ with st.sidebar:
         step=1,
     )
 
-    st.divider()
-
-    st.markdown("### 📊 Quick Stats")
-    st.metric("Active Bets", "0")
-    st.metric("Total ROI", "0%")
-    st.metric("Win Rate", "0%")
+# Debug: echo sidebar selections
+st.write("Selected sport:", selected_sport)
+st.write("Selected leagues:", selected_leagues)
+st.write("Selected markets:", selected_markets)
+st.write("Selected bookmakers:", selected_bookmakers)
+st.write("Selected odds range:", (min_odds, max_odds))
+st.write("Selected value threshold (%):", value_threshold)
 
 # Apply filters to df for display
 filtered_df = df.copy()
@@ -247,17 +244,21 @@ with col4:
 st.markdown("<br/>", unsafe_allow_html=True)
 
 # Tabs for different sections
+if df.empty:
+    st.warning("No data found")
+else:
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+# Keep existing tabs below
 tab1, tab2, tab3, tab4 = st.tabs(["🎯 Value Bets", "📊 Live Odds", "📈 Analytics", "💾 Bet Tracker"])
 
 with tab1:
     st.markdown("### 🎯 Top Value Betting Opportunities")
     st.info("🔄 Click 'Analyze Odds' to find value bets based on your criteria")
-
     if st.button("🔍 Analyze Odds", type="primary", use_container_width=True):
         with st.spinner("Analyzing odds from multiple bookmakers..."):
             time.sleep(2)
             st.warning("⚠️ No value bets found matching your criteria. Try adjusting filters.")
-
     # Sample data structure for value bets
     st.markdown(
         """
@@ -281,7 +282,6 @@ with tab2:
     st.info(
         f"Showing odds for {selected_sport or 'All Sports'} | Leagues: {', '.join(selected_leagues) if selected_leagues else 'All'} | Markets: {', '.join(selected_markets) if selected_markets else 'All'}"
     )
-
     # Build a presentable view from filtered_df
     display_cols = [
         "commence_time",
@@ -295,9 +295,7 @@ with tab2:
         "point",
         "bookmaker",
     ]
-
     df_odds = filtered_df[display_cols] if not filtered_df.empty else pd.DataFrame(columns=display_cols)
-
     # Empty warning section
     if df_odds.empty:
         st.warning("📭 No live odds available for current filters or feed is empty. Adjust filters or try again later.")
@@ -306,36 +304,28 @@ with tab2:
 
 with tab3:
     st.markdown("### 📈 Betting Analytics & Insights")
-
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown("#### 📊 Performance Overview")
         st.line_chart(pd.DataFrame({"ROI": [0], "Profit": [0]}, index=[datetime.now()]))
-
     with col2:
         st.markdown("#### 🎯 Win Rate by Sport")
         st.bar_chart(pd.DataFrame({"Win Rate": []}, index=[]))
-
     st.markdown("#### 🔥 Hot Bookmakers")
     st.info("Track which bookmakers offer the best value over time")
-
     st.markdown("#### 📉 Odds Movement Tracker")
     st.info("Monitor how odds change leading up to events")
 
 with tab4:
     st.markdown("### 💾 Bet Tracking & History")
-
     # Bet entry form
     with st.expander("➕ Add New Bet", expanded=False):
         with st.form("bet_form"):
             col1, col2, col3 = st.columns(3)
-
             with col1:
                 bet_sport = st.selectbox("Sport", sorted(sports_list) or [""], index=0 if sports_list else 0)
                 bet_league = st.text_input("League")
                 bet_event = st.text_input("Event/Match")
-
             with col2:
                 bet_type = st.selectbox(
                     "Bet Type",
@@ -343,12 +333,10 @@ with tab4:
                 )
                 bet_selection = st.text_input("Selection")
                 bet_odds = st.number_input("Odds", min_value=1.01, value=2.0, step=0.01)
-
             with col3:
                 bet_stake = st.number_input("Stake ($)", min_value=0.0, value=10.0, step=1.0)
                 bet_bookmaker = st.selectbox("Bookmaker", sorted(bookmakers_list) or [""])
                 bet_date = st.date_input("Date")
-
             submitted = st.form_submit_button("💾 Save Bet", use_container_width=True)
             if submitted:
                 st.success("✅ Bet saved successfully!")
@@ -365,12 +353,10 @@ with tab4:
         "Status": [],
         "P/L": [],
     })
-
     if bet_history.empty:
         st.info("📭 No bets recorded yet. Add your first bet above!")
     else:
         st.dataframe(bet_history, use_container_width=True, hide_index=True)
-
         # Summary stats
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -391,5 +377,4 @@ with col2:
     st.markdown("[📚 Documentation](#)")
 with col3:
     st.markdown("[⚙️ Settings](#)")
-
 st.caption("⚠️ Responsible Gambling: Please bet responsibly. This tool is for informational purposes only.")
