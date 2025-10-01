@@ -1,7 +1,19 @@
 import streamlit as st
+import requests
 import pandas as pd
 from datetime import datetime
 import time
+
+# API Configuration
+API_KEY = "ede96651f63959b778ed2e2bbb2331f1"
+
+def fetch_live_odds(sport="tennis", regions="us", markets="h2h,totals"):
+    """Fetch live odds from The Odds API"""
+    url = f"https://api.the-odds-api.com/v4/sports/{sport}/odds/"
+    params = {"apiKey": API_KEY, "regions": regions, "markets": markets}
+    r = requests.get(url, params=params)
+    r.raise_for_status()
+    return r.json()
 
 # Page config
 st.set_page_config(
@@ -12,49 +24,7 @@ st.set_page_config(
 )
 
 # Custom CSS for StatKing.ai inspired design
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-    }
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.5rem;
-        border-radius: 10px;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-    }
-    .metric-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin: 0;
-    }
-    .odds-table {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    .value-bet-badge {
-        background: #10b981;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.markdown("""    .main-header {<br>        font-size: 2.5rem;<br>        font-weight: 700;<br>        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);<br>        -webkit-background-clip: text;<br>        -webkit-text-fill-color: transparent;<br>        margin-bottom: 1rem;<br>    }<br>    .stat-card {<br>        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);<br>        padding: 1.5rem;<br>        border-radius: 10px;<br>        color: white;<br>        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);<br>    }<br>    .metric-value {<br>        font-size: 2rem;<br>        font-weight: 700;<br>        margin: 0;<br>    }<br>    .metric-label {<br>        font-size: 0.9rem;<br>        opacity: 0.9;<br>        margin: 0;<br>    }<br>    .odds-table {<br>        background: white;<br>        border-radius: 10px;<br>        padding: 1rem;<br>        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);<br>    }<br>    .value-bet-badge {<br>        background: #10b981;<br>        color: white;<br>        padding: 0.25rem 0.75rem;<br>        border-radius: 20px;<br>        font-size: 0.85rem;<br>        font-weight: 600;<br>    }""", unsafe_allow_html=True)
 
 # Main header
 st.markdown('<h1 class="main-header">🎯 BetFinder AI</h1>', unsafe_allow_html=True)
@@ -174,14 +144,14 @@ with tab1:
     # Sample data structure for value bets
     st.markdown("""
     <div class="odds-table">
-        <h4>Expected Format:</h4>
+        Expected Format:
         <ul>
-            <li><strong>Match:</strong> Team A vs Team B</li>
-            <li><strong>Market:</strong> Match Winner / Over/Under / Both Teams to Score</li>
-            <li><strong>Bookmaker:</strong> Best available odds</li>
-            <li><strong>Odds:</strong> Decimal odds</li>
-            <li><strong>Value %:</strong> Expected value percentage</li>
-            <li><strong>Recommended Stake:</strong> Kelly criterion based</li>
+            <li>Match: Team A vs Team B</li>
+            <li>Market: Match Winner / Over/Under / Both Teams to Score</li>
+            <li>Bookmaker: Best available odds</li>
+            <li>Odds: Decimal odds</li>
+            <li>Value %: Expected value percentage</li>
+            <li>Recommended Stake: Kelly criterion based</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -292,10 +262,13 @@ with tab4:
 # Footer
 st.divider()
 col1, col2, col3 = st.columns([2, 1, 1])
+
 with col1:
     st.markdown("**BetFinder AI** - Smart Sports Betting Analytics")
+
 with col2:
     st.markdown("[📚 Documentation](#)")
+
 with col3:
     st.markdown("[⚙️ Settings](#)")
 
