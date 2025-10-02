@@ -55,9 +55,36 @@ def get_esport_team(team_id, api_key, api_host):
     data = res.read()
     return data.decode("utf-8")
 
+def get_esport_season_info(tournament_id, season_id, api_key, api_host):
+    """
+    Get esport season information using RapidAPI.
+    Args:
+        tournament_id: The esport tournament ID
+        season_id: The season ID
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    conn.request("GET", f"/api/esport/tournament/{tournament_id}/season/{season_id}/info", headers=headers)
+    res = conn.getresponse()
+    data = res.read()
+    return data.decode("utf-8")
+
 if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Esport Team API Test")
     print("=" * 60 + "\n")
     result = get_esport_team('363904', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    print(result)
+    
+    print("\n" + "=" * 60)
+    print("Esport Season Info API Test")
+    print("=" * 60 + "\n")
+    result = get_esport_season_info('16026', '47832', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
