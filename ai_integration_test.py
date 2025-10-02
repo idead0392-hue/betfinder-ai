@@ -151,6 +151,32 @@ def get_esport_event_highlights(event_id, api_key, api_host):
     
     return data.decode("utf-8")
 
+def get_esport_event(event_id, api_key, api_host):
+    """
+    Get esport event using RapidAPI.
+    
+    Args:
+        event_id: The esport event ID
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    
+    conn.request("GET", f"/api/esport/event/{event_id}", headers=headers)
+    
+    res = conn.getresponse()
+    data = res.read()
+    
+    return data.decode("utf-8")
+
 if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Azure AI Inference SDK - Integration Test")
@@ -184,4 +210,12 @@ if __name__ == "__main__":
     print("=" * 60 + "\n")
     
     result = get_esport_event_highlights('10945370', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    print(result)
+    
+    # Test esport event API
+    print("\n" + "=" * 60)
+    print("Esport Event API Test")
+    print("=" * 60 + "\n")
+    
+    result = get_esport_event('10944540', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
