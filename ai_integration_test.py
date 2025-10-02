@@ -8,204 +8,15 @@ import http.client
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
+
 # RapidAPI Configuration
 RAPIDAPI_KEY = "4ac75ea836mshd4804cec3a1eea0p1085f3jsn0b73793a40af"
 RAPIDAPI_HOST = "esportapi1.p.rapidapi.com"
 
-def test_ai_inference():
+def get_esport_game_statistics(game_id, api_key, api_host):
     """
-    Test Azure AI Inference SDK with GitHub Models.
-    Uses GITHUB_TOKEN environment variable for authentication.
-    """
-    # Get GitHub token from environment variable
-    github_token = os.environ.get("GITHUB_TOKEN")
-    if not github_token:
-        print("Error: GITHUB_TOKEN environment variable not set.")
-        print("Please set it with: export GITHUB_TOKEN='your_token_here'")
-        return
-    # Initialize the client
-    endpoint = "https://models.inference.ai.azure.com"
-    model_name = "gpt-4o-mini"  # or your preferred model
-    try:
-        print("Initializing Azure AI Inference client...")
-        client = ChatCompletionsClient(
-            endpoint=endpoint,
-            credential=AzureKeyCredential(github_token)
-        )
-        print(f"Testing model: {model_name}")
-        print("Sending test prompt...\n")
-        # Create test messages
-        messages = [
-            SystemMessage(content="You are a helpful AI assistant for sports betting analysis."),
-            UserMessage(content="Explain in 2 sentences what makes a good betting opportunity.")
-        ]
-        # Get completion
-        response = client.complete(
-            messages=messages,
-            model=model_name,
-            temperature=0.7,
-            max_tokens=200
-        )
-        # Display results
-        print("=" * 60)
-        print("MODEL OUTPUT:")
-        print("=" * 60)
-        print(response.choices[0].message.content)
-        print("\n" + "=" * 60)
-        print("\nTest completed successfully!")
-        print(f"Model: {model_name}")
-        print(f"Tokens used: {response.usage.total_tokens if response.usage else 'N/A'}")
-    except Exception as e:
-        print(f"\nError during API call: {str(e)}")
-        print("\nTroubleshooting:")
-        print("1. Verify your GITHUB_TOKEN is valid")
-        print("2. Check that you have access to GitHub Models")
-        print("3. Ensure the model name is correct")
-        return
+    Get esport game statistics using RapidAPI.
 
-def get_esport_streaks(event_id, api_key, api_host):
-    """
-    Get esport event streaks using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}/streaks", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_matches(date_path, api_key, api_host):
-    """
-    Get esport matches for a specific date using RapidAPI.
-    Args:
-        date_path: Date path in format "DD/MM/YYYY"
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/matches/{date_path}", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_event_highlights(event_id, api_key, api_host):
-    """
-    Get esport event highlights using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}/highlights", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_event(event_id, api_key, api_host):
-    """
-    Get esport event using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_event_lineups(event_id, api_key, api_host):
-    """
-    Get esport event lineups using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}/lineups", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_event_duel(event_id, api_key, api_host):
-    """
-    Get esport event duel using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}/duel", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_event_games(event_id, api_key, api_host):
-    """
-    Get esport event games using RapidAPI.
-    Args:
-        event_id: The esport event ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/event/{event_id}/games", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_game_lineups(game_id, api_key, api_host):
-    """
-    Get esport game lineups using RapidAPI.
     Args:
         game_id: The esport game ID
         api_key: RapidAPI key
@@ -218,128 +29,77 @@ def get_esport_game_lineups(game_id, api_key, api_host):
         'x-rapidapi-key': api_key,
         'x-rapidapi-host': api_host
     }
-    conn.request("GET", f"/api/esport/game/{game_id}/lineups", headers=headers)
+    conn.request("GET", f"/api/esport/game/{game_id}/statistics", headers=headers)
     res = conn.getresponse()
     data = res.read()
     return data.decode("utf-8")
 
-def get_esport_map_image(map_id, api_key, api_host):
+def test_ai_inference():
     """
-    Get esport map image using RapidAPI.
-    Args:
-        map_id: The esport map ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
+    Test Azure AI Inference SDK with GitHub Models.
+    Uses GITHUB_TOKEN environment variable for authentication.
     """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/map/{map_id}/image", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
-
-def get_esport_character_image(character_id, api_key, api_host):
-    """
-    Get esport character image using RapidAPI.
-    Args:
-        character_id: The esport character ID
-        api_key: RapidAPI key
-        api_host: RapidAPI host
-    Returns:
-        str: JSON response data
-    """
-    conn = http.client.HTTPSConnection(api_host)
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': api_host
-    }
-    conn.request("GET", f"/api/esport/character/{character_id}/image", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode("utf-8")
+    # Get GitHub token from environment variable
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if not github_token:
+        print("Error: GITHUB_TOKEN environment variable not set.")
+        print("Please set it with: export GITHUB_TOKEN='your_token_here'")
+        return
+    
+    # Initialize the client
+    endpoint = "https://models.inference.ai.azure.com"
+    model_name = "gpt-4o-mini"  # or your preferred model
+    
+    try:
+        print("Initializing Azure AI Inference client...")
+        client = ChatCompletionsClient(
+            endpoint=endpoint,
+            credential=AzureKeyCredential(github_token)
+        )
+        
+        print(f"Testing model: {model_name}")
+        print("Sending test prompt...\n")
+        
+        # Create test messages
+        messages = [
+            SystemMessage(content="You are a helpful AI assistant for sports betting analysis."),
+            UserMessage(content="Explain in 2 sentences what makes a good betting opportunity.")
+        ]
+        
+        # Get completion
+        response = client.complete(
+            messages=messages,
+            model=model_name,
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        # Display results
+        print("=" * 60)
+        print("MODEL OUTPUT:")
+        print("=" * 60)
+        print(response.choices[0].message.content)
+        print("\n" + "=" * 60)
+        print("TOKEN USAGE:")
+        print("=" * 60)
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Completion tokens: {response.usage.completion_tokens}")
+        print(f"Total tokens: {response.usage.total_tokens}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        print("Make sure your GITHUB_TOKEN is valid and has proper permissions.")
 
 if __name__ == "__main__":
-    print("\n" + "=" * 60)
-    print("Azure AI Inference SDK - Integration Test")
-    print("BetFinder AI Project")
-    print("=" * 60 + "\n")
+    print("Azure AI Inference SDK Integration Test")
+    print("=" * 40)
+    print()
+    
+    # Test AI inference
     test_ai_inference()
-
-    # Test esport streaks API
+    
     print("\n" + "=" * 60)
-    print("Esport Streaks API Test")
+    print("Esport Game Statistics API Test")
     print("=" * 60 + "\n")
-    result = get_esport_streaks(
-        event_id="10944886",
-        api_key=RAPIDAPI_KEY,
-        api_host=RAPIDAPI_HOST
-    )
-    print(result)
-
-    # Test esport matches API
-    print("\n" + "=" * 60)
-    print("Esport Matches API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_matches('18/12/2022', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport event highlights API
-    print("\n" + "=" * 60)
-    print("Esport Event Highlights API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_event_highlights('10945370', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport event API
-    print("\n" + "=" * 60)
-    print("Esport Event API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_event('10944540', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport event lineups API
-    print("\n" + "=" * 60)
-    print("Esport Event Lineups API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_event_lineups('10945127', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport event duel API
-    print("\n" + "=" * 60)
-    print("Esport Event Duel API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_event_duel('10945126', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport event games API
-    print("\n" + "=" * 60)
-    print("Esport Event Games API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_event_games('10945127', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport game lineups API
-    print("\n" + "=" * 60)
-    print("Esport Game Lineups API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_game_lineups('359360', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport map image API
-    print("\n" + "=" * 60)
-    print("Esport Map Image API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_map_image('21', RAPIDAPI_KEY, RAPIDAPI_HOST)
-    print(result)
-
-    # Test esport character image API
-    print("\n" + "=" * 60)
-    print("Esport Character Image API Test")
-    print("=" * 60 + "\n")
-    result = get_esport_character_image('1717', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    result = get_esport_game_statistics('359554', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
