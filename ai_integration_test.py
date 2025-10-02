@@ -99,6 +99,32 @@ def get_esport_streaks(event_id, api_key, api_host):
     
     return data.decode("utf-8")
 
+def get_esport_matches(date_path, api_key, api_host):
+    """
+    Get esport matches for a specific date using RapidAPI.
+    
+    Args:
+        date_path: Date path in format "DD/MM/YYYY"
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    
+    conn.request("GET", f"/api/esport/matches/{date_path}", headers=headers)
+    
+    res = conn.getresponse()
+    data = res.read()
+    
+    return data.decode("utf-8")
+
 if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Azure AI Inference SDK - Integration Test")
@@ -116,4 +142,12 @@ if __name__ == "__main__":
         api_key=RAPIDAPI_KEY,
         api_host=RAPIDAPI_HOST
     )
+    print(result)
+    
+    # Test esport matches API
+    print("\n" + "=" * 60)
+    print("Esport Matches API Test")
+    print("=" * 60 + "\n")
+    
+    result = get_esport_matches('18/12/2022', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
