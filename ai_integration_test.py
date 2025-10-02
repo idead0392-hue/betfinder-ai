@@ -57,6 +57,28 @@ def get_esport_game_bans(game_id, api_key, api_host):
     data = res.read()
     return data.decode("utf-8")
 
+def get_esport_game_rounds(game_id, api_key, api_host):
+    """
+    Get esport game rounds using RapidAPI.
+    
+    Args:
+        game_id: The esport game ID
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    conn.request("GET", f"/api/esport/game/{game_id}/rounds", headers=headers)
+    res = conn.getresponse()
+    data = res.read()
+    return data.decode("utf-8")
+
 def test_ai_inference():
     """
     Test Azure AI Inference SDK with GitHub Models.
@@ -131,4 +153,10 @@ if __name__ == "__main__":
     print("Esport Game Bans API Test")
     print("=" * 60 + "\n")
     result = get_esport_game_bans('359554', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    print(result)
+    
+    print("\n" + "=" * 60)
+    print("Esport Game Rounds API Test")
+    print("=" * 60 + "\n")
+    result = get_esport_game_rounds('359440', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
