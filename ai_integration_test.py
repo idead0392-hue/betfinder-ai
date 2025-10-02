@@ -16,11 +16,12 @@ RAPIDAPI_HOST = "esportapi1.p.rapidapi.com"
 def get_esport_game_statistics(game_id, api_key, api_host):
     """
     Get esport game statistics using RapidAPI.
-
+    
     Args:
         game_id: The esport game ID
         api_key: RapidAPI key
         api_host: RapidAPI host
+    
     Returns:
         str: JSON response data
     """
@@ -30,6 +31,28 @@ def get_esport_game_statistics(game_id, api_key, api_host):
         'x-rapidapi-host': api_host
     }
     conn.request("GET", f"/api/esport/game/{game_id}/statistics", headers=headers)
+    res = conn.getresponse()
+    data = res.read()
+    return data.decode("utf-8")
+
+def get_esport_game_bans(game_id, api_key, api_host):
+    """
+    Get esport game bans using RapidAPI.
+    
+    Args:
+        game_id: The esport game ID
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    conn.request("GET", f"/api/esport/game/{game_id}/bans", headers=headers)
     res = conn.getresponse()
     data = res.read()
     return data.decode("utf-8")
@@ -102,4 +125,10 @@ if __name__ == "__main__":
     print("Esport Game Statistics API Test")
     print("=" * 60 + "\n")
     result = get_esport_game_statistics('359554', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    print(result)
+    
+    print("\n" + "=" * 60)
+    print("Esport Game Bans API Test")
+    print("=" * 60 + "\n")
+    result = get_esport_game_bans('359554', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
