@@ -145,6 +145,29 @@ def get_esport_team_image(team_id, api_key, api_host):
     data = res.read()
     return data.decode("utf-8")
 
+def get_esport_team_previous_matches(team_id, page, api_key, api_host):
+    """
+    Get esport team previous matches using RapidAPI.
+    
+    Args:
+        team_id: The esport team ID
+        page: The page number
+        api_key: RapidAPI key
+        api_host: RapidAPI host
+    
+    Returns:
+        str: JSON response data
+    """
+    conn = http.client.HTTPSConnection(api_host)
+    headers = {
+        'x-rapidapi-key': api_key,
+        'x-rapidapi-host': api_host
+    }
+    conn.request("GET", f"/api/esport/team/{team_id}/matches/previous/{page}", headers=headers)
+    res = conn.getresponse()
+    data = res.read()
+    return data.decode("utf-8")
+
 def test_ai_inference():
     """
     Test Azure AI Inference SDK with GitHub Models.
@@ -243,4 +266,10 @@ if __name__ == "__main__":
     print("Esport Team Image API Test")
     print("=" * 60 + "\n")
     result = get_esport_team_image('372647', RAPIDAPI_KEY, RAPIDAPI_HOST)
+    print(result)
+    
+    print("\n" + "=" * 60)
+    print("Esport Team Previous Matches API Test")
+    print("=" * 60 + "\n")
+    result = get_esport_team_previous_matches('459469', '1', RAPIDAPI_KEY, RAPIDAPI_HOST)
     print(result)
