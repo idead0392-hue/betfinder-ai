@@ -46,12 +46,16 @@ if 'yahoo_access_token' not in st.session_state:
 # Step 1: Start OAuth
 if st.session_state['yahoo_oauth_step'] == 0:
     if sidebar.button("Login with Yahoo!"):
-        yahoo = OAuth1Session(CONSUMER_KEY, client_secret=CONSUMER_SECRET, callback_uri=CALLBACK_URI)
-        fetch_response = yahoo.fetch_request_token(REQUEST_TOKEN_URL)
-        st.session_state['yahoo_resource_owner_key'] = fetch_response.get('oauth_token')
-        st.session_state['yahoo_resource_owner_secret'] = fetch_response.get('oauth_token_secret')
-        st.session_state['yahoo_oauth_step'] = 1
-        st.experimental_rerun()
+        try:
+            yahoo = OAuth1Session(CONSUMER_KEY, client_secret=CONSUMER_SECRET, callback_uri=CALLBACK_URI)
+            fetch_response = yahoo.fetch_request_token(REQUEST_TOKEN_URL)
+            st.session_state['yahoo_resource_owner_key'] = fetch_response.get('oauth_token')
+            st.session_state['yahoo_resource_owner_secret'] = fetch_response.get('oauth_token_secret')
+            st.session_state['yahoo_oauth_step'] = 1
+            st.experimental_rerun()
+        except Exception as e:
+            sidebar.error(f"Failed to initiate Yahoo OAuth: {str(e)}")
+            sidebar.info("Please check your Yahoo API credentials and try again.")
 
 # Step 2: Show authorize URL and get verifier
 elif st.session_state['yahoo_oauth_step'] == 1:
@@ -59,20 +63,27 @@ elif st.session_state['yahoo_oauth_step'] == 1:
     sidebar.markdown(f"[Click here to authorize Yahoo! access]({auth_url})")
     verifier = sidebar.text_input("Paste the verifier code from Yahoo here:")
     if verifier:
-        yahoo = OAuth1Session(
-            CONSUMER_KEY,
-            client_secret=CONSUMER_SECRET,
-            resource_owner_key=st.session_state['yahoo_resource_owner_key'],
-            resource_owner_secret=st.session_state['yahoo_resource_owner_secret'],
-            verifier=verifier,
-        )
-        access_token_data = yahoo.fetch_access_token(ACCESS_TOKEN_URL)
-        st.session_state['yahoo_access_token'] = access_token_data.get('oauth_token')
-        st.session_state['yahoo_access_token_secret'] = access_token_data.get('oauth_token_secret')
-        st.session_state['yahoo_oauth_step'] = 2
-        # Store tokens in session only (no file write)
-        sidebar.success("Yahoo! authentication complete.")
-        st.experimental_rerun()
+        try:
+            yahoo = OAuth1Session(
+                CONSUMER_KEY,
+                client_secret=CONSUMER_SECRET,
+                resource_owner_key=st.session_state['yahoo_resource_owner_key'],
+                resource_owner_secret=st.session_state['yahoo_resource_owner_secret'],
+                verifier=verifier,
+            )
+            access_token_data = yahoo.fetch_access_token(ACCESS_TOKEN_URL)
+            st.session_state['yahoo_access_token'] = access_token_data.get('oauth_token')
+            st.session_state['yahoo_access_token_secret'] = access_token_data.get('oauth_token_secret')
+            st.session_state['yahoo_oauth_step'] = 2
+            # Store tokens in session only (no file write)
+            sidebar.success("Yahoo! authentication complete.")
+            st.experimental_rerun()
+        except Exception as e:
+            sidebar.error(f"Failed to fetch access token: {str(e)}")
+            sidebar.info("Please verify your verifier code and try again. If the issue persists, restart the OAuth flow.")
+            if sidebar.button("Restart OAuth"):
+                st.session_state['yahoo_oauth_step'] = 0
+                st.experimental_rerun()
 
 # Step 3: Authenticated
 elif st.session_state['yahoo_oauth_step'] == 2:
@@ -110,38 +121,42 @@ with tabs[1]:
 with tabs[2]:
     st.header("Props")
     if st.session_state['yahoo_oauth_step'] == 2:
-        yahoo = OAuth1Session(
-            CONSUMER_KEY,
-            client_secret=CONSUMER_SECRET,
-            resource_owner_key=st.session_state['yahoo_access_token'],
-            resource_owner_secret=st.session_state['yahoo_access_token_secret'],
-        )
-        # Yahoo's closest to "props" is contest/games/players stats. We'll fetch NFL games and show a table of games as a starting point.
-        resp = yahoo.get("https://fantasysports.yahooapis.com/fantasy/v2/game/nfl;out=leagues")
-        if resp.status_code == 200:
-            xml_root = etree.fromstring(resp.content)
-            # Try to extract league/game info for display
-            leagues = xml_root.findall('.//league')
-            if leagues:
-                league_rows = []
-                for league in leagues:
-                    lid = league.findtext('league_id')
-                    lname = league.findtext('name')
-                    ltype = league.findtext('league_type')
-                    lseason = league.findtext('season')
-                    league_rows.append({
-                        'League ID': lid,
-                        'Name': lname,
-                        'Type': ltype,
-                        'Season': lseason
-                    })
-                st.markdown("**Your Yahoo NFL Leagues:**")
-                st.dataframe(pd.DataFrame(league_rows), use_container_width=True, hide_index=True)
-                st.info("To show player props, connect to a league and fetch player stats. Further integration available on request.")
+        try:
+            yahoo = OAuth1Session(
+                CONSUMER_KEY,
+                client_secret=CONSUMER_SECRET,
+                resource_owner_key=st.session_state['yahoo_access_token'],
+                resource_owner_secret=st.session_state['yahoo_access_token_secret'],
+            )
+            # Yahoo's closest to "props" is contest/games/players stats. We'll fetch NFL games and show a table of games as a starting point.
+            resp = yahoo.get("https://fantasysports.yahooapis.com/fantasy/v2/game/nfl;out=leagues")
+            if resp.status_code == 200:
+                xml_root = etree.fromstring(resp.content)
+                # Try to extract league/game info for display
+                leagues = xml_root.findall('.//league')
+                if leagues:
+                    league_rows = []
+                    for league in leagues:
+                        lid = league.findtext('league_id')
+                        lname = league.findtext('name')
+                        ltype = league.findtext('league_type')
+                        lseason = league.findtext('season')
+                        league_rows.append({
+                            'League ID': lid,
+                            'Name': lname,
+                            'Type': ltype,
+                            'Season': lseason
+                        })
+                    st.markdown("**Your Yahoo NFL Leagues:**")
+                    st.dataframe(pd.DataFrame(league_rows), use_container_width=True, hide_index=True)
+                    st.info("To show player props, connect to a league and fetch player stats. Further integration available on request.")
+                else:
+                    st.info("No leagues found. Join a Yahoo Fantasy league to see props/stats.")
             else:
-                st.info("No leagues found. Join a Yahoo Fantasy league to see props/stats.")
-        else:
-            st.error(f"Yahoo API error: {resp.status_code}")
+                st.error(f"Yahoo API error: {resp.status_code}")
+        except Exception as e:
+            st.error(f"Error fetching Yahoo data: {str(e)}")
+            st.info("Your session may have expired. Please log out and log in again.")
     else:
         st.warning("Please log in with Yahoo to view props.")
 
