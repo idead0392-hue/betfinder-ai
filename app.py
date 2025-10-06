@@ -16,6 +16,7 @@ tab_names = [
 ]
 tabs = st.tabs(tab_names)
 
+
 # --- Yahoo OAuth in Sidebar (Global) ---
 CONSUMER_KEY = st.secrets["YAHOO_CONSUMER_KEY"]
 CONSUMER_SECRET = st.secrets["YAHOO_CONSUMER_SECRET"]
@@ -23,6 +24,17 @@ REQUEST_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_request_token"
 AUTHORIZE_URL = "https://api.login.yahoo.com/oauth/v2/request_auth"
 ACCESS_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_token"
 CALLBACK_URI = "oob"  # For Streamlit, use oob/manual for now
+
+# --- Simple Yahoo API Rate Counter ---
+if 'yahoo_rate_count' not in st.session_state:
+    st.session_state['yahoo_rate_count'] = 0
+
+def increment_yahoo_rate():
+    st.session_state['yahoo_rate_count'] += 1
+
+sidebar = st.sidebar
+sidebar.title("Yahoo Fantasy Login")
+sidebar.markdown(f"**Yahoo API Calls this session:** {st.session_state['yahoo_rate_count']}")
 
 
 # --- Session-based Yahoo OAuth Token Storage (Streamlit Cloud compatible) ---
@@ -33,25 +45,20 @@ if 'yahoo_access_token' not in st.session_state:
     st.session_state['yahoo_resource_owner_secret'] = None
     st.session_state['yahoo_oauth_step'] = 0
 
-sidebar = st.sidebar
-sidebar.title("Yahoo Fantasy Login")
-if 'yahoo_access_token' not in st.session_state:
-    st.session_state['yahoo_access_token'] = None
-    st.session_state['yahoo_access_token_secret'] = None
-    st.session_state['yahoo_resource_owner_key'] = None
-    st.session_state['yahoo_resource_owner_secret'] = None
-    st.session_state['yahoo_oauth_step'] = 0
 
 
-# Step 1: Start OAuth
+
+
+# Step 1: Start OAuth (only show login if not authenticated)
 if st.session_state['yahoo_oauth_step'] == 0:
-    if sidebar.button("Login with Yahoo!"):
-        yahoo = OAuth1Session(CONSUMER_KEY, client_secret=CONSUMER_SECRET, callback_uri=CALLBACK_URI)
-        fetch_response = yahoo.fetch_request_token(REQUEST_TOKEN_URL)
-        st.session_state['yahoo_resource_owner_key'] = fetch_response.get('oauth_token')
-        st.session_state['yahoo_resource_owner_secret'] = fetch_response.get('oauth_token_secret')
-        st.session_state['yahoo_oauth_step'] = 1
-        st.experimental_rerun()
+    if st.session_state['yahoo_access_token'] is None:
+        if sidebar.button("Login with Yahoo!"):
+            yahoo = OAuth1Session(CONSUMER_KEY, client_secret=CONSUMER_SECRET, callback_uri=CALLBACK_URI)
+            fetch_response = yahoo.fetch_request_token(REQUEST_TOKEN_URL)
+            st.session_state['yahoo_resource_owner_key'] = fetch_response.get('oauth_token')
+            st.session_state['yahoo_resource_owner_secret'] = fetch_response.get('oauth_token_secret')
+            st.session_state['yahoo_oauth_step'] = 1
+            st.experimental_rerun()
 
 # Step 2: Show authorize URL and get verifier
 elif st.session_state['yahoo_oauth_step'] == 1:
@@ -83,7 +90,7 @@ elif st.session_state['yahoo_oauth_step'] == 2:
         st.session_state['yahoo_resource_owner_key'] = None
         st.session_state['yahoo_resource_owner_secret'] = None
         st.session_state['yahoo_oauth_step'] = 0
-    # No file to clear; session only
+        # No file to clear; session only
         st.experimental_rerun()
 
 
@@ -116,6 +123,7 @@ with tabs[2]:
             resource_owner_key=st.session_state['yahoo_access_token'],
             resource_owner_secret=st.session_state['yahoo_access_token_secret'],
         )
+        increment_yahoo_rate()
         # Yahoo's closest to "props" is contest/games/players stats. We'll fetch NFL games and show a table of games as a starting point.
         resp = yahoo.get("https://fantasysports.yahooapis.com/fantasy/v2/game/nfl;out=leagues")
         if resp.status_code == 200:
