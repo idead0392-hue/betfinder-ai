@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Football Props - Live API Data</title>
+    <style>body { background: #181b20; color: #fff; font-family: Arial, sans-serif; } table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #23262b; } th, td { border: 1px solid #333; padding: 8px 12px; text-align: left; } th { background: #23262b; color: #ffeb3b; } tr:nth-child(even) { background: #20232a; } .container { max-width: 900px; margin: 40px auto; padding: 20px; background: #23262b; border-radius: 8px; } h1 { color: #ffeb3b; } .error { color: #ff5252; }</style>
+</head>
+<body>
+<nav style="background:#23262b;padding:10px 0 10px 20px;">
+    <a href="/soccer">Soccer</a> |
+    <a href="/basketball">Basketball</a> |
+    <a href="/football">Football</a> |
+    <a href="/baseball">Baseball</a> |
+    <a href="/hockey">Hockey</a> |
+    <a href="/esports">Esports</a> |
+    <a href="/college-football">College Football</a> |
+    <a href="/tennis">Tennis</a>
+</nav>
+<div class="container">
+        <h1>Football Live Props</h1>
+    <button onclick="fetchFootballProps()">Fetch Live Football Props</button>
+    <div id="books-list"></div>
+    <div id="props-table"></div>
+    <div id="error" class="error"></div>
+</div>
+<script>
+function fetchFootballProps() {
+    document.getElementById('error').textContent = '';
+    fetch('/api/statpal/props?sport=nfl')
+        .then(response => response.json())
+        .then(data => {
+            renderBooksListNested(data);
+            renderFootballTableNested(data);
+        })
+        .catch(err => {
+            document.getElementById('error').textContent = 'Error: ' + err;
+        });
+}
+
+function renderBooksListNested(data) {
+    const booksDiv = document.getElementById('books-list');
+    booksDiv.innerHTML = '';
+    let books = [];
+    if (data.competition_sport_events_players_props) {
+        data.competition_sport_events_players_props.forEach(event => {
+            if (event.players_markets && event.players_markets.markets) {
+                event.players_markets.markets.forEach(market => {
+                    if (market.books) {
+                        market.books.forEach(book => {
+                            if (!books.find(b => b.id === book.id)) books.push({id: book.id, name: book.name});
+                        });
+                    }
+                });
+            }
+            if (event.players_props) {
+                event.players_props.forEach(playerProp => {
+                    if (playerProp.markets) {
+                        playerProp.markets.forEach(market => {
+                            if (market.books) {
+                                market.books.forEach(book => {
+                                    if (!books.find(b => b.id === book.id)) books.push({id: book.id, name: book.name});
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+    if (books.length > 0) {
+        let html = '<h2>Available Sportsbooks</h2><ul>';
+        books.forEach(book => {
+            html += `<li><b>${book.name}</b> (ID: ${book.id})</li>`;
+        });
+        html += '</ul>';
+        booksDiv.innerHTML = html;
+    }
+}
+
+function renderFootballTableNested(data) {
+    const container = document.getElementById('props-table');
+    container.innerHTML = '';
+    if (!data.competition_sport_events_players_props || !data.competition_sport_events_players_props.length) {
+        container.innerHTML = '<i>No live football props found.</i>';
+        return;
+    }
+    let html = '';
+    data.competition_sport_events_players_props.forEach(event => {
+        html += `<h3>Event: ${event.sport_event?.id || ''}</h3>`;
+        if (event.players_markets && event.players_markets.markets) {
+            event.players_markets.markets.forEach(market => {
+                if (market.books) {
+                    market.books.forEach(book => {
+                        html += `<h4>Book: ${book.name} (ID: ${book.id})</h4>`;
+                        html += `<b>Market:</b> ${market.name || market.id}<br>`;
+                        if (book.outcomes && book.outcomes.length) {
+                            html += '<table><thead><tr>' +
+                                '<th>Player</th><th>Type</th><th>Handicap</th><th>Total</th><th>Odds (American)</th><th>Odds (Decimal)</th><th>Trend</th>' +
+                                '</tr></thead><tbody>';
+                            book.outcomes.forEach(outcome => {
+                                html += '<tr>' +
+                                    `<td>${outcome.player_name || ''}</td>` +
+                                    `<td>${outcome.type || ''}</td>` +
+                                    `<td>${outcome.handicap || ''}</td>` +
+                                    `<td>${outcome.total || ''}</td>` +
+                                    `<td>${outcome.odds_american || ''}</td>` +
+                                    `<td>${outcome.odds_decimal || ''}</td>` +
+                                    `<td>${outcome.trend || ''}</td>` +
+                                    '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        }
+                    });
+                }
+            });
+        }
+        if (event.players_props) {
+            event.players_props.forEach(playerProp => {
+                html += `<h4>Player: ${playerProp.player?.name || playerProp.player?.id || ''}</h4>`;
+                if (playerProp.markets) {
+                    playerProp.markets.forEach(market => {
+                        if (market.books) {
+                            market.books.forEach(book => {
+                                html += `<b>Book:</b> ${book.name} (ID: ${book.id})<br>`;
+                                html += `<b>Market:</b> ${market.name || market.id}<br>`;
+                                if (book.outcomes && book.outcomes.length) {
+                                    html += '<table><thead><tr>' +
+                                        '<th>Type</th><th>Handicap</th><th>Total</th><th>Odds (American)</th><th>Odds (Decimal)</th><th>Trend</th>' +
+                                        '</tr></thead><tbody>';
+                                    book.outcomes.forEach(outcome => {
+                                        html += '<tr>' +
+                                            `<td>${outcome.type || ''}</td>` +
+                                            `<td>${outcome.handicap || ''}</td>` +
+                                            `<td>${outcome.total || ''}</td>` +
+                                            `<td>${outcome.odds_american || ''}</td>` +
+                                            `<td>${outcome.odds_decimal || ''}</td>` +
+                                            `<td>${outcome.trend || ''}</td>` +
+                                            '</tr>';
+                                    });
+                                    html += '</tbody></table>';
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+    container.innerHTML = html;
+}
+</script>
+</body>
+</html>

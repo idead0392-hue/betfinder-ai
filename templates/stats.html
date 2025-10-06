@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stats & Projections - Official Props</title>
+    <style>body { background: #181b20; color: #fff; font-family: Arial, sans-serif; } table { border-collapse: collapse; width: 100%; margin: 20px 0; background: #23262b; } th, td { border: 1px solid #333; padding: 8px 12px; text-align: left; } th { background: #23262b; color: #ffeb3b; } tr:nth-child(even) { background: #20232a; } .container { max-width: 900px; margin: 40px auto; padding: 20px; background: #23262b; border-radius: 8px; } h1 { color: #ffeb3b; } .error { color: #ff5252; } nav { background:#23262b;padding:10px 0 10px 20px; margin-bottom: 20px; } nav a { color: #ffeb3b; text-decoration: none; margin-right: 10px; } nav a:hover { text-decoration: underline; }</style>
+</head>
+<body>
+<nav>
+  <a href="/stats">Stats</a> |
+  <a href="/soccer">Soccer</a> |
+  <a href="/basketball">Basketball</a> |
+  <a href="/football">Football</a> |
+  <a href="/baseball">Baseball</a> |
+  <a href="/hockey">Hockey</a> |
+  <a href="/esports">Esports</a> |
+  <a href="/college-football">College Football</a> |
+  <a href="/tennis">Tennis</a>
+</nav>
+<div class="container">
+        <h1>Official Props & Projections (Statspal)</h1>
+        <label for="sport">Select Sport:</label>
+        <select id="sport">
+            <option value="soccer">Soccer</option>
+            <option value="basketball">Basketball</option>
+            <option value="football">Football</option>
+            <option value="baseball">Baseball</option>
+            <option value="hockey">Hockey</option>
+            <option value="esports">Esports</option>
+            <option value="college-football">College Football</option>
+            <option value="tennis">Tennis</option>
+        </select>
+        <button onclick="fetchStatsProps()">Fetch Official Props</button>
+        <div id="props-table"></div>
+        <div id="error" class="error"></div>
+</div>
+<script>
+function fetchStatsProps() {
+    document.getElementById('error').textContent = '';
+    const sport = document.getElementById('sport').value;
+    fetch(`/api/statpal/props?sport=${sport}`)
+        .then(response => response.json())
+        .then(data => renderStatsTable(data))
+        .catch(err => {
+            document.getElementById('error').textContent = 'Error: ' + err;
+        });
+}
+function renderStatsTable(data) {
+    const container = document.getElementById('props-table');
+    container.innerHTML = '';
+    let matches = data.matches || data.fixtures || data.events || data.games || data.data || [];
+    if (!Array.isArray(matches)) matches = [matches];
+    if (!matches.length || !matches[0]) {
+        container.innerHTML = '<i>No official props found.</i>';
+        return;
+    }
+    let html = '<table><thead><tr>' +
+        '<th>Sport</th><th>Event</th><th>Prop</th><th>Line</th><th>Over Odds</th><th>Under Odds</th><th>Event Time</th>' +
+        '</tr></thead><tbody>';
+    matches.forEach(match => {
+        html += '<tr>' +
+            `<td>${match.sport || ''}</td>` +
+            `<td>${match.event || match.tournament?.name || match.league?.name || ''}</td>` +
+            `<td>${match.stat || match.prop || ''}</td>` +
+            `<td>${match.line || ''}</td>` +
+            `<td>${match.over_odds || ''}</td>` +
+            `<td>${match.under_odds || ''}</td>` +
+            `<td>${match.event_time || match.date || match.time || ''}</td>` +
+            '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+</script>
+</body>
+</html>

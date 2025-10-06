@@ -1,13 +1,9 @@
+import http.client
 #!/usr/bin/env python3
 """
 Azure AI Inference SDK Integration Test
 This script tests the Azure AI Inference SDK integration with GitHub Models.
 """
-import os
-import http.client
-from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage
-from azure.core.credentials import AzureKeyCredential
 
 # RapidAPI Configuration
 RAPIDAPI_KEY = "4ac75ea836mshd4804cec3a1eea0p1085f3jsn0b73793a40af"

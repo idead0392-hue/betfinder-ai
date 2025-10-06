@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  betfinder:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=api_server.py
+    restart: unless-stopped
+    # Uncomment if you use a .env file for secrets
+    # env_file:
+    #   - .env

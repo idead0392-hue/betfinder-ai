@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from ai_integration_test import (
     get_esport_team,
     get_esport_tournament,
