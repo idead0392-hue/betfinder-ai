@@ -7,7 +7,6 @@ import requests
 import os
 from requests_oauthlib import OAuth1Session
 from lxml import etree
-from yahoo_token_store import save_tokens, load_tokens, clear_tokens
 
 
 # --- RESTORED MULTI-TAB UI ---
@@ -18,29 +17,21 @@ tab_names = [
 tabs = st.tabs(tab_names)
 
 # --- Yahoo OAuth in Sidebar (Global) ---
-CONSUMER_KEY = os.getenv("YAHOO_CONSUMER_KEY", "dj0yJmk9V0FGMzNaZUNVckNIJmQ9WVdrOU1XRjJOazF2Vm0wbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTRk")
-CONSUMER_SECRET = os.getenv("YAHOO_CONSUMER_SECRET", "9d43ec9caa17a1b36671014dac8253728f1a0fe0")
+CONSUMER_KEY = st.secrets["YAHOO_CONSUMER_KEY"]
+CONSUMER_SECRET = st.secrets["YAHOO_CONSUMER_SECRET"]
 REQUEST_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_request_token"
 AUTHORIZE_URL = "https://api.login.yahoo.com/oauth/v2/request_auth"
 ACCESS_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_token"
 CALLBACK_URI = "oob"  # For Streamlit, use oob/manual for now
 
-# --- Persistent Yahoo OAuth Token Storage ---
+
+# --- Session-based Yahoo OAuth Token Storage (Streamlit Cloud compatible) ---
 if 'yahoo_access_token' not in st.session_state:
-    # Try to load tokens from disk
-    tokens = load_tokens()
-    if tokens:
-        st.session_state['yahoo_access_token'] = tokens.get('oauth_token')
-        st.session_state['yahoo_access_token_secret'] = tokens.get('oauth_token_secret')
-        st.session_state['yahoo_resource_owner_key'] = None
-        st.session_state['yahoo_resource_owner_secret'] = None
-        st.session_state['yahoo_oauth_step'] = 2
-    else:
-        st.session_state['yahoo_access_token'] = None
-        st.session_state['yahoo_access_token_secret'] = None
-        st.session_state['yahoo_resource_owner_key'] = None
-        st.session_state['yahoo_resource_owner_secret'] = None
-        st.session_state['yahoo_oauth_step'] = 0
+    st.session_state['yahoo_access_token'] = None
+    st.session_state['yahoo_access_token_secret'] = None
+    st.session_state['yahoo_resource_owner_key'] = None
+    st.session_state['yahoo_resource_owner_secret'] = None
+    st.session_state['yahoo_oauth_step'] = 0
 
 sidebar = st.sidebar
 sidebar.title("Yahoo Fantasy Login")
@@ -79,11 +70,7 @@ elif st.session_state['yahoo_oauth_step'] == 1:
         st.session_state['yahoo_access_token'] = access_token_data.get('oauth_token')
         st.session_state['yahoo_access_token_secret'] = access_token_data.get('oauth_token_secret')
         st.session_state['yahoo_oauth_step'] = 2
-        # Save tokens to disk
-        save_tokens({
-            'oauth_token': access_token_data.get('oauth_token'),
-            'oauth_token_secret': access_token_data.get('oauth_token_secret')
-        })
+        # Store tokens in session only (no file write)
         sidebar.success("Yahoo! authentication complete.")
         st.experimental_rerun()
 
@@ -96,7 +83,7 @@ elif st.session_state['yahoo_oauth_step'] == 2:
         st.session_state['yahoo_resource_owner_key'] = None
         st.session_state['yahoo_resource_owner_secret'] = None
         st.session_state['yahoo_oauth_step'] = 0
-        clear_tokens()
+    # No file to clear; session only
         st.experimental_rerun()
 
 
