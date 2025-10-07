@@ -117,9 +117,51 @@ elif st.session_state['yahoo_oauth_step'] == 2:
 
 
 # Home Tab (placeholder, no demo)
-with tabs[0]:
-    st.header("🏟️ Sports News & Highlights")
-    st.write("Welcome to BetFinder AI! Use the tabs above to explore player props, stats, and more.")
+with tabs[2]:
+    st.header("Props")
+    st.write("Use a custom API that accepts a Bearer token to provide props data.")
+    st.markdown("**Security:** Do not commit your tokens. Add them to `.streamlit/secrets.toml` as `NEW_API_TOKEN` or paste temporarily below.")
+
+    provider = st.selectbox("Provider", ["None", "Custom (Bearer token)"])
+
+    if provider == "Custom (Bearer token)":
+        endpoint = st.text_input("API endpoint (full URL)", value="https://api.example.com/v1/props")
+        use_secret = st.checkbox("Use token from st.secrets['NEW_API_TOKEN']", value=True)
+        token = None
+        if use_secret:
+            token = st.secrets.get("NEW_API_TOKEN") if hasattr(st, 'secrets') else None
+            if not token:
+                st.warning("`NEW_API_TOKEN` not found in `st.secrets`. You can paste a token below for testing.")
+        else:
+            token = st.text_input("Paste token (will not be saved)", type="password")
+
+        if st.button("Test API"):
+            if not endpoint:
+                st.error("Please provide an API endpoint to test.")
+            elif not token:
+                st.error("No token available. Add `NEW_API_TOKEN` to `.streamlit/secrets.toml` or paste a token.")
+            else:
+                headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+                st.info(f"Calling {endpoint} with Bearer token (redacted in UI)")
+                try:
+                    resp = requests.get(endpoint, headers=headers, timeout=15)
+                    st.write("Status:", resp.status_code)
+                    ct = resp.headers.get('content-type','')
+                    if 'application/json' in ct:
+                        try:
+                            st.json(resp.json())
+                        except Exception:
+                            st.code(resp.text)
+                    else:
+                        # Show text or XML
+                        st.code(resp.text[:10000])
+                except Exception as e:
+                    st.error(f"Request failed: {e}")
+
+        st.markdown("---")
+        st.write("If you want me to wire a specific API (StatPal, RapidAPI, etc.), tell me the provider name and I will add a ready-to-use integration that reads the token from `st.secrets`.")
+    else:
+        st.info("Select a provider to configure props data source.")
 
 
 
