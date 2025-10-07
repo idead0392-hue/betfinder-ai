@@ -5,8 +5,29 @@ import streamlit as st
 import pandas as pd
 import requests
 import os
-from requests_oauthlib import OAuth1Session
+import time
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import WebApplicationClient
 from lxml import etree
+
+
+# Helper: safe rerun wrapper for Streamlit versions without experimental_rerun
+def safe_rerun():
+    """Try to rerun the Streamlit script. If not available, show a message and stop execution.
+
+    This avoids AttributeError on Streamlit builds that don't expose experimental_rerun.
+    """
+    try:
+        if hasattr(st, "experimental_rerun"):
+            st.experimental_rerun()
+            return
+    except Exception:
+        # Fall through to graceful fallback
+        pass
+
+    # Graceful fallback: do nothing (allow the script to continue).
+    # Many Streamlit versions will simply re-run on the next user interaction.
+    return
 
 
 # --- RESTORED MULTI-TAB UI ---
@@ -17,13 +38,12 @@ tab_names = [
 tabs = st.tabs(tab_names)
 
 
-# --- Yahoo OAuth in Sidebar (Global) ---
-CONSUMER_KEY = st.secrets["YAHOO_CONSUMER_KEY"]
-CONSUMER_SECRET = st.secrets["YAHOO_CONSUMER_SECRET"]
-REQUEST_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_request_token"
-AUTHORIZE_URL = "https://api.login.yahoo.com/oauth/v2/request_auth"
-ACCESS_TOKEN_URL = "https://api.login.yahoo.com/oauth/v2/get_token"
-CALLBACK_URI = "oob"  # For Streamlit, use oob/manual for now
+# --- Yahoo OAuth2 in Sidebar (Global) ---
+CLIENT_ID = st.secrets["YAHOO_CONSUMER_KEY"]
+CLIENT_SECRET = st.secrets["YAHOO_CONSUMER_SECRET"]
+AUTHORIZATION_BASE_URL = "https://api.login.yahoo.com/oauth2/request_auth"
+TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token"
+REDIRECT_URI = "oob"  # For Streamlit, use oob/manual for now
 
 # --- Simple Yahoo API Rate Counter ---
 if 'yahoo_rate_count' not in st.session_state:
@@ -40,9 +60,8 @@ sidebar.markdown(f"**Yahoo API Calls this session:** {st.session_state['yahoo_ra
 # --- Session-based Yahoo OAuth Token Storage (Streamlit Cloud compatible) ---
 if 'yahoo_access_token' not in st.session_state:
     st.session_state['yahoo_access_token'] = None
-    st.session_state['yahoo_access_token_secret'] = None
-    st.session_state['yahoo_resource_owner_key'] = None
-    st.session_state['yahoo_resource_owner_secret'] = None
+    st.session_state['yahoo_refresh_token'] = None
+    st.session_state['yahoo_oauth_state'] = None
     st.session_state['yahoo_oauth_step'] = 0
 
 
@@ -53,45 +72,46 @@ if 'yahoo_access_token' not in st.session_state:
 if st.session_state['yahoo_oauth_step'] == 0:
     if st.session_state['yahoo_access_token'] is None:
         if sidebar.button("Login with Yahoo!"):
-            yahoo = OAuth1Session(CONSUMER_KEY, client_secret=CONSUMER_SECRET, callback_uri=CALLBACK_URI)
-            fetch_response = yahoo.fetch_request_token(REQUEST_TOKEN_URL)
-            st.session_state['yahoo_resource_owner_key'] = fetch_response.get('oauth_token')
-            st.session_state['yahoo_resource_owner_secret'] = fetch_response.get('oauth_token_secret')
+            client = WebApplicationClient(CLIENT_ID)
+            yahoo = OAuth2Session(client=client, redirect_uri=REDIRECT_URI)
+            
+            # Get authorization URL
+            authorization_url, state = yahoo.authorization_url(AUTHORIZATION_BASE_URL)
+            st.session_state['yahoo_oauth_state'] = state
             st.session_state['yahoo_oauth_step'] = 1
-            st.experimental_rerun()
+            safe_rerun()
 
-# Step 2: Show authorize URL and get verifier
+# Step 2: Show authorize URL and get authorization code
 elif st.session_state['yahoo_oauth_step'] == 1:
-    auth_url = f"{AUTHORIZE_URL}?oauth_token={st.session_state['yahoo_resource_owner_key']}"
-    sidebar.markdown(f"[Click here to authorize Yahoo! access]({auth_url})")
-    verifier = sidebar.text_input("Paste the verifier code from Yahoo here:")
-    if verifier:
-        yahoo = OAuth1Session(
-            CONSUMER_KEY,
-            client_secret=CONSUMER_SECRET,
-            resource_owner_key=st.session_state['yahoo_resource_owner_key'],
-            resource_owner_secret=st.session_state['yahoo_resource_owner_secret'],
-            verifier=verifier,
-        )
-        access_token_data = yahoo.fetch_access_token(ACCESS_TOKEN_URL)
-        st.session_state['yahoo_access_token'] = access_token_data.get('oauth_token')
-        st.session_state['yahoo_access_token_secret'] = access_token_data.get('oauth_token_secret')
-        st.session_state['yahoo_oauth_step'] = 2
-        # Store tokens in session only (no file write)
+    client = WebApplicationClient(CLIENT_ID)
+    yahoo = OAuth2Session(client=client, state=st.session_state['yahoo_oauth_state'], redirect_uri=REDIRECT_URI)
+    
+    authorization_url, _ = yahoo.authorization_url(AUTHORIZATION_BASE_URL)
+    sidebar.markdown(f"[Click here to authorize Yahoo! access]({authorization_url})")
+    auth_code = sidebar.text_input("Paste the authorization code from Yahoo here:")
+    if auth_code:
+        try:
+            token = yahoo.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, code=auth_code)
+            st.session_state['yahoo_access_token'] = token.get('access_token')
+            st.session_state['yahoo_refresh_token'] = token.get('refresh_token')
+            st.session_state['yahoo_oauth_step'] = 2
+            safe_rerun()
+        except Exception as e:
+            st.error(f"Failed to get access token: {e}")
         sidebar.success("Yahoo! authentication complete.")
-        st.experimental_rerun()
+        # safe_rerun already called on success; if we reach here show refresh hint
+        st.info("If authentication succeeded, please refresh the page.")
 
 # Step 3: Authenticated
 elif st.session_state['yahoo_oauth_step'] == 2:
     sidebar.success("Authenticated with Yahoo!")
     if sidebar.button("Logout Yahoo!"):
         st.session_state['yahoo_access_token'] = None
-        st.session_state['yahoo_access_token_secret'] = None
-        st.session_state['yahoo_resource_owner_key'] = None
-        st.session_state['yahoo_resource_owner_secret'] = None
+        st.session_state['yahoo_refresh_token'] = None
+        st.session_state['yahoo_oauth_state'] = None
         st.session_state['yahoo_oauth_step'] = 0
         # No file to clear; session only
-        st.experimental_rerun()
+        safe_rerun()
 
 
 
@@ -109,49 +129,10 @@ with tabs[1]:
     st.info("Stats integration coming soon.")
 
 
-
-
-
-
-# Props Tab (Yahoo API only)
+# Props Tab (placeholder)
 with tabs[2]:
     st.header("Props")
-    if st.session_state['yahoo_oauth_step'] == 2:
-        yahoo = OAuth1Session(
-            CONSUMER_KEY,
-            client_secret=CONSUMER_SECRET,
-            resource_owner_key=st.session_state['yahoo_access_token'],
-            resource_owner_secret=st.session_state['yahoo_access_token_secret'],
-        )
-        increment_yahoo_rate()
-        # Yahoo's closest to "props" is contest/games/players stats. We'll fetch NFL games and show a table of games as a starting point.
-        resp = yahoo.get("https://fantasysports.yahooapis.com/fantasy/v2/game/nfl;out=leagues")
-        if resp.status_code == 200:
-            xml_root = etree.fromstring(resp.content)
-            # Try to extract league/game info for display
-            leagues = xml_root.findall('.//league')
-            if leagues:
-                league_rows = []
-                for league in leagues:
-                    lid = league.findtext('league_id')
-                    lname = league.findtext('name')
-                    ltype = league.findtext('league_type')
-                    lseason = league.findtext('season')
-                    league_rows.append({
-                        'League ID': lid,
-                        'Name': lname,
-                        'Type': ltype,
-                        'Season': lseason
-                    })
-                st.markdown("**Your Yahoo NFL Leagues:**")
-                st.dataframe(pd.DataFrame(league_rows), use_container_width=True, hide_index=True)
-                st.info("To show player props, connect to a league and fetch player stats. Further integration available on request.")
-            else:
-                st.info("No leagues found. Join a Yahoo Fantasy league to see props/stats.")
-        else:
-            st.error(f"Yahoo API error: {resp.status_code}")
-    else:
-        st.warning("Please log in with Yahoo to view props.")
+    st.info("Props provider removed. Add a new data provider or re-enable the integration if needed.")
 
 
 # Tennis Tab (placeholder, no demo)
