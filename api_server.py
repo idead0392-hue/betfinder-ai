@@ -374,5 +374,377 @@ def soccer_odds(event_id, market_id):
             "url": f"https://trial-api.sportbex.com/api/sportbex/event-odds/{event_id}/{market_id}"
         }), 500
 
+# BASEBALL ENDPOINTS
+@app.route('/api/baseball/competitions', methods=['GET'])
+def baseball_competitions():
+    """Get baseball competitions from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/sports/5/competitions"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Baseball competitions retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch baseball competitions",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/sports/5/competitions"
+        }), 500
+
+@app.route('/api/baseball/matchups/<competition_id>', methods=['GET'])
+def baseball_matchups(competition_id):
+    """Get baseball matchups from Sportbex API"""
+    try:
+        url = f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Baseball matchups retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch baseball matchups",
+            "details": str(e),
+            "url": f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        }), 500
+
+@app.route('/api/baseball/odds', methods=['POST'])
+def baseball_odds():
+    """Get baseball odds data from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        request_data = request.get_json() or {}
+        response = requests.post(url, headers=headers, json=request_data, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Baseball odds retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch baseball odds",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        }), 500
+
+# HOCKEY ENDPOINTS
+@app.route('/api/hockey/competitions', methods=['GET'])
+def hockey_competitions():
+    """Get hockey competitions from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/sports/6/competitions"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Hockey competitions retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch hockey competitions",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/sports/6/competitions"
+        }), 500
+
+@app.route('/api/hockey/matchups/<competition_id>', methods=['GET'])
+def hockey_matchups(competition_id):
+    """Get hockey matchups from Sportbex API"""
+    try:
+        url = f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Hockey matchups retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch hockey matchups",
+            "details": str(e),
+            "url": f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        }), 500
+
+@app.route('/api/hockey/odds', methods=['POST'])
+def hockey_odds():
+    """Get hockey odds data from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        request_data = request.get_json() or {}
+        response = requests.post(url, headers=headers, json=request_data, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Hockey odds retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch hockey odds",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        }), 500
+
+# ESPORTS ENDPOINTS
+@app.route('/api/esports/competitions', methods=['GET'])
+def esports_competitions():
+    """Get esports competitions from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/sports/7/competitions"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Esports competitions retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch esports competitions",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/sports/7/competitions"
+        }), 500
+
+@app.route('/api/esports/matchups/<competition_id>', methods=['GET'])
+def esports_matchups(competition_id):
+    """Get esports matchups from Sportbex API"""
+    try:
+        url = f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Esports matchups retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch esports matchups",
+            "details": str(e),
+            "url": f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        }), 500
+
+@app.route('/api/esports/odds', methods=['POST'])
+def esports_odds():
+    """Get esports odds data from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        request_data = request.get_json() or {}
+        response = requests.post(url, headers=headers, json=request_data, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "Esports odds retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch esports odds",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        }), 500
+
+# COLLEGE FOOTBALL ENDPOINTS
+@app.route('/api/college-football/competitions', methods=['GET'])
+def college_football_competitions():
+    """Get college football competitions from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/sports/8/competitions"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "College football competitions retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch college football competitions",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/sports/8/competitions"
+        }), 500
+
+@app.route('/api/college-football/matchups/<competition_id>', methods=['GET'])
+def college_football_matchups(competition_id):
+    """Get college football matchups from Sportbex API"""
+    try:
+        url = f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY
+        }
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "College football matchups retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch college football matchups",
+            "details": str(e),
+            "url": f"https://trial-api.sportbex.com/api/sportbex/competitions/{competition_id}/events"
+        }), 500
+
+@app.route('/api/college-football/odds', methods=['POST'])
+def college_football_odds():
+    """Get college football odds data from Sportbex API"""
+    try:
+        url = "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        headers = {
+            'sportbex-api-key': SPORTBEX_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        request_data = request.get_json() or {}
+        response = requests.post(url, headers=headers, json=request_data, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                "data": data,
+                "message": "College football odds retrieved successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Sportbex API returned status {response.status_code}",
+                "details": response.text[:500],
+                "url": url
+            }), response.status_code
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch college football odds",
+            "details": str(e),
+            "url": "https://trial-api.sportbex.com/api/sportbex/events/odds"
+        }), 500
+
 if __name__ == "__main__":
     app.run(debug=False, port=5001, host='0.0.0.0')

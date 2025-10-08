@@ -3,6 +3,9 @@ import pandas as pd
 import requests
 import os
 import time
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 # requests is used for custom API calls below
 from lxml import etree
 
@@ -64,6 +67,106 @@ def load_api_data(url, cache_key, method='GET', data=None):
     
     return None
 
+# Data visualization functions
+def create_odds_trend_chart(odds_data, sport_name):
+    """Create a trend chart for betting odds"""
+    if not odds_data or not isinstance(odds_data, list):
+        return None
+    
+    # Process odds data for visualization
+    market_totals = {}
+    for odds in odds_data:
+        if isinstance(odds, dict) and 'marketIds' in odds:
+            for market in odds['marketIds']:
+                if isinstance(market, dict):
+                    market_name = market.get('marketName', 'Unknown')
+                    total_matched = market.get('totalMatched', 0)
+                    if market_name not in market_totals:
+                        market_totals[market_name] = []
+                    market_totals[market_name].append(total_matched)
+    
+    if not market_totals:
+        return None
+    
+    # Create bar chart
+    fig = go.Figure()
+    for market, totals in market_totals.items():
+        avg_total = sum(totals) / len(totals) if totals else 0
+        fig.add_trace(go.Bar(
+            x=[market],
+            y=[avg_total],
+            name=market,
+            text=f"${avg_total:,.0f}",
+            textposition='auto'
+        ))
+    
+    fig.update_layout(
+        title=f"{sport_name} Betting Market Activity",
+        xaxis_title="Market Type",
+        yaxis_title="Average Total Matched ($)",
+        showlegend=False,
+        height=400,
+        template="plotly_white"
+    )
+    
+    return fig
+
+def create_competition_distribution_chart(competitions_data, sport_name):
+    """Create a pie chart showing competition distribution"""
+    if not competitions_data or not isinstance(competitions_data, list):
+        return None
+    
+    # Count competitions by region
+    region_counts = {}
+    for comp in competitions_data:
+        if isinstance(comp, dict):
+            region = comp.get('competitionRegion', 'Unknown')
+            region_counts[region] = region_counts.get(region, 0) + 1
+    
+    if not region_counts:
+        return None
+    
+    fig = go.Figure(data=[go.Pie(
+        labels=list(region_counts.keys()),
+        values=list(region_counts.values()),
+        hole=0.3
+    )])
+    
+    fig.update_layout(
+        title=f"{sport_name} Competitions by Region",
+        height=400,
+        template="plotly_white"
+    )
+    
+    return fig
+
+def create_market_activity_gauge(total_markets):
+    """Create a gauge chart for market activity"""
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number+delta",
+        value = total_markets,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "Total Markets Available"},
+        delta = {'reference': 50},
+        gauge = {
+            'axis': {'range': [None, 200]},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 50], 'color': "lightgray"},
+                {'range': [50, 100], 'color': "gray"},
+                {'range': [100, 200], 'color': "lightgreen"}
+            ],
+            'threshold': {
+                'line': {'color': "red", 'width': 4},
+                'thickness': 0.75,
+                'value': 150
+            }
+        }
+    ))
+    
+    fig.update_layout(height=300, template="plotly_white")
+    return fig
+
 
 # Helper: safe rerun wrapper for Streamlit versions without experimental_rerun
 def safe_rerun():
@@ -105,6 +208,22 @@ def preload_sports_data():
         # Soccer data
         load_api_data("http://127.0.0.1:5001/api/soccer/competitions", "soccer_competitions")
         
+        # Baseball data
+        load_api_data("http://127.0.0.1:5001/api/baseball/competitions", "baseball_competitions")
+        load_api_data("http://127.0.0.1:5001/api/baseball/odds", "baseball_odds", "POST")
+        
+        # Hockey data
+        load_api_data("http://127.0.0.1:5001/api/hockey/competitions", "hockey_competitions")
+        load_api_data("http://127.0.0.1:5001/api/hockey/odds", "hockey_odds", "POST")
+        
+        # Esports data
+        load_api_data("http://127.0.0.1:5001/api/esports/competitions", "esports_competitions")
+        load_api_data("http://127.0.0.1:5001/api/esports/odds", "esports_odds", "POST")
+        
+        # College Football data
+        load_api_data("http://127.0.0.1:5001/api/college-football/competitions", "college_football_competitions")
+        load_api_data("http://127.0.0.1:5001/api/college-football/odds", "college_football_odds", "POST")
+        
         st.session_state.data_loaded = True
 
 # Preload data on app start
@@ -119,13 +238,57 @@ def refresh_all_data():
     preload_sports_data()
     st.rerun()
 
-# Header with refresh button
-col1, col2 = st.columns([4, 1])
-with col1:
+# Header with enhanced controls
+header_col1, header_col2, header_col3 = st.columns([3, 1, 1])
+
+with header_col1:
     st.title("🎯 BetFinder AI")
-with col2:
+
+with header_col2:
+    # Theme toggle (starts in dark mode by default)
+    if 'dark_theme' not in st.session_state:
+        st.session_state.dark_theme = True  # Start in dark mode by default
+    
+    theme_label = "🌙 Dark" if not st.session_state.dark_theme else "☀️ Light"
+    if st.button(theme_label, help="Toggle theme"):
+        st.session_state.dark_theme = not st.session_state.dark_theme
+        st.rerun()
+
+with header_col3:
     if st.button("🔄 Refresh Data", help="Update all sports data"):
         refresh_all_data()
+
+# Apply theme styling
+if st.session_state.dark_theme:
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #1e1e1e;
+        color: #ffffff;
+    }
+    .stSelectbox > div > div {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    .stTextInput > div > div > input {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    .stExpander {
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #ffffff;
+        color: #000000;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 # --- RESTORED MULTI-TAB UI ---
@@ -235,6 +398,12 @@ with tabs[2]:
         st.info("Select a provider to configure props data source.")
 
 with tabs[3]:
+    # Initialize favorites system in session state
+    if 'favorite_players' not in st.session_state:
+        st.session_state.favorite_players = set()
+    if 'favorite_tournaments' not in st.session_state:
+        st.session_state.favorite_tournaments = set()
+    
     # Use cached tennis data
     all_tennis_competitions = get_cached_data("tennis_competitions") or {"data": []}
     tennis_odds_data = get_cached_data("tennis_odds") or {"data": []}
@@ -335,6 +504,45 @@ with tabs[3]:
                         'markets': markets_count
                     })
         
+        # Show total matches and search suggestions
+        if all_matches:
+            st.info(f"📊 {len(all_matches)} total matches available across {len(all_tennis_competitions)} tournaments")
+            
+            # Show search suggestions if no search query
+            if not search_query:
+                sample_players = []
+                for match in all_matches[:3]:  # Get first 3 matches
+                    sample_players.extend([match['home_player'], match['away_player']])
+                if sample_players:
+                    st.caption(f"💡 Try searching for players like: {', '.join(sample_players[:3])}")
+        else:
+            # No live matches available
+            st.warning("⚠️ No live tennis matches currently available")
+            st.info("🎾 Tennis tournaments are scheduled but no active matches found. Check back during active tournament periods.")
+        
+        # Debug: Show available players for search
+        if all_matches and search_query:
+            all_players = []
+            for match in all_matches:
+                all_players.extend([match['home_player'], match['away_player']])
+            unique_players = list(set(all_players))
+            
+            with st.expander(f"🔍 Debug: Available Players ({len(unique_players)} total)", expanded=False):
+                col_debug1, col_debug2 = st.columns(2)
+                mid_point = len(unique_players) // 2
+                with col_debug1:
+                    for player in unique_players[:mid_point]:
+                        if search_query.lower() in player.lower():
+                            st.success(f"✅ {player}")
+                        else:
+                            st.write(f"• {player}")
+                with col_debug2:
+                    for player in unique_players[mid_point:]:
+                        if search_query.lower() in player.lower():
+                            st.success(f"✅ {player}")
+                        else:
+                            st.write(f"• {player}")
+        
         # Filter matches based on tournament selection and search query
         filtered_matches = all_matches
         
@@ -351,6 +559,10 @@ with tabs[3]:
                 if search_lower in m['home_player'].lower() or search_lower in m['away_player'].lower()
             ]
         
+        # Debug information (can be removed later)
+        if search_query:
+            st.info(f"🔍 Searching for: '{search_query}' | Found {len(filtered_matches)} matches out of {len(all_matches)} total")
+        
         # Display filtered matches
         if filtered_matches:
             st.write(f"� **{len(filtered_matches)} matches found**")
@@ -365,21 +577,64 @@ with tabs[3]:
             
             # Display matches grouped by tournament
             for tournament, matches in matches_by_tournament.items():
-                with st.expander(f"🎾 {tournament} ({len(matches)} matches)", expanded=len(matches_by_tournament) <= 3):
+                # Add tournament favorite button
+                tourn_col1, tourn_col2 = st.columns([4, 1])
+                with tourn_col1:
+                    expander_title = f"🎾 {tournament} ({len(matches)} matches)"
+                with tourn_col2:
+                    is_fav_tournament = tournament in st.session_state.favorite_tournaments
+                    if st.button("⭐" if is_fav_tournament else "☆", key=f"fav_tourn_{tournament}", 
+                                help="Add/Remove from favorites"):
+                        if is_fav_tournament:
+                            st.session_state.favorite_tournaments.discard(tournament)
+                        else:
+                            st.session_state.favorite_tournaments.add(tournament)
+                        st.rerun()
+                
+                with st.expander(expander_title, expanded=len(matches_by_tournament) <= 3):
                     for match in matches:
-                        col_a, col_b, col_c = st.columns([3, 3, 2])
+                        # Enhanced match display with favorites
+                        col_a, col_b, col_c, col_d = st.columns([3, 3, 2, 1])
                         
                         with col_a:
                             st.markdown(f"**{match['away_player']}**")
                             st.caption("Player 1")
+                            # Player 1 favorite button
+                            is_fav1 = match['away_player'] in st.session_state.favorite_players
+                            if st.button("⭐" if is_fav1 else "☆", key=f"fav1_{match['game_id']}_away", 
+                                        help="Add/Remove from favorites"):
+                                if is_fav1:
+                                    st.session_state.favorite_players.discard(match['away_player'])
+                                else:
+                                    st.session_state.favorite_players.add(match['away_player'])
+                                st.rerun()
                         
                         with col_b:
                             st.markdown(f"**{match['home_player']}**")
                             st.caption("Player 2")
+                            # Player 2 favorite button
+                            is_fav2 = match['home_player'] in st.session_state.favorite_players
+                            if st.button("⭐" if is_fav2 else "☆", key=f"fav2_{match['game_id']}_home", 
+                                        help="Add/Remove from favorites"):
+                                if is_fav2:
+                                    st.session_state.favorite_players.discard(match['home_player'])
+                                else:
+                                    st.session_state.favorite_players.add(match['home_player'])
+                                st.rerun()
                         
                         with col_c:
                             st.caption(f"⏰ {match['start_time']}")
                             st.caption(f"🌍 {match['region']}")
+                        
+                        with col_d:
+                            # Match quality indicator
+                            has_favorites = (match['away_player'] in st.session_state.favorite_players or 
+                                           match['home_player'] in st.session_state.favorite_players)
+                            if has_favorites:
+                                st.markdown("⭐")
+                                st.caption("Favorite")
+                            
+                            st.caption(f"🏆 {match['markets']} markets")
                         
                         # Find odds for this match
                         match_odds = find_tennis_game_odds(match['game_id'], tennis_odds_data) if match['game_id'] else None
@@ -488,6 +743,34 @@ with tabs[4]:
             if isinstance(odds, dict) and odds.get('bfid') == game_id:
                 return odds
         return None
+    
+    # Add data visualization section
+    if all_competitions or odds_data:
+        st.markdown("### 📊 Basketball Analytics Dashboard")
+        
+        # Create three columns for analytics
+        viz_col1, viz_col2, viz_col3 = st.columns(3)
+        
+        with viz_col1:
+            # Market activity gauge
+            total_markets = sum(comp.get('marketCount', 0) for comp in all_competitions if isinstance(comp, dict))
+            if total_markets > 0:
+                gauge_fig = create_market_activity_gauge(total_markets)
+                st.plotly_chart(gauge_fig, use_container_width=True)
+        
+        with viz_col2:
+            # Competition distribution
+            comp_chart = create_competition_distribution_chart(all_competitions, "Basketball")
+            if comp_chart:
+                st.plotly_chart(comp_chart, use_container_width=True)
+        
+        with viz_col3:
+            # Odds trends
+            odds_chart = create_odds_trend_chart(odds_data, "Basketball")
+            if odds_chart:
+                st.plotly_chart(odds_chart, use_container_width=True)
+        
+        st.markdown("---")  # Separator between analytics and games
     
     # Create two columns for side-by-side display
     col1, col2 = st.columns(2)
@@ -731,52 +1014,215 @@ with tabs[5]:
 with tabs[6]:
     st.markdown('<div class="section-title">Baseball<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
-    st.info("⚾ Baseball API Integration Ready")
-    st.markdown("""
-    **Available for Implementation:**
-    - MLB Regular Season & Playoffs
-    - World Series Betting Markets
-    - Player Props (Hits, RBIs, Home Runs)
-    - Team Totals and Spreads
+    # Use cached baseball data
+    all_baseball_competitions = get_cached_data("baseball_competitions") or {"data": []}
+    baseball_odds_data = get_cached_data("baseball_odds") or {"data": []}
     
-    *Contact support to enable Baseball API endpoints*
-    """)
+    # Extract data arrays
+    all_baseball_competitions = all_baseball_competitions.get('data', [])
+    baseball_odds_data = baseball_odds_data.get('data', [])
     
-    # Sample placeholder data structure
-    st.write("**Sample Data Structure:**")
-    sample_baseball = {
-        "leagues": ["MLB", "Minor League"],
-        "markets": ["Moneyline", "Run Line", "Over/Under", "Player Props"],
-        "teams": 30,
-        "status": "Ready for API integration"
-    }
-    st.json(sample_baseball)
+    # Auto-load matchups for a specific baseball competition (with caching)
+    def load_baseball_matchups(competition_id):
+        cache_key = f"baseball_matchups_{competition_id}"
+        cached = get_cached_data(cache_key)
+        if cached:
+            return cached.get('data', [])
+        
+        try:
+            api_url = f"http://127.0.0.1:5001/api/baseball/matchups/{competition_id}"
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                set_cached_data(cache_key, data)
+                return data.get('data', [])
+            return []
+        except:
+            return []
+    
+    # Helper function to find odds for a specific baseball game
+    def find_baseball_game_odds(game_id, odds_list):
+        for odds in odds_list:
+            if isinstance(odds, dict) and odds.get('bfid') == game_id:
+                return odds
+        return None
+    
+    if all_baseball_competitions:
+        st.success(f"⚾ Found {len(all_baseball_competitions)} baseball competitions")
+        
+        # Display baseball competitions
+        for i, comp in enumerate(all_baseball_competitions):
+            if isinstance(comp, dict) and 'competition' in comp:
+                comp_info = comp['competition']
+                comp_name = comp_info.get('name', 'Unknown League')
+                comp_region = comp.get('competitionRegion', 'USA')
+                markets_count = comp.get('marketCount', 0)
+                
+                with st.expander(f"⚾ {comp_name}", expanded=i < 2):  # Expand first 2 leagues
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Region:** {comp_region}")
+                        st.write(f"**Markets:** {markets_count} available")
+                    
+                    # Load matchups for this competition
+                    comp_matchups = load_baseball_matchups(comp_info.get('id'))
+                    
+                    if comp_matchups:
+                        st.write(f"**{len(comp_matchups)} Upcoming Games:**")
+                        
+                        for matchup in comp_matchups:
+                            if isinstance(matchup, dict):
+                                home_team = matchup.get('homeTeam', {}).get('name', 'Home Team')
+                                away_team = matchup.get('awayTeam', {}).get('name', 'Away Team')
+                                start_time = matchup.get('startTime', 'TBD')
+                                game_id = matchup.get('bfid')
+                                
+                                # Find odds for this match
+                                match_odds = find_baseball_game_odds(game_id, baseball_odds_data) if game_id else None
+                                
+                                with st.container():
+                                    col_a, col_b, col_c = st.columns([2, 2, 1])
+                                    with col_a:
+                                        st.markdown(f"**{away_team}**")
+                                        st.caption("Away Team")
+                                    with col_b:
+                                        st.markdown(f"**{home_team}**")
+                                        st.caption("Home Team")
+                                    with col_c:
+                                        st.caption(f"⏰ {start_time}")
+                                    
+                                    if match_odds and 'marketIds' in match_odds:
+                                        st.markdown("**📊 Betting Markets:**")
+                                        for market in match_odds['marketIds'][:3]:  # Show max 3 markets
+                                            if isinstance(market, dict):
+                                                market_name = market.get('marketName', 'Moneyline')
+                                                total_matched = market.get('totalMatched', 0)
+                                                st.caption(f"💰 {market_name}: ${total_matched:,.2f} matched")
+                                    else:
+                                        st.caption("📊 Betting odds available")
+                                    
+                                    st.markdown("---")
+                    else:
+                        st.info("📅 No games scheduled currently")
+                        st.caption("Check back during baseball season for live games")
+        
+        # Footer
+        st.markdown("---")
+        from datetime import datetime
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.caption(f"Baseball data automatically loaded from Sportbex API at {current_time} • Updates in real-time")
+        
+    else:
+        st.warning("⚠️ Baseball competitions data not available")
+        st.info("Baseball season may be off-season. Check back during MLB season.")
 
 # HOCKEY TAB
 with tabs[7]:
     st.markdown('<div class="section-title">Hockey<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
-    st.info("🏒 Hockey API Integration Ready")
-    st.markdown("""
-    **Available for Implementation:**
-    - NHL Regular Season & Playoffs
-    - Stanley Cup Betting Markets
-    - Player Props (Goals, Assists, Shots)
-    - Team Totals and Puck Line
+    # Use cached hockey data
+    all_hockey_competitions = get_cached_data("hockey_competitions") or {"data": []}
+    hockey_odds_data = get_cached_data("hockey_odds") or {"data": []}
     
-    *Contact support to enable Hockey API endpoints*
-    """)
+    # Extract data arrays
+    all_hockey_competitions = all_hockey_competitions.get('data', [])
+    hockey_odds_data = hockey_odds_data.get('data', [])
     
-    # Sample placeholder data structure
-    st.write("**Sample Data Structure:**")
-    sample_hockey = {
-        "leagues": ["NHL", "International"],
-        "markets": ["Moneyline", "Puck Line", "Over/Under", "Player Props"],
-        "teams": 32,
-        "status": "Ready for API integration"
-    }
-    st.json(sample_hockey)
-    st.info("Replace this section with actual Hockey API data display.")
+    # Auto-load matchups for a specific hockey competition (with caching)
+    def load_hockey_matchups(competition_id):
+        cache_key = f"hockey_matchups_{competition_id}"
+        cached = get_cached_data(cache_key)
+        if cached:
+            return cached.get('data', [])
+        
+        try:
+            api_url = f"http://127.0.0.1:5001/api/hockey/matchups/{competition_id}"
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                set_cached_data(cache_key, data)
+                return data.get('data', [])
+            return []
+        except:
+            return []
+    
+    # Helper function to find odds for a specific hockey game
+    def find_hockey_game_odds(game_id, odds_list):
+        for odds in odds_list:
+            if isinstance(odds, dict) and odds.get('bfid') == game_id:
+                return odds
+        return None
+    
+    if all_hockey_competitions:
+        st.success(f"🏒 Found {len(all_hockey_competitions)} hockey competitions")
+        
+        # Display hockey competitions
+        for i, comp in enumerate(all_hockey_competitions):
+            if isinstance(comp, dict) and 'competition' in comp:
+                comp_info = comp['competition']
+                comp_name = comp_info.get('name', 'Unknown League')
+                comp_region = comp.get('competitionRegion', 'International')
+                markets_count = comp.get('marketCount', 0)
+                
+                with st.expander(f"🏒 {comp_name}", expanded=i < 2):  # Expand first 2 leagues
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Region:** {comp_region}")
+                        st.write(f"**Markets:** {markets_count} available")
+                    
+                    # Load matchups for this competition
+                    comp_matchups = load_hockey_matchups(comp_info.get('id'))
+                    
+                    if comp_matchups:
+                        st.write(f"**{len(comp_matchups)} Upcoming Games:**")
+                        
+                        for matchup in comp_matchups:
+                            if isinstance(matchup, dict):
+                                home_team = matchup.get('homeTeam', {}).get('name', 'Home Team')
+                                away_team = matchup.get('awayTeam', {}).get('name', 'Away Team')
+                                start_time = matchup.get('startTime', 'TBD')
+                                game_id = matchup.get('bfid')
+                                
+                                # Find odds for this match
+                                match_odds = find_hockey_game_odds(game_id, hockey_odds_data) if game_id else None
+                                
+                                with st.container():
+                                    col_a, col_b, col_c = st.columns([2, 2, 1])
+                                    with col_a:
+                                        st.markdown(f"**{away_team}**")
+                                        st.caption("Away Team")
+                                    with col_b:
+                                        st.markdown(f"**{home_team}**")
+                                        st.caption("Home Team")
+                                    with col_c:
+                                        st.caption(f"⏰ {start_time}")
+                                    
+                                    if match_odds and 'marketIds' in match_odds:
+                                        st.markdown("**📊 Betting Markets:**")
+                                        for market in match_odds['marketIds'][:3]:  # Show max 3 markets
+                                            if isinstance(market, dict):
+                                                market_name = market.get('marketName', 'Moneyline')
+                                                total_matched = market.get('totalMatched', 0)
+                                                st.caption(f"💰 {market_name}: ${total_matched:,.2f} matched")
+                                    else:
+                                        st.caption("📊 Betting odds available")
+                                    
+                                    st.markdown("---")
+                    else:
+                        st.info("📅 No games scheduled currently")
+                        st.caption("Check back during hockey season for live games")
+        
+        # Footer
+        st.markdown("---")
+        from datetime import datetime
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.caption(f"Hockey data automatically loaded from Sportbex API at {current_time} • Updates in real-time")
+        
+    else:
+        st.warning("⚠️ Hockey competitions data not available")
+        st.info("Hockey season may be off-season. Check back during NHL season.")
 
 # SOCCER TAB
 with tabs[8]:
@@ -902,70 +1348,239 @@ with tabs[8]:
 with tabs[9]:
     st.markdown('<div class="section-title">Esports<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
-    st.info("🎮 Esports API Integration Ready")
-    st.markdown("""
-    **Available for Implementation:**
-    - League of Legends (LCS, LEC, Worlds)
-    - CS:GO/CS2 Major Tournaments
-    - Dota 2 (The International, DPC)
-    - Valorant Championship Series
-    - Overwatch League
+    # Use cached esports data
+    all_esports_competitions = get_cached_data("esports_competitions") or {"data": []}
+    esports_odds_data = get_cached_data("esports_odds") or {"data": []}
     
-    *API endpoints available via RapidAPI integration*
-    """)
+    # Extract data arrays
+    all_esports_competitions = all_esports_competitions.get('data', [])
+    esports_odds_data = esports_odds_data.get('data', [])
     
-    # Show existing esports integration status
-    st.write("**Current Integration Status:**")
-    esports_status = {
-        "RapidAPI": "✅ Connected",
-        "Endpoints": ["Team Info", "Tournament Data", "Season Info", "Match History"],
-        "Games": ["LoL", "CS:GO", "Dota 2", "Valorant"],
-        "status": "Partially integrated - extend for betting markets"
-    }
-    st.json(esports_status)
+    # Auto-load matchups for a specific esports competition (with caching)
+    def load_esports_matchups(competition_id):
+        cache_key = f"esports_matchups_{competition_id}"
+        cached = get_cached_data(cache_key)
+        if cached:
+            return cached.get('data', [])
+        
+        try:
+            api_url = f"http://127.0.0.1:5001/api/esports/matchups/{competition_id}"
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                set_cached_data(cache_key, data)
+                return data.get('data', [])
+            return []
+        except:
+            return []
     
-    st.markdown("""
-    **Available Functions:**
-    - `get_esport_team(team_id)` - Get team information
-    - `get_esport_tournament(tournament_id)` - Get tournament details
-    - `get_esport_season_info(tournament_id, season_id)` - Season information
-    - `get_esport_season_last_matches(tournament_id, season_id, page)` - Recent matches
-    """)
+    # Helper function to find odds for a specific esports match
+    def find_esports_game_odds(game_id, odds_list):
+        for odds in odds_list:
+            if isinstance(odds, dict) and odds.get('bfid') == game_id:
+                return odds
+        return None
+    
+    if all_esports_competitions:
+        st.success(f"🎮 Found {len(all_esports_competitions)} esports competitions")
+        
+        # Display esports competitions
+        for i, comp in enumerate(all_esports_competitions):
+            if isinstance(comp, dict) and 'competition' in comp:
+                comp_info = comp['competition']
+                comp_name = comp_info.get('name', 'Unknown Tournament')
+                comp_region = comp.get('competitionRegion', 'Global')
+                markets_count = comp.get('marketCount', 0)
+                
+                # Determine game type by name patterns
+                game_icon = "🎮"
+                if any(game in comp_name.upper() for game in ['LOL', 'LEAGUE']):
+                    game_icon = "⚔️"
+                elif any(game in comp_name.upper() for game in ['CS', 'COUNTER']):
+                    game_icon = "🔫"
+                elif 'DOTA' in comp_name.upper():
+                    game_icon = "🐲"
+                elif 'VALORANT' in comp_name.upper():
+                    game_icon = "🎯"
+                
+                with st.expander(f"{game_icon} {comp_name}", expanded=i < 3):  # Expand first 3 tournaments
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Region:** {comp_region}")
+                        st.write(f"**Markets:** {markets_count} available")
+                    
+                    # Load matchups for this competition
+                    comp_matchups = load_esports_matchups(comp_info.get('id'))
+                    
+                    if comp_matchups:
+                        st.write(f"**{len(comp_matchups)} Upcoming Matches:**")
+                        
+                        for matchup in comp_matchups:
+                            if isinstance(matchup, dict):
+                                home_team = matchup.get('homeTeam', {}).get('name', 'Team 1')
+                                away_team = matchup.get('awayTeam', {}).get('name', 'Team 2')
+                                start_time = matchup.get('startTime', 'TBD')
+                                game_id = matchup.get('bfid')
+                                
+                                # Find odds for this match
+                                match_odds = find_esports_game_odds(game_id, esports_odds_data) if game_id else None
+                                
+                                with st.container():
+                                    col_a, col_b, col_c = st.columns([2, 2, 1])
+                                    with col_a:
+                                        st.markdown(f"**{away_team}**")
+                                        st.caption("Team 1")
+                                    with col_b:
+                                        st.markdown(f"**{home_team}**")
+                                        st.caption("Team 2")
+                                    with col_c:
+                                        st.caption(f"⏰ {start_time}")
+                                    
+                                    if match_odds and 'marketIds' in match_odds:
+                                        st.markdown("**📊 Betting Markets:**")
+                                        for market in match_odds['marketIds'][:3]:  # Show max 3 markets
+                                            if isinstance(market, dict):
+                                                market_name = market.get('marketName', 'Match Winner')
+                                                total_matched = market.get('totalMatched', 0)
+                                                st.caption(f"💰 {market_name}: ${total_matched:,.2f} matched")
+                                    else:
+                                        st.caption("📊 Betting odds available")
+                                    
+                                    st.markdown("---")
+                    else:
+                        st.info("📅 No matches scheduled currently")
+                        st.caption("Check back for upcoming tournament matches")
+        
+        # Footer
+        st.markdown("---")
+        from datetime import datetime
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.caption(f"Esports data automatically loaded from Sportbex API at {current_time} • Updates in real-time")
+        
+    else:
+        st.warning("⚠️ Esports competitions data not available")
+        st.info("No active esports tournaments found. Check back for major events like Worlds, TI, or Majors.")
 
 # COLLEGE FOOTBALL TAB
 with tabs[10]:
     st.markdown('<div class="section-title">College Football<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
-    st.info("🏈 College Football API Integration Ready")
-    st.markdown("""
-    **Available for Implementation:**
-    - NCAA Division I FBS
-    - College Football Playoff
-    - Bowl Games & Championships
-    - Conference Championships
-    - Player Props & Team Totals
+    # Use cached college football data
+    all_college_football_competitions = get_cached_data("college_football_competitions") or {"data": []}
+    college_football_odds_data = get_cached_data("college_football_odds") or {"data": []}
     
-    *Contact support to enable College Football API endpoints*
-    """)
+    # Extract data arrays
+    all_college_football_competitions = all_college_football_competitions.get('data', [])
+    college_football_odds_data = college_football_odds_data.get('data', [])
     
-    # Sample placeholder data structure
-    st.write("**Sample Data Structure:**")
-    sample_college_football = {
-        "conferences": ["SEC", "Big Ten", "ACC", "Big 12", "Pac-12"],
-        "markets": ["Spread", "Moneyline", "Over/Under", "Player Props"],
-        "teams": 130,
-        "playoff_teams": 12,
-        "status": "Ready for API integration"
-    }
-    st.json(sample_college_football)
+    # Auto-load matchups for a specific college football competition (with caching)
+    def load_college_football_matchups(competition_id):
+        cache_key = f"college_football_matchups_{competition_id}"
+        cached = get_cached_data(cache_key)
+        if cached:
+            return cached.get('data', [])
+        
+        try:
+            api_url = f"http://127.0.0.1:5001/api/college-football/matchups/{competition_id}"
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                set_cached_data(cache_key, data)
+                return data.get('data', [])
+            return []
+        except:
+            return []
     
-    st.markdown("""
-    **Key Features Ready:**
-    - Conference standings and rankings
-    - Bowl game predictions
-    - Player performance metrics
-    - Live betting during games
-    """)
+    # Helper function to find odds for a specific college football game
+    def find_college_football_game_odds(game_id, odds_list):
+        for odds in odds_list:
+            if isinstance(odds, dict) and odds.get('bfid') == game_id:
+                return odds
+        return None
+    
+    if all_college_football_competitions:
+        st.success(f"🏈 Found {len(all_college_football_competitions)} college football competitions")
+        
+        # Display college football competitions
+        for i, comp in enumerate(all_college_football_competitions):
+            if isinstance(comp, dict) and 'competition' in comp:
+                comp_info = comp['competition']
+                comp_name = comp_info.get('name', 'Unknown Conference')
+                comp_region = comp.get('competitionRegion', 'USA')
+                markets_count = comp.get('marketCount', 0)
+                
+                # Add conference icons
+                conference_icon = "🏈"
+                if any(conf in comp_name.upper() for conf in ['SEC', 'SOUTHEASTERN']):
+                    conference_icon = "⭐"
+                elif any(conf in comp_name.upper() for conf in ['BIG TEN', 'B1G']):
+                    conference_icon = "🔟"
+                elif 'ACC' in comp_name.upper():
+                    conference_icon = "🅰️"
+                elif 'BIG 12' in comp_name.upper():
+                    conference_icon = "1️⃣2️⃣"
+                elif 'PAC' in comp_name.upper():
+                    conference_icon = "🌊"
+                
+                with st.expander(f"{conference_icon} {comp_name}", expanded=i < 2):  # Expand first 2 conferences
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Region:** {comp_region}")
+                        st.write(f"**Markets:** {markets_count} available")
+                    
+                    # Load matchups for this competition
+                    comp_matchups = load_college_football_matchups(comp_info.get('id'))
+                    
+                    if comp_matchups:
+                        st.write(f"**{len(comp_matchups)} Upcoming Games:**")
+                        
+                        for matchup in comp_matchups:
+                            if isinstance(matchup, dict):
+                                home_team = matchup.get('homeTeam', {}).get('name', 'Home Team')
+                                away_team = matchup.get('awayTeam', {}).get('name', 'Away Team')
+                                start_time = matchup.get('startTime', 'TBD')
+                                game_id = matchup.get('bfid')
+                                
+                                # Find odds for this match
+                                match_odds = find_college_football_game_odds(game_id, college_football_odds_data) if game_id else None
+                                
+                                with st.container():
+                                    col_a, col_b, col_c = st.columns([2, 2, 1])
+                                    with col_a:
+                                        st.markdown(f"**{away_team}**")
+                                        st.caption("Away Team")
+                                    with col_b:
+                                        st.markdown(f"**{home_team}**")
+                                        st.caption("Home Team")
+                                    with col_c:
+                                        st.caption(f"⏰ {start_time}")
+                                    
+                                    if match_odds and 'marketIds' in match_odds:
+                                        st.markdown("**📊 Betting Markets:**")
+                                        for market in match_odds['marketIds'][:3]:  # Show max 3 markets
+                                            if isinstance(market, dict):
+                                                market_name = market.get('marketName', 'Spread')
+                                                total_matched = market.get('totalMatched', 0)
+                                                st.caption(f"💰 {market_name}: ${total_matched:,.2f} matched")
+                                    else:
+                                        st.caption("📊 Betting odds available")
+                                    
+                                    st.markdown("---")
+                    else:
+                        st.info("📅 No games scheduled currently")
+                        st.caption("Check back during college football season for live games")
+        
+        # Footer
+        st.markdown("---")
+        from datetime import datetime
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.caption(f"College Football data automatically loaded from Sportbex API at {current_time} • Updates in real-time")
+        
+    else:
+        st.warning("⚠️ College Football competitions data not available")
+        st.info("College football season may be off-season. Check back during NCAA season.")
 
 
 
