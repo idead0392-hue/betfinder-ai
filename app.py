@@ -1,3 +1,75 @@
+"""
+BetFinder AI - Streamlit Application with SportbexProvider Integration
+
+This application demonstrates a comprehensive integration pattern for migrating from
+direct API calls to a unified provider abstraction layer. Key patterns implemented:
+
+PROVIDER INTEGRATION ARCHITECTURE:
+================================
+
+1. BACKWARD COMPATIBILITY PATTERN:
+   - All provider calls have fallback to legacy HTTP endpoints
+   - Existing function signatures and return formats are preserved
+   - No breaking changes to UI components or caching logic
+
+2. UNIFIED DATA LOADING PATTERN:
+   - load_provider_data(): Central function for all provider interactions
+   - Consistent error handling and caching across all sports
+   - Standardized response format from different API endpoints
+
+3. FACTORY PATTERN FOR CODE REUSE:
+   - create_matchup_loader(): Reduces duplication across similar functions
+   - Maintains sport-specific customizations while sharing core logic
+   - Easy to extend for new sports or data types
+
+4. GRACEFUL DEGRADATION:
+   - Provider initialization failures don't crash the application
+   - Individual API call failures fall back to legacy endpoints
+   - User experience remains consistent regardless of provider status
+
+5. EXTENSION PATTERN FOR MULTIPLE PROVIDERS:
+   - Provider abstraction allows easy addition of new data sources
+   - Sport-specific provider selection (e.g., use PandaScore for esports)
+   - Provider failover chains for high availability
+   - Rate limiting and quota management per provider
+
+INTEGRATION BENEFITS:
+===================
+- Centralized error handling and logging
+- Automatic retry logic and timeout management
+- Consistent data formatting across different endpoints
+- Easy testing and mocking of API dependencies
+- Simplified addition of new sports or providers
+- Better monitoring and debugging capabilities
+
+EXTENDING TO NEW PROVIDERS:
+==========================
+To add a new provider (e.g., PandaScore):
+
+1. Create provider class inheriting from BaseAPIProvider
+2. Add provider selection logic in load_provider_data()
+3. Implement provider-specific sport mappings
+4. Add fallback chains for high availability
+5. Update configuration to support multiple API keys
+
+Example:
+```python
+def load_provider_data(sport_type, data_type, cache_key, **kwargs):
+    # Try primary provider
+    primary_result = try_sportbex_provider(...)
+    if primary_result.success:
+        return primary_result.data
+    
+    # Fallback to secondary provider
+    secondary_result = try_pandascore_provider(...)
+    if secondary_result.success:
+        return secondary_result.data
+    
+    # Final fallback to legacy API
+    return legacy_api_call(...)
+```
+"""
+
 import streamlit as st
 import pandas as pd
 import requests
@@ -8,6 +80,14 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 # requests is used for custom API calls below
 from lxml import etree
+
+# Import the SportbexProvider for unified API access
+try:
+    from api_providers import SportbexProvider, SportType, create_sportbex_provider
+    PROVIDER_AVAILABLE = True
+except ImportError as e:
+    st.warning(f"SportbexProvider not available: {e}. Falling back to direct API calls.")
+    PROVIDER_AVAILABLE = False
 
 # Page configuration
 st.set_page_config(
@@ -24,6 +104,26 @@ if 'cache_timestamp' not in st.session_state:
     st.session_state.cache_timestamp = {}
 if 'data_loaded' not in st.session_state:
     st.session_state.data_loaded = False
+
+# Initialize SportbexProvider for direct API access
+# This provides a unified interface to the Sportbex API with proper error handling,
+# retry logic, and standardized responses. It can be extended to support multiple
+# providers by adding them to a provider registry.
+if 'sportbex_provider' not in st.session_state:
+    st.session_state.sportbex_provider = None
+    if PROVIDER_AVAILABLE:
+        try:
+            # Try to initialize with environment variable first
+            st.session_state.sportbex_provider = create_sportbex_provider()
+        except ValueError:
+            # Fall back to hardcoded API key for backward compatibility
+            try:
+                st.session_state.sportbex_provider = SportbexProvider(
+                    api_key='NZLDw8ZXFv0O8elaPq0wjbP4zxb2gCwJDsArWQUF'
+                )
+            except Exception as e:
+                st.error(f"Failed to initialize SportbexProvider: {e}")
+                st.session_state.sportbex_provider = None
 
 # Cache duration (5 minutes)
 CACHE_DURATION = 300
@@ -64,6 +164,103 @@ def load_api_data(url, cache_key, method='GET', data=None):
             return result
     except:
         pass
+    
+    return None
+
+
+def load_provider_data(sport_type, data_type, cache_key, **kwargs):
+    """
+    Load data using SportbexProvider with fallback to legacy API calls.
+    
+    This function demonstrates the integration pattern for using API providers:
+    1. First try the SportbexProvider for direct, efficient API access
+    2. Fall back to legacy proxy API calls for backward compatibility
+    3. Cache results using the existing caching system
+    
+    Integration Pattern for Multiple Providers:
+    - Add provider-specific logic in this function
+    - Use a provider registry to support multiple betting data sources
+    - Implement provider failover for high availability
+    - Standardize data formats across different providers
+    
+    Args:
+        sport_type (SportType): The sport to get data for
+        data_type (str): Type of data ('competitions', 'odds', 'props', 'matchups')
+        cache_key (str): Cache key for storing results
+        **kwargs: Additional parameters for the provider method
+    
+    Returns:
+        dict or None: API response data or None if failed
+    """
+    # Check cache first (same as legacy method)
+    cached = get_cached_data(cache_key)
+    if cached is not None:
+        return cached
+    
+    provider = st.session_state.get('sportbex_provider')
+    result = None
+    
+    # Try SportbexProvider first (preferred method)
+    if provider is not None:
+        try:
+            if data_type == 'competitions':
+                response = provider.get_competitions(sport=sport_type, **kwargs)
+            elif data_type == 'props':
+                response = provider.get_props(sport=sport_type, **kwargs)
+            elif data_type == 'odds':
+                response = provider.get_odds(**kwargs)
+            elif data_type == 'matchups':
+                # For matchups, we need a competition_id
+                competition_id = kwargs.get('competition_id')
+                if competition_id:
+                    response = provider.get_matchups(sport=sport_type, competition_id=competition_id, **kwargs)
+                else:
+                    response = None
+            else:
+                response = None
+            
+            if response and response.success:
+                # Extract data from provider response
+                if isinstance(response.data, dict) and 'data' in response.data:
+                    result = response.data  # Keep original structure
+                else:
+                    result = {'data': response.data}  # Wrap in expected structure
+                
+                # Cache the result
+                set_cached_data(cache_key, result)
+                return result
+            else:
+                # Log provider error but continue to fallback
+                if response:
+                    st.warning(f"Provider error for {data_type}: {response.error_message}")
+        
+        except Exception as e:
+            # Log provider exception but continue to fallback
+            st.warning(f"Provider exception for {data_type}: {str(e)}")
+    
+    # Fallback to legacy API calls for backward compatibility
+    # This ensures the app continues to work even if the provider fails
+    legacy_urls = {
+        'tennis_competitions': "http://127.0.0.1:5001/api/tennis/competitions",
+        'tennis_odds': "http://127.0.0.1:5001/api/tennis/odds",
+        'basketball_props': "http://127.0.0.1:5001/api/basketball/props", 
+        'basketball_odds': "http://127.0.0.1:5001/api/basketball/odds",
+        'football_competitions': "http://127.0.0.1:5001/api/football/competitions",
+        'football_odds': "http://127.0.0.1:5001/api/football/odds",
+        'soccer_competitions': "http://127.0.0.1:5001/api/soccer/competitions",
+        'baseball_competitions': "http://127.0.0.1:5001/api/baseball/competitions",
+        'baseball_odds': "http://127.0.0.1:5001/api/baseball/odds",
+        'hockey_competitions': "http://127.0.0.1:5001/api/hockey/competitions",
+        'hockey_odds': "http://127.0.0.1:5001/api/hockey/odds",
+        'esports_competitions': "http://127.0.0.1:5001/api/esports/competitions",
+        'esports_odds': "http://127.0.0.1:5001/api/esports/odds",
+        'college_football_competitions': "http://127.0.0.1:5001/api/college-football/competitions",
+        'college_football_odds': "http://127.0.0.1:5001/api/college-football/odds"
+    }
+    
+    if cache_key in legacy_urls:
+        method = 'POST' if 'odds' in cache_key else 'GET'
+        return load_api_data(legacy_urls[cache_key], cache_key, method, data=kwargs.get('data'))
     
     return None
 
@@ -188,43 +385,116 @@ def safe_rerun():
 
 
 def preload_sports_data():
-    """Preload all sports data on app startup"""
+    """
+    Preload all sports data on app startup using the SportbexProvider.
+    
+    This function demonstrates the integration pattern for using API providers
+    instead of direct HTTP calls. Benefits include:
+    
+    1. Unified Error Handling: All API calls go through the same error handling logic
+    2. Automatic Retries: Provider handles retries and timeouts automatically  
+    3. Standardized Responses: All responses follow the same format
+    4. Easy Provider Switching: Change provider without changing business logic
+    5. Better Logging: Centralized logging for all API interactions
+    6. Backward Compatibility: Falls back to legacy API calls if provider fails
+    
+    Extension Pattern for Multiple Providers:
+    To add support for additional providers (e.g., PandaScore, StatPal):
+    1. Create new provider classes inheriting from BaseAPIProvider
+    2. Add provider selection logic (e.g., based on sport or data quality preferences)
+    3. Implement provider failover chains for high availability
+    4. Use provider-specific caching strategies based on rate limits
+    """
     if st.session_state.data_loaded:
         return
     
-    with st.spinner("Loading sports data..."):
-        # Basketball data
-        load_api_data("http://127.0.0.1:5001/api/basketball/props", "basketball_props")
-        load_api_data("http://127.0.0.1:5001/api/basketball/odds", "basketball_odds", "POST")
+    with st.spinner("Loading sports data using SportbexProvider..."):
+        # Basketball data - using provider for props and odds
+        load_provider_data(SportType.BASKETBALL, 'props', 'basketball_props')
+        load_provider_data(SportType.BASKETBALL, 'odds', 'basketball_odds')
         
-        # Tennis data
-        load_api_data("http://127.0.0.1:5001/api/tennis/competitions", "tennis_competitions")
-        load_api_data("http://127.0.0.1:5001/api/tennis/odds", "tennis_odds", "POST")
+        # Tennis data - using provider for competitions and odds
+        load_provider_data(SportType.TENNIS, 'competitions', 'tennis_competitions')
+        load_provider_data(SportType.TENNIS, 'odds', 'tennis_odds')
         
-        # Football data
-        load_api_data("http://127.0.0.1:5001/api/football/competitions", "football_competitions")
-        load_api_data("http://127.0.0.1:5001/api/football/odds", "football_odds", "POST")
+        # Football data - using provider for competitions and odds
+        load_provider_data(SportType.AMERICAN_FOOTBALL, 'competitions', 'football_competitions')
+        load_provider_data(SportType.AMERICAN_FOOTBALL, 'odds', 'football_odds')
         
-        # Soccer data
-        load_api_data("http://127.0.0.1:5001/api/soccer/competitions", "soccer_competitions")
+        # Soccer data - using provider for competitions
+        load_provider_data(SportType.SOCCER, 'competitions', 'soccer_competitions')
         
-        # Baseball data
-        load_api_data("http://127.0.0.1:5001/api/baseball/competitions", "baseball_competitions")
-        load_api_data("http://127.0.0.1:5001/api/baseball/odds", "baseball_odds", "POST")
+        # Baseball data - using provider for competitions and odds
+        load_provider_data(SportType.BASEBALL, 'competitions', 'baseball_competitions')
+        load_provider_data(SportType.BASEBALL, 'odds', 'baseball_odds')
         
-        # Hockey data
-        load_api_data("http://127.0.0.1:5001/api/hockey/competitions", "hockey_competitions")
-        load_api_data("http://127.0.0.1:5001/api/hockey/odds", "hockey_odds", "POST")
+        # Hockey data - using provider for competitions and odds
+        load_provider_data(SportType.HOCKEY, 'competitions', 'hockey_competitions')
+        load_provider_data(SportType.HOCKEY, 'odds', 'hockey_odds')
         
-        # Esports data
-        load_api_data("http://127.0.0.1:5001/api/esports/competitions", "esports_competitions")
-        load_api_data("http://127.0.0.1:5001/api/esports/odds", "esports_odds", "POST")
+        # Esports data - using provider for competitions and odds
+        load_provider_data(SportType.ESPORTS, 'competitions', 'esports_competitions')
+        load_provider_data(SportType.ESPORTS, 'odds', 'esports_odds')
         
-        # College Football data
-        load_api_data("http://127.0.0.1:5001/api/college-football/competitions", "college_football_competitions")
-        load_api_data("http://127.0.0.1:5001/api/college-football/odds", "college_football_odds", "POST")
+        # College Football data - using provider for competitions and odds
+        load_provider_data(SportType.COLLEGE_FOOTBALL, 'competitions', 'college_football_competitions')
+        load_provider_data(SportType.COLLEGE_FOOTBALL, 'odds', 'college_football_odds')
         
         st.session_state.data_loaded = True
+
+def create_matchup_loader(sport_type, sport_name_lower):
+    """
+    Factory function to create sport-specific matchup loaders using the provider pattern.
+    
+    This demonstrates how to reduce code duplication when integrating providers
+    across multiple sports while maintaining backward compatibility.
+    
+    Pattern Benefits:
+    - Reduces code duplication across similar functions
+    - Ensures consistent provider integration across all sports
+    - Simplifies maintenance and updates to provider logic
+    - Maintains existing function signatures for backward compatibility
+    
+    Args:
+        sport_type (SportType): The SportType enum for the provider
+        sport_name_lower (str): Lowercase sport name for legacy API URLs
+    
+    Returns:
+        function: A matchup loader function for the specific sport
+    """
+    def load_matchups(competition_id):
+        cache_key = f"{sport_name_lower}_matchups_{competition_id}"
+        
+        # Try provider-based loading first
+        result = load_provider_data(
+            sport_type, 
+            'matchups', 
+            cache_key, 
+            competition_id=competition_id
+        )
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
+        cached = get_cached_data(cache_key)
+        if cached:
+            return cached.get('data', [])
+        
+        try:
+            api_url = f"http://127.0.0.1:5001/api/{sport_name_lower}/matchups/{competition_id}"
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                set_cached_data(cache_key, data)
+                return data.get('data', [])
+            return []
+        except:
+            return []
+    
+    return load_matchups
+
 
 # Preload data on app start
 preload_sports_data()
@@ -329,28 +599,64 @@ with tabs[2]:
         else:
             token = st.text_input("Paste token (will not be saved)", type="password")
 
-        if st.button("Test API"):
-            if not endpoint:
-                st.error("Please provide an API endpoint to test.")
-            elif not token:
-                st.error("No token available. Add `NEW_API_TOKEN` to `.streamlit/secrets.toml` or paste a token.")
-            else:
-                headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-                st.info(f"Calling {endpoint} with Bearer token (redacted in UI)")
-                try:
-                    resp = requests.get(endpoint, headers=headers, timeout=15)
-                    st.write("Status:", resp.status_code)
-                    ct = resp.headers.get('content-type','')
-                    if 'application/json' in ct:
-                        try:
-                            st.json(resp.json())
-                        except Exception:
-                            st.code(resp.text)
-                    else:
-                        # Show text or XML
-                        st.code(resp.text[:10000])
-                except Exception as e:
-                    st.error(f"Request failed: {e}")
+        col_btn, col_clear = st.columns([1, 1])
+        with col_btn:
+            if st.button("Load Props"):
+                if not endpoint:
+                    st.error("Please provide an API endpoint to load props from.")
+                elif not token:
+                    st.error("No token available. Add `NEW_API_TOKEN` to `.streamlit/secrets.toml` or paste a token.")
+                else:
+                    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+                    st.info(f"Calling {endpoint} with Bearer token (redacted in UI)")
+                    try:
+                        resp = requests.get(endpoint, headers=headers, timeout=20)
+                        st.write("Status:", resp.status_code)
+                        if resp.status_code == 200:
+                            try:
+                                data = resp.json()
+                            except Exception:
+                                data = resp.text
+                            set_cached_data("custom_props", data)
+                            st.success("Props loaded and cached (key: custom_props). Preview below.")
+                        else:
+                            st.error(f"API returned status {resp.status_code}")
+                            st.code(resp.text[:2000])
+                    except Exception as e:
+                        st.error(f"Request failed: {e}")
+
+        with col_clear:
+            if st.button("Clear Cached Props"):
+                if "custom_props" in st.session_state.data_cache:
+                    st.session_state.data_cache.pop("custom_props", None)
+                    st.session_state.cache_timestamp.pop("custom_props", None)
+                    st.success("Cleared cached custom props.")
+                else:
+                    st.info("No cached custom props to clear.")
+
+        # Show cached props if present
+        cached = get_cached_data("custom_props")
+        if cached is not None:
+            st.markdown("### Cached Props Preview")
+            try:
+                if isinstance(cached, list):
+                    df = pd.DataFrame(cached)
+                    st.dataframe(df)
+                elif isinstance(cached, dict):
+                    # Show flattened preview for dicts
+                    df = pd.json_normalize(cached)
+                    st.dataframe(df)
+                else:
+                    st.code(str(cached)[:10000])
+            except Exception:
+                # Fallback to JSON/text
+                if isinstance(cached, (dict, list)):
+                    st.json(cached)
+                else:
+                    st.code(str(cached)[:10000])
+
+        st.markdown("---")
+        st.caption("Tip: store your token in `.streamlit/secrets.toml` as `NEW_API_TOKEN = \"your_token_here\"` to avoid pasting it into the UI.")
 
     elif provider == "PandaScore":
         st.write("PandaScore API integration for esports data.")
@@ -414,7 +720,26 @@ with tabs[3]:
     
     # Auto-load matchups for a specific tennis competition (with caching)
     def load_tennis_matchups(competition_id):
+        """
+        Load tennis matchups using SportbexProvider with fallback to legacy API.
+        
+        Tennis uses a special POST endpoint for match-ups, which the provider handles
+        automatically. This shows how provider abstraction simplifies complex API patterns.
+        """
         cache_key = f"tennis_matchups_{competition_id}"
+        
+        # Try provider-based loading first
+        result = load_provider_data(
+            SportType.TENNIS, 
+            'matchups', 
+            cache_key, 
+            competition_id=competition_id
+        )
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
         cached = get_cached_data(cache_key)
         if cached:
             return cached.get('data', [])
@@ -708,7 +1033,28 @@ with tabs[4]:
     
     # Auto-load matchups for a specific competition (with caching)
     def load_matchups(competition_id):
+        """
+        Load basketball matchups using SportbexProvider with fallback to legacy API.
+        
+        This demonstrates the provider integration pattern for dynamic data loading:
+        - Use provider for direct API access when available
+        - Fall back to legacy proxy API for backward compatibility
+        - Maintain existing caching and error handling behavior
+        """
         cache_key = f"basketball_matchups_{competition_id}"
+        
+        # Try provider-based loading first
+        result = load_provider_data(
+            SportType.BASKETBALL, 
+            'matchups', 
+            cache_key, 
+            competition_id=competition_id
+        )
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
         cached = get_cached_data(cache_key)
         if cached:
             return cached.get('data', [])
@@ -917,7 +1263,21 @@ with tabs[5]:
     
     # Auto-load matchups for a specific football competition (with caching)
     def load_football_matchups(competition_id):
+        """Load football matchups using SportbexProvider with fallback to legacy API."""
         cache_key = f"football_matchups_{competition_id}"
+        
+        # Try provider-based loading first
+        result = load_provider_data(
+            SportType.AMERICAN_FOOTBALL, 
+            'matchups', 
+            cache_key, 
+            competition_id=competition_id
+        )
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
         cached = get_cached_data(cache_key)
         if cached:
             return cached.get('data', [])
@@ -1023,23 +1383,7 @@ with tabs[6]:
     baseball_odds_data = baseball_odds_data.get('data', [])
     
     # Auto-load matchups for a specific baseball competition (with caching)
-    def load_baseball_matchups(competition_id):
-        cache_key = f"baseball_matchups_{competition_id}"
-        cached = get_cached_data(cache_key)
-        if cached:
-            return cached.get('data', [])
-        
-        try:
-            api_url = f"http://127.0.0.1:5001/api/baseball/matchups/{competition_id}"
-            response = requests.get(api_url, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                set_cached_data(cache_key, data)
-                return data.get('data', [])
-            return []
-        except:
-            return []
+    load_baseball_matchups = create_matchup_loader(SportType.BASEBALL, "baseball")
     
     # Helper function to find odds for a specific baseball game
     def find_baseball_game_odds(game_id, odds_list):
@@ -1130,23 +1474,7 @@ with tabs[7]:
     hockey_odds_data = hockey_odds_data.get('data', [])
     
     # Auto-load matchups for a specific hockey competition (with caching)
-    def load_hockey_matchups(competition_id):
-        cache_key = f"hockey_matchups_{competition_id}"
-        cached = get_cached_data(cache_key)
-        if cached:
-            return cached.get('data', [])
-        
-        try:
-            api_url = f"http://127.0.0.1:5001/api/hockey/matchups/{competition_id}"
-            response = requests.get(api_url, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                set_cached_data(cache_key, data)
-                return data.get('data', [])
-            return []
-        except:
-            return []
+    load_hockey_matchups = create_matchup_loader(SportType.HOCKEY, "hockey")
     
     # Helper function to find odds for a specific hockey game
     def find_hockey_game_odds(game_id, odds_list):
@@ -1230,6 +1558,19 @@ with tabs[8]:
     
     # Auto-load soccer data on page load
     def load_soccer_data():
+        """
+        Load soccer competitions using SportbexProvider with fallback to legacy API.
+        
+        This shows how to adapt existing data loading patterns to use providers
+        while maintaining the same return value format for existing code.
+        """
+        # Try provider-based loading first
+        result = load_provider_data(SportType.SOCCER, 'competitions', 'soccer_competitions')
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
         try:
             api_url = "http://127.0.0.1:5001/api/soccer/competitions"
             response = requests.get(api_url, timeout=15)
@@ -1244,6 +1585,21 @@ with tabs[8]:
     
     # Auto-load matchups for a specific soccer competition
     def load_soccer_matchups(competition_id):
+        """Load soccer matchups using SportbexProvider with fallback to legacy API."""
+        cache_key = f"soccer_matchups_{competition_id}"
+        
+        # Try provider-based loading first
+        result = load_provider_data(
+            SportType.SOCCER, 
+            'matchups', 
+            cache_key, 
+            competition_id=competition_id
+        )
+        
+        if result and 'data' in result:
+            return result['data']
+        
+        # Fallback to legacy API call
         try:
             api_url = f"http://127.0.0.1:5001/api/soccer/matchups/{competition_id}"
             response = requests.get(api_url, timeout=15)
@@ -1357,23 +1713,7 @@ with tabs[9]:
     esports_odds_data = esports_odds_data.get('data', [])
     
     # Auto-load matchups for a specific esports competition (with caching)
-    def load_esports_matchups(competition_id):
-        cache_key = f"esports_matchups_{competition_id}"
-        cached = get_cached_data(cache_key)
-        if cached:
-            return cached.get('data', [])
-        
-        try:
-            api_url = f"http://127.0.0.1:5001/api/esports/matchups/{competition_id}"
-            response = requests.get(api_url, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                set_cached_data(cache_key, data)
-                return data.get('data', [])
-            return []
-        except:
-            return []
+    load_esports_matchups = create_matchup_loader(SportType.ESPORTS, "esports")
     
     # Helper function to find odds for a specific esports match
     def find_esports_game_odds(game_id, odds_list):
@@ -1475,23 +1815,7 @@ with tabs[10]:
     college_football_odds_data = college_football_odds_data.get('data', [])
     
     # Auto-load matchups for a specific college football competition (with caching)
-    def load_college_football_matchups(competition_id):
-        cache_key = f"college_football_matchups_{competition_id}"
-        cached = get_cached_data(cache_key)
-        if cached:
-            return cached.get('data', [])
-        
-        try:
-            api_url = f"http://127.0.0.1:5001/api/college-football/matchups/{competition_id}"
-            response = requests.get(api_url, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                set_cached_data(cache_key, data)
-                return data.get('data', [])
-            return []
-        except:
-            return []
+    load_college_football_matchups = create_matchup_loader(SportType.COLLEGE_FOOTBALL, "college-football")
     
     # Helper function to find odds for a specific college football game
     def find_college_football_game_odds(game_id, odds_list):

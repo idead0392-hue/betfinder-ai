@@ -1,13 +1,22 @@
 import http.client
+import os
+from dotenv import load_dotenv
+
 #!/usr/bin/env python3
 """
 Azure AI Inference SDK Integration Test
 This script tests the Azure AI Inference SDK integration with GitHub Models.
 """
 
-# RapidAPI Configuration
-RAPIDAPI_KEY = "4ac75ea836mshd4804cec3a1eea0p1085f3jsn0b73793a40af"
-RAPIDAPI_HOST = "esportapi1.p.rapidapi.com"
+# Load environment variables from .env file
+load_dotenv()
+
+# RapidAPI Configuration from environment variables
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
+RAPIDAPI_HOST = os.getenv('RAPIDAPI_HOST', 'esportapi1.p.rapidapi.com')
+
+if not RAPIDAPI_KEY:
+    raise ValueError("RAPIDAPI_KEY environment variable is required. Please add it to your .env file.")
 
 def get_esport_game_statistics(game_id, api_key, api_host):
     """
