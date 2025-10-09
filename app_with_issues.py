@@ -654,6 +654,53 @@ with tabs[1]:
         
         else:
             st.info("💡 Initialize your bankroll above to start using AI picks with professional money management")
+                        
+                        # Risk level
+                        if pick['unit_size'] <= 1:
+                            risk_level = "🟢 Low Risk"
+                        elif pick['unit_size'] <= 2:
+                            risk_level = "🟡 Medium Risk"
+                        else:
+                            risk_level = "🔴 High Risk"
+                        st.markdown(f"⚠️ **Risk Level:** {risk_level}")
+                    
+                    # Reasoning
+                    st.markdown("**🧠 AI Analysis:**")
+                    st.markdown(pick['reasoning'])
+                    
+                    # Market analysis details
+                    if pick['market_analysis']:
+                        market = pick['market_analysis']
+                        st.markdown("**📊 Market Intelligence:**")
+                        col_x, col_y = st.columns(2)
+                        with col_x:
+                            st.caption(f"Line Movement: {market['line_movement'].title()}")
+                            st.caption(f"Public Bias: {market['public_bias'].title()}")
+                        with col_y:
+                            st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
+                            st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
+            
+            # Responsible gambling reminder
+            st.markdown("---")
+            st.warning("⚠️ **Responsible Gambling Reminder**")
+            st.markdown("""
+            - Never bet more than you can afford to lose
+            - These are AI-generated suggestions, not guarantees
+            - Consider your bankroll and risk tolerance
+            - Gambling should be for entertainment only
+            - Seek help if gambling becomes a problem
+            """)
+            
+        else:
+            st.info(f"🤖 No picks found meeting your criteria (min {min_confidence}% confidence)")
+            st.markdown("""
+            **Possible reasons:**
+            - Market conditions don't meet our quality thresholds
+            - All current picks fall below your confidence minimum
+            - Limited live games available right now
+            
+            Try lowering the minimum confidence or check back later for new opportunities.
+            """)
         
         # Bet History Modal
         if st.session_state.get('show_bet_history', False):
@@ -679,7 +726,7 @@ with tabs[1]:
                 # Bet history table
                 st.dataframe(bet_df[['date', 'sport', 'matchup', 'pick_type', 'odds', 
                                    'bet_amount', 'confidence', 'status', 'profit', 'roi']], 
-                           width='stretch')
+                           use_container_width=True)
                 
                 # Settle pending bets
                 pending_bets = bet_df[bet_df['status'] == 'pending']
@@ -806,7 +853,7 @@ with tabs[2]:
                 if endpoints_data:
                     import pandas as pd
                     df = pd.DataFrame(endpoints_data)
-                    st.dataframe(df, width='stretch')
+                    st.dataframe(df, use_container_width=True)
         else:
             st.warning("⚠️ Unable to connect to API metrics endpoint")
     except:
@@ -898,7 +945,7 @@ with tabs[2]:
         
         if freshness_data:
             df_fresh = pd.DataFrame(freshness_data)
-            st.dataframe(df_fresh, width='stretch')
+            st.dataframe(df_fresh, use_container_width=True)
     else:
         st.info("No timestamp data available")
 
@@ -1348,19 +1395,19 @@ with tabs[11]:
             total_markets = sum(comp.get('marketCount', 0) for comp in all_competitions if isinstance(comp, dict))
             if total_markets > 0:
                 gauge_fig = create_market_activity_gauge(total_markets)
-                st.plotly_chart(gauge_fig, width='stretch')
+                st.plotly_chart(gauge_fig, use_container_width=True)
         
         with viz_col2:
             # Competition distribution
             comp_chart = create_competition_distribution_chart(all_competitions, "Basketball")
             if comp_chart:
-                st.plotly_chart(comp_chart, width='stretch')
+                st.plotly_chart(comp_chart, use_container_width=True)
         
         with viz_col3:
             # Odds trends
             odds_chart = create_odds_trend_chart(odds_data, "Basketball")
             if odds_chart:
-                st.plotly_chart(odds_chart, width='stretch')
+                st.plotly_chart(odds_chart, use_container_width=True)
         
         st.markdown("---")  # Separator between analytics and games
     

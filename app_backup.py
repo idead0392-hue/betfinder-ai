@@ -293,7 +293,7 @@ else:
 
 # --- RESTORED MULTI-TAB UI ---
 tab_names = [
-    "Home", "Daily Picks", "Stats", "Props", "Tennis", "Basketball", "Football", "Baseball",
+    "Home", "Stats", "Props", "Tennis", "Basketball", "Football", "Baseball",
     "Hockey", "Soccer", "Esports", "College Football"
 ]
 tabs = st.tabs(tab_names)
@@ -310,600 +310,8 @@ if 'yahoo_access_token' not in st.session_state:
 
 
 
-# Home Tab
-with tabs[0]:
-    st.header("🎯 Welcome to BetFinder AI")
-    st.markdown("""
-    **Your comprehensive sports betting analysis platform**
-    
-    Navigate through the tabs above to:
-    - 🤖 **Daily Picks** - Get AI-generated betting recommendations 
-    - 📊 **Stats** - View detailed statistics and analytics
-    - 🎮 **Props** - Access player prop data and predictions
-    - 🎾 **Sports Tabs** - Live odds and matchups for all major sports
-    
-    All data is sourced from professional APIs and updated in real-time.
-    """)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Sports", "8", "All major leagues")
-    with col2:
-        st.metric("Live Markets", "500+", "Real-time odds")
-    with col3:
-        st.metric("Data Sources", "Multiple", "Professional APIs")
-
-# Daily Picks Tab
-with tabs[1]:
-    st.header("🤖 Daily AI Picks & Bankroll Management")
-    st.markdown("**AI-generated betting recommendations with professional bankroll tracking**")
-    
-    # Import required modules
-    try:
-        from picks_engine import PicksEngine
-        from bankroll_manager import BankrollManager
-        
-        # Initialize systems
-        picks_engine = PicksEngine()
-        bankroll_manager = BankrollManager()
-        
-        # Bankroll Management Section
-        st.subheader("💰 Bankroll Management")
-        
-        # Initialize bankroll if needed
-        if 'bankroll_initialized' not in st.session_state:
-            st.session_state.bankroll_initialized = False
-        
-        if not st.session_state.bankroll_initialized:
-            st.info("💡 **First time setup:** Initialize your bankroll to start tracking")
-            col1, col2 = st.columns(2)
-            with col1:
-                starting_bankroll = st.number_input("Starting Bankroll ($)", 
-                                                  min_value=100.0, max_value=100000.0, 
-                                                  value=1000.0, step=50.0)
-            with col2:
-                unit_size = st.number_input("Unit Size ($)", 
-                                          min_value=1.0, max_value=500.0, 
-                                          value=starting_bankroll * 0.01, step=1.0)
-            
-            if st.button("🚀 Initialize Bankroll", type="primary"):
-                bankroll_manager.initialize_bankroll(starting_bankroll, unit_size)
-                st.session_state.bankroll_initialized = True
-                st.success(f"✅ Bankroll initialized: ${starting_bankroll:,.2f} | Unit: ${unit_size:.2f}")
-                st.rerun()
-        else:
-            # Display current bankroll status
-            performance = bankroll_manager.get_performance_metrics()
-            risk_assessment = bankroll_manager.get_risk_assessment()
-            
-            # Bankroll overview
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                current_bankroll = performance.get('current_bankroll', 1000)
-                bankroll_change = performance.get('bankroll_change', 0)
-                change_color = "normal" if bankroll_change >= 0 else "inverse"
-                st.metric("Current Bankroll", f"${current_bankroll:,.2f}", 
-                         f"${bankroll_change:+.2f}")
-            
-            with col2:
-                roi = performance.get('roi_percentage', 0)
-                roi_color = "normal" if roi >= 0 else "inverse"
-                st.metric("ROI", f"{roi:.1f}%", 
-                         f"{performance.get('bankroll_change_pct', 0):+.1f}%")
-            
-            with col3:
-                win_rate = performance.get('win_rate', 0)
-                st.metric("Win Rate", f"{win_rate:.1f}%", 
-                         f"{performance.get('total_bets', 0)} bets")
-            
-            with col4:
-                risk_level = risk_assessment['risk_level']
-                risk_color = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
-                st.metric("Risk Level", f"{risk_color.get(risk_level, '⚪')} {risk_level}",
-                         f"{risk_assessment['current_drawdown']:.1f}% drawdown")
-            
-            # Risk recommendations
-            if risk_assessment['recommendations']:
-                with st.expander("🎯 Risk Management Recommendations", expanded=risk_assessment['risk_level'] == 'High'):
-                    for rec in risk_assessment['recommendations']:
-                        st.markdown(f"• {rec}")
-            
-            # Daily risk tracking
-            daily_risk_used = risk_assessment['daily_risk_used']
-            daily_risk_limit = risk_assessment['daily_risk_limit']
-            daily_risk_pct = risk_assessment['daily_risk_percentage']
-            
-            st.progress(min(daily_risk_pct / 15, 1.0))  # 15% is high risk
-            st.caption(f"Daily Risk: ${daily_risk_used:.2f} / ${daily_risk_limit:.2f} ({daily_risk_pct:.1f}% of bankroll)")
-            
-            # Quick actions
-            col_a, col_b, col_c = st.columns(3)
-            with col_a:
-                if st.button("📊 View Bet History"):
-                    st.session_state.show_bet_history = True
-            with col_b:
-                if st.button("⚙️ Adjust Settings"):
-                    st.session_state.show_settings = True
-            with col_c:
-                if st.button("💾 Export Data"):
-                    filename = bankroll_manager.export_data("csv")
-                    st.success(f"Data exported: {filename}")
-        
-        st.markdown("---")
-        
-        # AI Picks Section
-        if st.session_state.bankroll_initialized:
-            st.subheader("🎯 Today's AI Picks")
-            
-            # Picks controls
-            col1, col2, col3 = st.columns([2, 1, 1])
-            
-            with col1:
-                max_picks = st.slider("Number of picks to generate", 1, 10, 5)
-            
-            with col2:
-                min_confidence = st.slider("Min confidence %", 50, 90, 65)
-            
-            with col3:
-                if st.button("🔄 Generate New Picks", type="primary"):
-                    st.session_state.picks_generated = False
-            
-            # Generate picks
-            if 'picks_generated' not in st.session_state or not st.session_state.picks_generated:
-                with st.spinner("🤖 AI analyzing markets and generating picks..."):
-                    daily_picks = picks_engine.get_daily_picks(max_picks)
-                    # Filter by confidence
-                    daily_picks = [pick for pick in daily_picks if pick['confidence'] >= min_confidence]
-                    
-                    # Add bankroll-adjusted bet sizing
-                    for pick in daily_picks:
-                        recommended_bet, bet_reason = bankroll_manager.calculate_recommended_bet_size(
-                            pick['confidence'], pick['expected_value']
-                        )
-                        pick['recommended_bet'] = recommended_bet
-                        pick['bet_reason'] = bet_reason
-                        pick['can_bet'] = recommended_bet > 0
-                    
-                    st.session_state.daily_picks = daily_picks
-                    st.session_state.picks_generated = True
-            else:
-                daily_picks = st.session_state.daily_picks
-        
-            if daily_picks:
-                # Show enhanced summary with bankroll integration
-                summary = picks_engine.get_pick_summary(daily_picks)
-                bettable_picks = [pick for pick in daily_picks if pick.get('can_bet', False)]
-                total_potential_bet = sum(pick.get('recommended_bet', 0) for pick in bettable_picks)
-                
-                col1, col2, col3, col4, col5 = st.columns(5)
-                with col1:
-                    st.metric("Total Picks", len(daily_picks))
-                with col2:
-                    st.metric("Bettable Picks", len(bettable_picks))
-                with col3:
-                    st.metric("Avg Confidence", f"{summary['avg_confidence']}%")
-                with col4:
-                    st.metric("Total Risk", f"${total_potential_bet:.2f}")
-                with col5:
-                    potential_payout = sum([
-                        bankroll_manager.calculate_payout(pick.get('recommended_bet', 0), pick['odds']) 
-                        for pick in bettable_picks
-                    ])
-                    potential_profit = potential_payout - total_potential_bet
-                    st.metric("Potential Profit", f"${potential_profit:.2f}")
-                
-                st.markdown("---")
-                
-                # Display enhanced picks with bet tracking
-                for i, pick in enumerate(daily_picks, 1):
-                    can_bet = pick.get('can_bet', False)
-                    recommended_bet = pick.get('recommended_bet', 0)
-                    
-                    # Pick status indicator
-                    status_icon = "✅" if can_bet else "⚠️"
-                    pick_title = f"{status_icon} Pick #{i}: {pick['matchup']}"
-                    
-                    with st.expander(pick_title, expanded=i <= 2 and can_bet):
-                        # Main pick information
-                        col_a, col_b, col_c = st.columns([2, 2, 1])
-                        
-                        with col_a:
-                            st.markdown(f"### **{pick['pick']}**")
-                            st.markdown(f"**{pick['sport'].title()}** • {pick['competition']}")
-                            st.markdown(f"📅 {pick['start_time']}")
-                            
-                            # Confidence and value indicators
-                            conf_color = "🟢" if pick['confidence'] >= 75 else "🟡" if pick['confidence'] >= 60 else "🔴"
-                            ev_color = "💚" if pick['expected_value'] >= 5 else "💛" if pick['expected_value'] >= 2 else "💙"
-                            
-                            st.markdown(f"{conf_color} **Confidence:** {pick['confidence']}%")
-                            st.markdown(f"{ev_color} **Expected Value:** +{pick['expected_value']}%")
-                        
-                        with col_b:
-                            st.markdown(f"**Recommended Bet:**")
-                            st.markdown(f"🎯 **{pick['pick_type'].title()}**")
-                            st.markdown(f"💰 **Odds:** {pick['odds']:+d}")
-                            
-                            # Bankroll-based bet sizing
-                            if can_bet:
-                                st.success(f"💵 **Bet Amount:** ${recommended_bet:.2f}")
-                                st.markdown(f"🎲 **{pick['bet_reason']}**")
-                                potential_payout = bankroll_manager.calculate_payout(recommended_bet, pick['odds'])
-                                potential_profit = potential_payout - recommended_bet
-                                st.markdown(f"📈 **Potential Profit:** ${potential_profit:.2f}")
-                            else:
-                                st.warning(f"❌ **Cannot Bet:** {pick['bet_reason']}")
-                        
-                        with col_c:
-                            # Bet action button
-                            if can_bet:
-                                bet_key = f"place_bet_{pick['game_id']}_{i}"
-                                if st.button("📝 Place Bet", key=bet_key, type="primary"):
-                                    # Add bet to tracking
-                                    success = bankroll_manager.add_bet(
-                                        pick_id=pick['game_id'],
-                                        sport=pick['sport'],
-                                        matchup=pick['matchup'],
-                                        pick_type=pick['pick_type'],
-                                        odds=pick['odds'],
-                                        bet_amount=recommended_bet,
-                                        confidence=pick['confidence'],
-                                        expected_value=pick['expected_value']
-                                    )
-                                    
-                                    if success:
-                                        st.success("✅ Bet tracked!")
-                                        st.balloons()
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ Failed to track bet")
-                                
-                                # Risk level indicator
-                                if recommended_bet > bankroll_manager.data["unit_size"] * 2:
-                                    st.warning("🔴 High Risk")
-                                elif recommended_bet > bankroll_manager.data["unit_size"]:
-                                    st.info("🟡 Medium Risk")
-                                else:
-                                    st.success("🟢 Low Risk")
-                            else:
-                                st.markdown("*Bet not recommended due to risk limits*")
-                        
-                        # Detailed reasoning
-                        st.markdown("**🧠 AI Analysis:**")
-                        st.markdown(pick['reasoning'])
-                        
-                        # Market analysis details
-                        if pick['market_analysis']:
-                            market = pick['market_analysis']
-                            st.markdown("**📊 Market Intelligence:**")
-                            col_x, col_y = st.columns(2)
-                            with col_x:
-                                st.caption(f"Line Movement: {market['line_movement'].title()}")
-                                st.caption(f"Public Bias: {market['public_bias'].title()}")
-                            with col_y:
-                                st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
-                                st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
-                
-                # Summary action buttons
-                st.markdown("---")
-                col_x, col_y, col_z = st.columns(3)
-                
-                with col_x:
-                    if bettable_picks and st.button("📊 Place All Recommended Bets", type="secondary"):
-                        placed_count = 0
-                        for pick in bettable_picks:
-                            success = bankroll_manager.add_bet(
-                                pick_id=pick['game_id'],
-                                sport=pick['sport'],
-                                matchup=pick['matchup'],
-                                pick_type=pick['pick_type'],
-                                odds=pick['odds'],
-                                bet_amount=pick['recommended_bet'],
-                                confidence=pick['confidence'],
-                                expected_value=pick['expected_value']
-                            )
-                            if success:
-                                placed_count += 1
-                        
-                        if placed_count > 0:
-                            st.success(f"✅ Tracked {placed_count} bets!")
-                            st.balloons()
-                            st.rerun()
-                
-                with col_y:
-                    if st.button("⚠️ Skip All Picks Today", type="secondary"):
-                        st.session_state.picks_skipped = True
-                        st.info("All picks skipped for today")
-                
-                with col_z:
-                    if st.button("🔄 Refresh Risk Assessment", type="secondary"):
-                        st.rerun()
-                
-                # Responsible gambling reminder
-                st.markdown("---")
-                st.warning("⚠️ **Responsible Gambling & Risk Management**")
-                col_warn1, col_warn2 = st.columns(2)
-                with col_warn1:
-                    st.markdown("""
-                    **Bankroll Protection:**
-                    - All bet sizes calculated using Kelly Criterion
-                    - Daily risk limits enforced automatically
-                    - Stop-loss triggers at 20% drawdown
-                    - Maximum 5% of bankroll per single bet
-                    """)
-                with col_warn2:
-                    st.markdown("""
-                    **Remember:**
-                    - These are AI suggestions, not guarantees
-                    - Past performance doesn't predict future results
-                    - Only bet what you can afford to lose
-                    - Seek help if gambling becomes a problem
-                    """)
-            
-            else:
-                st.info(f"🤖 No picks found meeting your criteria (min {min_confidence}% confidence)")
-                st.markdown("""
-                **Possible reasons:**
-                - Market conditions don't meet our quality thresholds
-                - All current picks fall below your confidence minimum
-                - Daily risk limits have been reached
-                - Limited live games available right now
-                
-                Try lowering the minimum confidence or check back later for new opportunities.
-                """)
-        
-        else:
-            st.info("💡 Initialize your bankroll above to start using AI picks with professional money management")
-        
-        # Bet History Modal
-        if st.session_state.get('show_bet_history', False):
-            st.markdown("---")
-            st.subheader("📊 Betting History & Performance")
-            
-            bet_df = bankroll_manager.get_bet_history_dataframe()
-            if not bet_df.empty:
-                # Performance summary
-                recent_7_days = bankroll_manager.get_recent_performance(7)
-                recent_30_days = bankroll_manager.get_recent_performance(30)
-                
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("7-Day ROI", f"{recent_7_days['roi']:.1f}%")
-                with col2:
-                    st.metric("7-Day Win Rate", f"{recent_7_days['win_rate']:.1f}%")
-                with col3:
-                    st.metric("30-Day ROI", f"{recent_30_days['roi']:.1f}%")
-                with col4:
-                    st.metric("30-Day Win Rate", f"{recent_30_days['win_rate']:.1f}%")
-                
-                # Bet history table
-                st.dataframe(bet_df[['date', 'sport', 'matchup', 'pick_type', 'odds', 
-                                   'bet_amount', 'confidence', 'status', 'profit', 'roi']], 
-                           width='stretch')
-                
-                # Settle pending bets
-                pending_bets = bet_df[bet_df['status'] == 'pending']
-                if not pending_bets.empty:
-                    st.subheader("⏳ Settle Pending Bets")
-                    for _, bet in pending_bets.iterrows():
-                        col_a, col_b, col_c, col_d = st.columns([3, 1, 1, 1])
-                        with col_a:
-                            st.write(f"{bet['matchup']} - {bet['pick_type']}")
-                        with col_b:
-                            if st.button("✅ Won", key=f"won_{bet['id']}"):
-                                bankroll_manager.settle_bet(bet['id'], 'won')
-                                st.rerun()
-                        with col_c:
-                            if st.button("❌ Lost", key=f"lost_{bet['id']}"):
-                                bankroll_manager.settle_bet(bet['id'], 'lost')
-                                st.rerun()
-                        with col_d:
-                            if st.button("➖ Push", key=f"push_{bet['id']}"):
-                                bankroll_manager.settle_bet(bet['id'], 'pushed')
-                                st.rerun()
-            else:
-                st.info("No betting history yet. Start placing bets to see your performance!")
-            
-            if st.button("❌ Close History"):
-                st.session_state.show_bet_history = False
-                st.rerun()
-        
-        # Settings Modal
-        if st.session_state.get('show_settings', False):
-            st.markdown("---")
-            st.subheader("⚙️ Bankroll Settings")
-            
-            current_settings = bankroll_manager.data['settings']
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                new_max_daily_bets = st.number_input("Max Daily Bets", 
-                                                   min_value=1, max_value=20, 
-                                                   value=current_settings['max_daily_bets'])
-                new_max_daily_risk = st.slider("Max Daily Risk %", 
-                                              min_value=5.0, max_value=25.0, 
-                                              value=current_settings['max_daily_risk'])
-                new_conservative = st.checkbox("Conservative Mode", 
-                                             value=current_settings['conservative_mode'])
-            
-            with col2:
-                new_stop_loss = st.slider("Stop Loss %", 
-                                        min_value=10.0, max_value=50.0, 
-                                        value=current_settings['stop_loss_percentage'])
-                new_profit_target = st.slider("Profit Target %", 
-                                            min_value=20.0, max_value=200.0, 
-                                            value=current_settings['profit_target_percentage'])
-                new_max_bet_pct = st.slider("Max Bet % of Bankroll", 
-                                          min_value=1.0, max_value=10.0, 
-                                          value=bankroll_manager.data['max_bet_percentage'])
-            
-            if st.button("💾 Save Settings", type="primary"):
-                bankroll_manager.data['settings'].update({
-                    'max_daily_bets': new_max_daily_bets,
-                    'max_daily_risk': new_max_daily_risk,
-                    'conservative_mode': new_conservative,
-                    'stop_loss_percentage': new_stop_loss,
-                    'profit_target_percentage': new_profit_target
-                })
-                bankroll_manager.data['max_bet_percentage'] = new_max_bet_pct
-                bankroll_manager.save_data()
-                st.success("✅ Settings updated!")
-                st.rerun()
-            
-            if st.button("❌ Close Settings"):
-                st.session_state.show_settings = False
-                st.rerun()
-            
-    except ImportError:
-        st.error("❌ Picks engine not available")
-        st.markdown("""
-        The AI picks system requires the picks engine module.
-        Please ensure all dependencies are properly installed.
-        """)
-    except Exception as e:
-        st.error(f"❌ Error generating picks: {str(e)}")
-        st.markdown("Please try refreshing the page or contact support if the issue persists.")
-
-# Stats Tab
+# Home Tab (placeholder, no demo)
 with tabs[2]:
-    st.header("📊 Statistics & Analytics")
-    st.markdown("**Comprehensive sports statistics and market analytics**")
-    
-    # API Statistics Section
-    st.subheader("🔧 API Performance")
-    try:
-        api_stats_response = requests.get("http://127.0.0.1:5001/metrics", timeout=5)
-        if api_stats_response.status_code == 200:
-            api_stats = api_stats_response.json()
-            
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                uptime = api_stats.get('uptime_seconds', 0)
-                st.metric("API Uptime", f"{uptime/3600:.1f} hours")
-            with col2:
-                total_requests = api_stats.get('total_requests', 0)
-                st.metric("Total Requests", f"{total_requests:,}")
-            with col3:
-                success_rate = api_stats.get('success_rate', 0)
-                st.metric("Success Rate", f"{success_rate:.1f}%")
-            with col4:
-                avg_response = api_stats.get('avg_response_time', 0)
-                st.metric("Avg Response", f"{avg_response:.2f}s")
-            
-            # Endpoint statistics
-            if 'endpoints' in api_stats:
-                st.subheader("📈 Endpoint Performance")
-                endpoints_data = []
-                for endpoint, stats in api_stats['endpoints'].items():
-                    endpoints_data.append({
-                        'Endpoint': endpoint,
-                        'Requests': stats.get('count', 0),
-                        'Avg Time (s)': f"{stats.get('total_time', 0) / max(stats.get('count', 1), 1):.3f}",
-                        'Errors': stats.get('errors', 0),
-                        'Last Request': stats.get('last_request', 'Never')
-                    })
-                
-                if endpoints_data:
-                    import pandas as pd
-                    df = pd.DataFrame(endpoints_data)
-                    st.dataframe(df, width='stretch')
-        else:
-            st.warning("⚠️ Unable to connect to API metrics endpoint")
-    except:
-        st.error("❌ API metrics unavailable")
-    
-    # Sports Data Overview
-    st.subheader("🏆 Sports Data Overview")
-    
-    # Count cached data
-    cache_stats = {}
-    for key in st.session_state.get('data_cache', {}):
-        if '_competitions' in key:
-            sport = key.replace('_competitions', '').replace('_', ' ').title()
-            cache_stats[sport] = 'Loaded'
-        elif '_odds' in key:
-            sport = key.replace('_odds', '').replace('_', ' ').title()
-            if sport in cache_stats:
-                cache_stats[sport] += ' + Odds'
-            else:
-                cache_stats[sport] = 'Odds Only'
-    
-    if cache_stats:
-        col1, col2 = st.columns(2)
-        sports_list = list(cache_stats.items())
-        mid_point = len(sports_list) // 2
-        
-        with col1:
-            for sport, status in sports_list[:mid_point]:
-                status_icon = "✅" if "Loaded" in status else "⚠️"
-                st.write(f"{status_icon} **{sport}**: {status}")
-        
-        with col2:
-            for sport, status in sports_list[mid_point:]:
-                status_icon = "✅" if "Loaded" in status else "⚠️"
-                st.write(f"{status_icon} **{sport}**: {status}")
-    else:
-        st.info("No sports data currently cached. Navigate to sports tabs to load data.")
-    
-    # Market Analysis
-    st.subheader("💰 Market Analysis")
-    
-    # Get total markets across all sports
-    total_markets = 0
-    active_competitions = 0
-    
-    for cache_key, data in st.session_state.get('data_cache', {}).items():
-        if 'competitions' in cache_key and isinstance(data, dict):
-            competitions = data.get('data', [])
-            for comp in competitions:
-                if isinstance(comp, dict):
-                    active_competitions += 1
-                    total_markets += comp.get('marketCount', 0)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Active Competitions", active_competitions)
-    with col2:
-        st.metric("Total Markets", f"{total_markets:,}")
-    with col3:
-        avg_markets = total_markets / max(active_competitions, 1)
-        st.metric("Avg Markets/Competition", f"{avg_markets:.1f}")
-    
-    # Data Freshness
-    st.subheader("🕒 Data Freshness")
-    cache_timestamps = st.session_state.get('cache_timestamp', {})
-    
-    if cache_timestamps:
-        from datetime import datetime
-        current_time = datetime.now()
-        
-        freshness_data = []
-        for cache_key, timestamp in cache_timestamps.items():
-            sport = cache_key.replace('_competitions', '').replace('_odds', '').replace('_matchups_', ' ').replace('_', ' ').title()
-            age_seconds = (current_time - timestamp).total_seconds()
-            age_minutes = age_seconds / 60
-            
-            if age_minutes < 5:
-                freshness = "🟢 Fresh"
-            elif age_minutes < 15:
-                freshness = "🟡 Good"
-            else:
-                freshness = "🔴 Stale"
-            
-            freshness_data.append({
-                'Data Source': sport,
-                'Last Updated': f"{age_minutes:.1f} min ago",
-                'Status': freshness
-            })
-        
-        if freshness_data:
-            df_fresh = pd.DataFrame(freshness_data)
-            st.dataframe(df_fresh, width='stretch')
-    else:
-        st.info("No timestamp data available")
-
-# Props Tab
-with tabs[3]:
     st.header("Props")
     st.write("Use a custom API that accepts a Bearer token to provide props data.")
     st.markdown("**Security:** Do not commit your tokens. Add them to `.streamlit/secrets.toml` as `NEW_API_TOKEN` or paste temporarily below.")
@@ -989,7 +397,7 @@ with tabs[3]:
     else:
         st.info("Select a provider to configure props data source.")
 
-with tabs[4]:
+with tabs[3]:
     # Initialize favorites system in session state
     if 'favorite_players' not in st.session_state:
         st.session_state.favorite_players = set()
@@ -1287,7 +695,7 @@ with tabs[4]:
         st.warning("⚠️ Tennis competitions data not available")
         st.info("Unable to load tennis competitions. Please check the API connection.")
 
-with tabs[11]:
+with tabs[4]:
     st.markdown('<div class="section-title">Basketball<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached basketball data
@@ -1348,19 +756,19 @@ with tabs[11]:
             total_markets = sum(comp.get('marketCount', 0) for comp in all_competitions if isinstance(comp, dict))
             if total_markets > 0:
                 gauge_fig = create_market_activity_gauge(total_markets)
-                st.plotly_chart(gauge_fig, width='stretch')
+                st.plotly_chart(gauge_fig, use_container_width=True)
         
         with viz_col2:
             # Competition distribution
             comp_chart = create_competition_distribution_chart(all_competitions, "Basketball")
             if comp_chart:
-                st.plotly_chart(comp_chart, width='stretch')
+                st.plotly_chart(comp_chart, use_container_width=True)
         
         with viz_col3:
             # Odds trends
             odds_chart = create_odds_trend_chart(odds_data, "Basketball")
             if odds_chart:
-                st.plotly_chart(odds_chart, width='stretch')
+                st.plotly_chart(odds_chart, use_container_width=True)
         
         st.markdown("---")  # Separator between analytics and games
     
@@ -1496,7 +904,7 @@ with tabs[11]:
     st.caption(f"Data automatically loaded from Sportbex API at {current_time} • Updates in real-time")
 
 # FOOTBALL TAB
-with tabs[6]:
+with tabs[5]:
     st.markdown('<div class="section-title">Football<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached football data
@@ -1603,7 +1011,7 @@ with tabs[6]:
         st.info("Football season may be off-season. Check back during NFL/College Football season.")
 
 # BASEBALL TAB
-with tabs[7]:
+with tabs[6]:
     st.markdown('<div class="section-title">Baseball<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached baseball data
@@ -1710,7 +1118,7 @@ with tabs[7]:
         st.info("Baseball season may be off-season. Check back during MLB season.")
 
 # HOCKEY TAB
-with tabs[8]:
+with tabs[7]:
     st.markdown('<div class="section-title">Hockey<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached hockey data
@@ -1817,7 +1225,7 @@ with tabs[8]:
         st.info("Hockey season may be off-season. Check back during NHL season.")
 
 # SOCCER TAB
-with tabs[9]:
+with tabs[8]:
     st.markdown('<div class="section-title">Soccer<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Auto-load soccer data on page load
@@ -1937,7 +1345,7 @@ with tabs[9]:
         st.info("Unable to load soccer competitions. Please check the API connection.")
 
 # ESPORTS TAB
-with tabs[10]:
+with tabs[9]:
     st.markdown('<div class="section-title">Esports<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached esports data
@@ -2055,7 +1463,7 @@ with tabs[10]:
         st.info("No active esports tournaments found. Check back for major events like Worlds, TI, or Majors.")
 
 # COLLEGE FOOTBALL TAB
-with tabs[11]:
+with tabs[10]:
     st.markdown('<div class="section-title">College Football<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
     
     # Use cached college football data

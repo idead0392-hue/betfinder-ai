@@ -1,0 +1,46 @@
+{
+  "starting_bankroll": 1000.0,
+  "current_bankroll": 1000.0,
+  "unit_size": 1.0,
+  "max_bet_percentage": 5.0,
+  "bets": [
+    {
+      "id": "test_001_20251009_083355",
+      "date": "2025-10-09",
+      "time": "08:33:55",
+      "sport": "basketball",
+      "matchup": "Lakers vs Warriors",
+      "pick_type": "moneyline",
+      "odds": -110,
+      "bet_amount": 13.000000000000002,
+      "potential_payout": 24.81818181818182,
+      "confidence": 75,
+      "expected_value": 5.2,
+      "status": "pending",
+      "result_amount": 0.0,
+      "notes": ""
+    }
+  ],
+  "settings": {
+    "conservative_mode": true,
+    "max_daily_bets": 5,
+    "max_daily_risk": 15.0,
+    "stop_loss_percentage": 20.0,
+    "profit_target_percentage": 50.0
+  },
+  "daily_stats": {
+    "2025-10-09": {
+      "total_bets": 1,
+      "pending_bets": 1,
+      "settled_bets": 0,
+      "total_wagered": 13.000000000000002,
+      "potential_payout": 24.81818181818182,
+      "actual_return": 0,
+      "net_profit": 0,
+      "wins": 0,
+      "losses": 0,
+      "pushes": 0
+    }
+  },
+  "monthly_stats": {}
+}
