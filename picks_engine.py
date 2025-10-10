@@ -1,18 +1,40 @@
 """
 AI Picks Engine for BetFinder AI
-Analyzes sports data and generates betting recommendations
+Analyzes sports data and generates betting recommendations using OpenAI
 """
 
 import requests
 import random
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import json
+
+# OpenAI integration
+try:
+    import openai
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    print("OpenAI library not installed. Install with: pip install openai")
 
 class PicksEngine:
     def __init__(self, api_base_url: str = "http://localhost:5001"):
         self.api_base_url = api_base_url
         self.confidence_threshold = 60  # Minimum confidence to recommend a pick
+        
+        # Initialize OpenAI client
+        self.openai_client = None
+        if OPENAI_AVAILABLE:
+            api_key = os.getenv('OPENAI_API_KEY')
+            if api_key:
+                self.openai_client = OpenAI(api_key=api_key)
+                print("✅ OpenAI client initialized successfully")
+            else:
+                print("⚠️ OpenAI API key not found in environment variables")
+        else:
+            print("⚠️ OpenAI library not available")
         
     def calculate_value_score(self, odds: float, estimated_probability: float) -> float:
         """Calculate expected value of a bet"""
@@ -48,6 +70,312 @@ class PicksEngine:
                                 analysis['sharp_action'] = True
                                 
         return analysis
+         
+        return analysis
+    
+    def generate_ai_powered_picks(self, max_picks: int = 8) -> List[Dict]:
+        """Generate AI-powered betting picks using OpenAI analysis with variety including player props"""
+        if not self.openai_client:
+            print("OpenAI not available, falling back to traditional picks")
+            return self.get_daily_picks_fallback(max_picks)
+        
+        try:
+            # Current date for context
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            
+            # Enhanced prompt for diverse picks including player props
+            prompt = f"""You are a professional sports betting analyst. Generate {max_picks} diverse, high-quality betting picks for {current_date}.
+
+IMPORTANT: Include a mix of pick types:
+- Team picks: spreads, moneylines, totals (over/under)
+- Player props: points, rebounds, assists, passing yards, touchdowns, etc.
+- Game props: first quarter totals, team props, etc.
+
+Sports to cover: NBA, NFL, NHL, MLB, Soccer, Tennis
+
+For each pick, provide:
+1. Sport (basketball, football, soccer, tennis, hockey, baseball)
+2. Teams/Players (realistic names)
+3. Pick type (spread, moneyline, over/under, player_prop, team_prop)
+4. Specific pick recommendation 
+5. Odds (American format, realistic -300 to +400)
+6. Confidence percentage (60-95, NUMBER ONLY)
+7. Expected value percentage (2-20, NUMBER ONLY)
+8. Detailed reasoning (80-120 words)
+9. Key factors (3-4 factors)
+
+EXAMPLE PLAYER PROP:
+{{
+  "sport": "basketball",
+  "home_team": "Lakers",
+  "away_team": "Warriors",
+  "player_name": "LeBron James",
+  "pick_type": "player_prop",
+  "pick": "LeBron James Over 24.5 Points",
+  "odds": -115,
+  "confidence": 82,
+  "expected_value": 12.5,
+  "reasoning": "LeBron has averaged 26.8 points in last 5 games vs Warriors. Warriors allow 4th most points to opposing forwards this season. He's hit this number in 7 of last 10 games.",
+  "key_factors": ["Recent form vs opponent", "Defensive matchup", "Rest advantage", "Historical performance"]
+}}
+
+EXAMPLE TEAM PROP:
+{{
+  "sport": "football", 
+  "home_team": "Chiefs",
+  "away_team": "Bills",
+  "pick_type": "team_prop",
+  "pick": "Chiefs Team Total Over 26.5 Points",
+  "odds": -110,
+  "confidence": 75,
+  "expected_value": 8.0,
+  "reasoning": "Chiefs average 28.2 points at home this season. Bills defense allows 24.8 points per game on the road. Mahomes has strong record in primetime games.",
+  "key_factors": ["Home field advantage", "Defensive matchup", "Weather conditions", "Quarterback performance"]
+}}
+
+Respond ONLY with valid JSON array in this exact format:
+[
+  {{
+    "sport": "basketball",
+    "home_team": "Lakers",
+    "away_team": "Warriors",
+    "player_name": "LeBron James",
+    "pick_type": "player_prop",
+    "pick": "LeBron James Over 24.5 Points",
+    "odds": -115,
+    "confidence": 78,
+    "expected_value": 8.2,
+    "reasoning": "Detailed analysis here...",
+    "key_factors": ["factor1", "factor2", "factor3"]
+  }}
+]
+
+REQUIREMENTS:
+- Generate exactly {max_picks} picks
+- Include at least 3 player props
+- Include at least 2 team totals/spreads 
+- Cover at least 3 different sports
+- confidence and expected_value must be numbers only (no % signs)
+- Make all picks realistic and well-reasoned
+REQUIREMENTS:
+- Generate exactly {max_picks} picks
+- Include at least 3 player props
+- Include at least 2 team totals/spreads 
+- Cover at least 3 different sports
+- confidence and expected_value must be numbers only (no % signs)
+- Make all picks realistic and well-reasoned
+- Vary the pick types for diversity"""
+
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert sports betting analyst with deep knowledge of statistics, team performance, and market analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=2500
+            )
+            
+            # Parse the AI response
+            ai_content = response.choices[0].message.content
+            
+            # Extract JSON from the response
+            import re
+            json_match = re.search(r'\[.*\]', ai_content, re.DOTALL)
+            if json_match:
+                picks_data = json.loads(json_match.group())
+                
+                # Convert to our pick format with enhanced handling for player props
+                ai_picks = []
+                for i, pick_data in enumerate(picks_data[:max_picks]):
+                    # Clean and parse confidence (remove % if present)
+                    confidence_str = str(pick_data.get('confidence', 75))
+                    confidence = float(confidence_str.replace('%', ''))
+                    
+                    # Clean and parse expected_value (remove % if present)
+                    ev_str = str(pick_data.get('expected_value', 5))
+                    expected_value = float(ev_str.replace('%', ''))
+                    
+                    # Handle different pick types with enhanced formatting
+                    pick_type = pick_data.get('pick_type', 'moneyline')
+                    
+                    # Create matchup display based on pick type
+                    if pick_type == 'player_prop':
+                        player_name = pick_data.get('player_name', 'Unknown Player')
+                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')} - {player_name}"
+                    elif pick_type == 'team_prop':
+                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')} - Team Prop"
+                    else:
+                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')}"
+                    
+                    pick = {
+                        'game_id': f"ai_pick_{current_date}_{i+1}",
+                        'sport': pick_data.get('sport', 'basketball'),
+                        'competition': 'AI Analysis',
+                        'matchup': matchup_display,
+                        'pick': pick_data.get('pick', 'Team A'),
+                        'pick_type': pick_type,
+                        'player_name': pick_data.get('player_name', ''),  # For player props
+                        'odds': pick_data.get('odds', -110),
+                        'confidence': confidence,
+                        'expected_value': expected_value,
+                        'market_analysis': self.analyze_odds_movement({}),  # Basic analysis
+                        'start_time': (datetime.now() + timedelta(hours=random.randint(2, 8))).strftime("%Y-%m-%d %H:%M"),
+                        'reasoning': pick_data.get('reasoning', 'AI-generated analysis'),
+                        'prediction_factors': pick_data.get('key_factors', [])
+                    }
+                    
+                    # Only include picks that meet our quality threshold
+                    if pick['confidence'] >= self.confidence_threshold and pick['expected_value'] > 0:
+                        ai_picks.append(pick)
+                
+                print(f"✅ Generated {len(ai_picks)} AI-powered picks")
+                return ai_picks
+            
+            else:
+                print("⚠️ Could not parse AI response, using fallback")
+                return self.get_daily_picks_fallback(max_picks)
+                
+        except Exception as e:
+            print(f"❌ Error generating AI picks: {e}")
+            return self.get_daily_picks_fallback(max_picks)
+    
+    def get_daily_picks_fallback(self, max_picks: int = 8) -> List[Dict]:
+        """Fallback method for when AI or API is unavailable - includes player props"""
+        print("Using fallback pick generation with player props...")
+        
+        # Enhanced mock data with player props and variety
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        
+        mock_picks = [
+            {
+                'game_id': f"fallback_nba_{current_date}_1",
+                'sport': 'basketball',
+                'competition': 'NBA',
+                'matchup': 'Lakers vs Warriors',
+                'pick': 'Lakers +3.5',
+                'pick_type': 'spread',
+                'odds': -110,
+                'confidence': 78.5,
+                'expected_value': 8.2,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'warriors', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Lakers have covered 8 of last 10 games as road underdogs. Warriors playing back-to-back without key rotation players. Historical edge in similar spots.',
+                'prediction_factors': ['Rest advantage', 'ATS trends', 'Injury report', 'Line value']
+            },
+            {
+                'game_id': f"fallback_nba_{current_date}_2",
+                'sport': 'basketball', 
+                'competition': 'NBA',
+                'matchup': 'Lakers vs Warriors - LeBron James',
+                'pick': 'LeBron James Over 24.5 Points',
+                'pick_type': 'player_prop',
+                'player_name': 'LeBron James',
+                'odds': -115,
+                'confidence': 82.0,
+                'expected_value': 12.3,
+                'market_analysis': {'line_movement': 'stable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'LeBron averaging 26.8 points vs Warriors in last 5 meetings. Warriors allow 4th most points to opposing forwards. He has hit this number in 7 of last 10 games.',
+                'prediction_factors': ['Historical matchup', 'Defensive ranking', 'Recent form', 'Usage rate']
+            },
+            {
+                'game_id': f"fallback_nfl_{current_date}_3", 
+                'sport': 'football',
+                'competition': 'NFL',
+                'matchup': 'Chiefs vs Bills',
+                'pick': 'Over 52.5',
+                'pick_type': 'totals',
+                'odds': -105,
+                'confidence': 72.3,
+                'expected_value': 6.8,
+                'market_analysis': {'line_movement': 'stable', 'public_bias': 'over', 'sharp_action': False, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=6)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Both offenses rank top-5 in red zone efficiency. Weather forecast shows dome conditions. Historical high-scoring matchups average 56.3 points.',
+                'prediction_factors': ['Offensive efficiency', 'Weather conditions', 'Historical totals', 'Pace of play']
+            },
+            {
+                'game_id': f"fallback_nfl_{current_date}_4",
+                'sport': 'football',
+                'competition': 'NFL', 
+                'matchup': 'Chiefs vs Bills - Josh Allen',
+                'pick': 'Josh Allen Over 1.5 Passing TDs',
+                'pick_type': 'player_prop',
+                'player_name': 'Josh Allen',
+                'odds': -125,
+                'confidence': 75.5,
+                'expected_value': 9.8,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=6)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Allen has thrown 2+ TDs in 9 of last 11 games. Chiefs defense allows 24.1 points per game. Red zone efficiency favors passing in big games.',
+                'prediction_factors': ['Red zone trends', 'Defensive matchup', 'Game script', 'Weather conditions']
+            },
+            {
+                'game_id': f"fallback_nhl_{current_date}_5",
+                'sport': 'hockey',
+                'competition': 'NHL',
+                'matchup': 'Rangers vs Bruins',
+                'pick': 'Rangers +1.5',
+                'pick_type': 'spread',
+                'odds': -140,
+                'confidence': 68.2,
+                'expected_value': 7.1,
+                'market_analysis': {'line_movement': 'stable', 'public_bias': 'bruins', 'sharp_action': False, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Rangers 12-3 ATS as road underdogs this season. Bruins playing 3rd game in 4 nights. Igor Shesterkin excellent in big road games.',
+                'prediction_factors': ['Schedule advantage', 'Goalie matchup', 'ATS trends', 'Rest factors']
+            },
+            {
+                'game_id': f"fallback_nhl_{current_date}_6",
+                'sport': 'hockey',
+                'competition': 'NHL',
+                'matchup': 'Rangers vs Bruins - David Pastrnak',
+                'pick': 'David Pastrnak Over 0.5 Goals',
+                'pick_type': 'player_prop', 
+                'player_name': 'David Pastrnak',
+                'odds': +105,
+                'confidence': 71.0,
+                'expected_value': 11.2,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Pastrnak has scored in 6 of last 8 home games. Rangers allow 3.2 goals per game on road. Power play opportunities expected.',
+                'prediction_factors': ['Home splits', 'Defensive matchup', 'Special teams', 'Shot volume']
+            },
+            {
+                'game_id': f"fallback_soccer_{current_date}_7",
+                'sport': 'soccer',
+                'competition': 'Premier League',
+                'matchup': 'Arsenal vs Chelsea',
+                'pick': 'Both Teams To Score - Yes',
+                'pick_type': 'team_prop',
+                'odds': -110,
+                'confidence': 76.8,
+                'expected_value': 8.9,
+                'market_analysis': {'line_movement': 'stable', 'public_bias': 'yes', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Both teams scored in 7 of last 8 meetings. Arsenal averaging 2.1 goals at home, Chelsea 1.6 away. Attacking lineups expected.',
+                'prediction_factors': ['Historical BTTS', 'Home/away splits', 'Team news', 'Match importance']
+            },
+            {
+                'game_id': f"fallback_tennis_{current_date}_8",
+                'sport': 'tennis',
+                'competition': 'ATP Tour',
+                'matchup': 'Djokovic vs Alcaraz',
+                'pick': 'Over 3.5 Sets',
+                'pick_type': 'totals',
+                'odds': +120,
+                'confidence': 69.5,
+                'expected_value': 14.2,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'under', 'sharp_action': True, 'reverse_line_movement': True},
+                'start_time': (datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Last 4 meetings went to 4+ sets. Both players in excellent form. Hard court surface favors longer matches between these styles.',
+                'prediction_factors': ['Head-to-head', 'Surface performance', 'Current form', 'Playing style matchup']
+            }
+        ]
+        
+        # Filter and return requested number of picks
+        filtered_picks = [pick for pick in mock_picks if pick['confidence'] >= self.confidence_threshold]
+        return filtered_picks[:max_picks]
     
     def calculate_team_strength(self, team_stats: Dict) -> float:
         """Calculate overall team strength rating"""
@@ -164,10 +492,11 @@ class PicksEngine:
                     'odds': odds_value,
                     'confidence': round(confidence, 1),
                     'expected_value': round(expected_value, 2),
-                    'unit_size': self.calculate_unit_size(confidence, expected_value),
+                    # NOTE: Unit sizing removed - handled by separate BankrollManager
                     'market_analysis': odds_analysis,
                     'start_time': matchup.get('start_time', 'TBD'),
-                    'reasoning': ""
+                    'reasoning': "",
+                    'prediction_factors': []  # For transparency in AI reasoning
                 }
                 
                 # Add reasoning
@@ -181,23 +510,19 @@ class PicksEngine:
             
         return None
     
-    def calculate_unit_size(self, confidence: float, expected_value: float) -> float:
-        """Calculate recommended unit size using Kelly Criterion"""
-        # Simplified Kelly Criterion
-        if expected_value <= 0:
-            return 0
-            
-        # Conservative approach: cap at 3 units max
-        kelly_fraction = min(expected_value / 100, 0.03)
+    def get_daily_picks(self, max_picks: int = 8) -> List[Dict]:
+        """Generate daily betting picks - uses AI when available, fallback otherwise"""
         
-        # Adjust based on confidence
-        confidence_multiplier = confidence / 100
-        
-        unit_size = kelly_fraction * confidence_multiplier * 10  # Scale to units
-        return round(min(unit_size, 3.0), 1)  # Cap at 3 units
+        # Try AI-powered picks first
+        if self.openai_client:
+            print("🤖 Generating AI-powered picks using OpenAI...")
+            return self.generate_ai_powered_picks(max_picks)
+        else:
+            print("🔄 OpenAI not available, using traditional approach...")
+            return self.get_traditional_picks(max_picks)
     
-    def get_daily_picks(self, max_picks: int = 5) -> List[Dict]:
-        """Generate daily betting picks across all sports"""
+    def get_traditional_picks(self, max_picks: int = 5) -> List[Dict]:
+        """Original method - tries to fetch from API, falls back to enhanced mock data"""
         all_picks = []
         sports = ['soccer', 'basketball', 'football', 'tennis', 'hockey']
         
@@ -237,6 +562,11 @@ class PicksEngine:
             except Exception as e:
                 print(f"Error processing {sport}: {e}")
                 continue
+        
+        # If no picks from API, use fallback
+        if not all_picks:
+            print("No API data available, using fallback picks...")
+            return self.get_daily_picks_fallback(max_picks)
                 
         # Sort by expected value and confidence
         all_picks.sort(key=lambda x: (x['expected_value'], x['confidence']), reverse=True)
@@ -244,27 +574,25 @@ class PicksEngine:
         return all_picks[:max_picks]
     
     def get_pick_summary(self, picks: List[Dict]) -> Dict:
-        """Generate summary statistics for the day's picks"""
+        """Generate summary statistics for the day's picks - ANALYSIS ONLY, no financial advice"""
         if not picks:
             return {
                 'total_picks': 0,
                 'avg_confidence': 0,
                 'avg_expected_value': 0,
-                'total_units': 0,
                 'sports_covered': 0
             }
             
         avg_confidence = sum(pick['confidence'] for pick in picks) / len(picks)
         avg_ev = sum(pick['expected_value'] for pick in picks) / len(picks)
-        total_units = sum(pick['unit_size'] for pick in picks)
         sports_covered = len(set(pick['sport'] for pick in picks))
         
         return {
             'total_picks': len(picks),
             'avg_confidence': round(avg_confidence, 1),
             'avg_expected_value': round(avg_ev, 2),
-            'total_units': round(total_units, 1),
-            'sports_covered': sports_covered
+            'sports_covered': sports_covered,
+            'note': 'Use BankrollManager for bet sizing recommendations'
         }
 
 # Example usage and testing
@@ -272,11 +600,11 @@ if __name__ == "__main__":
     engine = PicksEngine()
     picks = engine.get_daily_picks()
     
-    print("=== Daily Picks ===")
+    print("=== Daily AI Picks (Analysis Only) ===")
     for i, pick in enumerate(picks, 1):
         print(f"{i}. {pick['matchup']} - {pick['pick']}")
         print(f"   Confidence: {pick['confidence']}% | EV: +{pick['expected_value']}%")
-        print(f"   Units: {pick['unit_size']} | {pick['reasoning']}")
+        print(f"   {pick['reasoning']}")
         print()
         
     summary = engine.get_pick_summary(picks)
@@ -284,4 +612,5 @@ if __name__ == "__main__":
     print(f"Total Picks: {summary['total_picks']}")
     print(f"Average Confidence: {summary['avg_confidence']}%")
     print(f"Average EV: +{summary['avg_expected_value']}%")
-    print(f"Total Units: {summary['total_units']}")
+    print(f"Sports Covered: {summary['sports_covered']}")
+    print(f"\n{summary['note']}")

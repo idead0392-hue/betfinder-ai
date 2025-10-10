@@ -370,7 +370,8 @@ with tabs[1]:
                 bankroll_manager.initialize_bankroll(starting_bankroll, unit_size)
                 st.session_state.bankroll_initialized = True
                 st.success(f"✅ Bankroll initialized: ${starting_bankroll:,.2f} | Unit: ${unit_size:.2f}")
-                st.rerun()
+                st.balloons()
+                # Note: Removed st.rerun() to prevent tab redirect after initialization
         else:
             # Display current bankroll status
             performance = bankroll_manager.get_performance_metrics()
@@ -431,31 +432,31 @@ with tabs[1]:
         
         st.markdown("---")
         
-        # AI Picks Section
-        if st.session_state.bankroll_initialized:
-            st.subheader("🎯 Today's AI Picks")
-            
-            # Picks controls
-            col1, col2, col3 = st.columns([2, 1, 1])
-            
-            with col1:
-                max_picks = st.slider("Number of picks to generate", 1, 10, 5)
-            
-            with col2:
-                min_confidence = st.slider("Min confidence %", 50, 90, 65)
-            
-            with col3:
-                if st.button("🔄 Generate New Picks", type="primary"):
-                    st.session_state.picks_generated = False
-            
-            # Generate picks
-            if 'picks_generated' not in st.session_state or not st.session_state.picks_generated:
-                with st.spinner("🤖 AI analyzing markets and generating picks..."):
-                    daily_picks = picks_engine.get_daily_picks(max_picks)
-                    # Filter by confidence
-                    daily_picks = [pick for pick in daily_picks if pick['confidence'] >= min_confidence]
-                    
-                    # Add bankroll-adjusted bet sizing
+        # AI Picks Section - Always Available for Analysis
+        st.subheader("🎯 Today's AI Picks")
+        
+        # Picks controls
+        col1, col2, col3 = st.columns([2, 1, 1])
+        
+        with col1:
+            max_picks = st.slider("Number of picks to generate", 1, 10, 5)
+        
+        with col2:
+            min_confidence = st.slider("Min confidence %", 50, 90, 65)
+        
+        with col3:
+            if st.button("🔄 Generate New Picks", type="primary"):
+                st.session_state.picks_generated = False
+        
+        # Generate picks
+        if 'picks_generated' not in st.session_state or not st.session_state.picks_generated:
+            with st.spinner("🤖 AI analyzing markets and generating picks..."):
+                daily_picks = picks_engine.get_daily_picks(max_picks)
+                # Filter by confidence
+                daily_picks = [pick for pick in daily_picks if pick['confidence'] >= min_confidence]
+                
+                # Add bankroll-adjusted bet sizing ONLY if bankroll is initialized
+                if st.session_state.get('bankroll_initialized', False):
                     for pick in daily_picks:
                         recommended_bet, bet_reason = bankroll_manager.calculate_recommended_bet_size(
                             pick['confidence'], pick['expected_value']
@@ -463,15 +464,19 @@ with tabs[1]:
                         pick['recommended_bet'] = recommended_bet
                         pick['bet_reason'] = bet_reason
                         pick['can_bet'] = recommended_bet > 0
-                    
-                    st.session_state.daily_picks = daily_picks
-                    st.session_state.picks_generated = True
-            else:
-                daily_picks = st.session_state.daily_picks
-        
-            if daily_picks:
-                # Show enhanced summary with bankroll integration
-                summary = picks_engine.get_pick_summary(daily_picks)
+                
+                st.session_state.daily_picks = daily_picks
+                st.session_state.picks_generated = True
+        else:
+            daily_picks = st.session_state.daily_picks
+    
+        if daily_picks:
+            # Show picks summary
+            summary = picks_engine.get_pick_summary(daily_picks)
+            
+            # Conditional metrics based on bankroll initialization
+            if st.session_state.get('bankroll_initialized', False):
+                # Enhanced summary with bankroll integration
                 bettable_picks = [pick for pick in daily_picks if pick.get('can_bet', False)]
                 total_potential_bet = sum(pick.get('recommended_bet', 0) for pick in bettable_picks)
                 
@@ -491,72 +496,113 @@ with tabs[1]:
                     ])
                     potential_profit = potential_payout - total_potential_bet
                     st.metric("Potential Profit", f"${potential_profit:.2f}")
+            else:
+                # Analysis-only summary
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Total Picks", len(daily_picks))
+                with col2:
+                    st.metric("Avg Confidence", f"{summary['avg_confidence']}%")
+                with col3:
+                    st.metric("Avg Expected Value", f"+{summary['avg_expected_value']}%")
+                with col4:
+                    st.metric("Sports Covered", summary['sports_covered'])
+            
+            st.markdown("---")
+            
+            # Display picks with conditional betting features
+            for i, pick in enumerate(daily_picks, 1):
+                can_bet = pick.get('can_bet', False)
+                recommended_bet = pick.get('recommended_bet', 0)
                 
-                st.markdown("---")
-                
-                # Display enhanced picks with bet tracking
-                for i, pick in enumerate(daily_picks, 1):
-                    can_bet = pick.get('can_bet', False)
-                    recommended_bet = pick.get('recommended_bet', 0)
-                    
-                    # Pick status indicator
+                # Pick status indicator (different logic based on bankroll initialization)
+                if st.session_state.get('bankroll_initialized', False):
                     status_icon = "✅" if can_bet else "⚠️"
                     pick_title = f"{status_icon} Pick #{i}: {pick['matchup']}"
+                else:
+                    # Analysis-only mode
+                    status_icon = "🎯"
+                    pick_title = f"{status_icon} Analysis #{i}: {pick['matchup']}"
+                
+                with st.expander(pick_title, expanded=i <= 2):
+                    # Main pick information
+                    col_a, col_b, col_c = st.columns([2, 2, 1])
                     
-                    with st.expander(pick_title, expanded=i <= 2 and can_bet):
-                        # Main pick information
-                        col_a, col_b, col_c = st.columns([2, 2, 1])
+                    with col_a:
+                        st.markdown(f"### **{pick['pick']}**")
+                        st.markdown(f"**{pick['sport'].title()}** • {pick['competition']}")
                         
-                        with col_a:
-                            st.markdown(f"### **{pick['pick']}**")
-                            st.markdown(f"**{pick['sport'].title()}** • {pick['competition']}")
-                            st.markdown(f"📅 {pick['start_time']}")
-                            
-                            # Confidence and value indicators
-                            conf_color = "🟢" if pick['confidence'] >= 75 else "🟡" if pick['confidence'] >= 60 else "🔴"
-                            ev_color = "💚" if pick['expected_value'] >= 5 else "💛" if pick['expected_value'] >= 2 else "💙"
-                            
-                            st.markdown(f"{conf_color} **Confidence:** {pick['confidence']}%")
-                            st.markdown(f"{ev_color} **Expected Value:** +{pick['expected_value']}%")
+                        # Enhanced display for player props
+                        if pick.get('pick_type') == 'player_prop' and pick.get('player_name'):
+                            st.markdown(f"👤 **Player:** {pick['player_name']}")
+                        elif pick.get('pick_type') == 'team_prop':
+                            st.markdown(f"🏟️ **Team Prop**")
                         
-                        with col_b:
-                            st.markdown(f"**Recommended Bet:**")
-                            st.markdown(f"🎯 **{pick['pick_type'].title()}**")
-                            st.markdown(f"💰 **Odds:** {pick['odds']:+d}")
-                            
-                            # Bankroll-based bet sizing
+                        st.markdown(f"📅 {pick['start_time']}")
+                        
+                        # Confidence and value indicators
+                        conf_color = "🟢" if pick['confidence'] >= 75 else "🟡" if pick['confidence'] >= 60 else "🔴"
+                        ev_color = "💚" if pick['expected_value'] >= 5 else "💛" if pick['expected_value'] >= 2 else "💙"
+                        
+                        st.markdown(f"{conf_color} **Confidence:** {pick['confidence']}%")
+                        st.markdown(f"{ev_color} **Expected Value:** +{pick['expected_value']}%")
+                    
+                    with col_b:
+                        st.markdown(f"**Analysis Details:**")
+                        
+                        # Enhanced pick type display
+                        pick_type_display = {
+                            'player_prop': '👤 Player Prop',
+                            'team_prop': '🏟️ Team Prop', 
+                            'spread': '📊 Point Spread',
+                            'totals': '🎯 Over/Under',
+                            'moneyline': '💰 Moneyline',
+                            'over/under': '🎯 Over/Under'
+                        }
+                        display_type = pick_type_display.get(pick['pick_type'], pick['pick_type'].title())
+                        st.markdown(f"🎯 **{display_type}**")
+                        st.markdown(f"💰 **Odds:** {pick['odds']:+d}")
+                        
+                        # Conditional bankroll-based bet sizing
+                        if st.session_state.get('bankroll_initialized', False):
                             if can_bet:
-                                st.success(f"💵 **Bet Amount:** ${recommended_bet:.2f}")
+                                st.success(f"💵 **Recommended Bet:** ${recommended_bet:.2f}")
                                 st.markdown(f"🎲 **{pick['bet_reason']}**")
                                 potential_payout = bankroll_manager.calculate_payout(recommended_bet, pick['odds'])
                                 potential_profit = potential_payout - recommended_bet
                                 st.markdown(f"📈 **Potential Profit:** ${potential_profit:.2f}")
                             else:
                                 st.warning(f"❌ **Cannot Bet:** {pick['bet_reason']}")
-                        
-                        with col_c:
-                            # Bet action button
-                            if can_bet:
-                                bet_key = f"place_bet_{pick['game_id']}_{i}"
-                                if st.button("📝 Place Bet", key=bet_key, type="primary"):
-                                    # Add bet to tracking
-                                    success = bankroll_manager.add_bet(
-                                        pick_id=pick['game_id'],
-                                        sport=pick['sport'],
-                                        matchup=pick['matchup'],
-                                        pick_type=pick['pick_type'],
-                                        odds=pick['odds'],
-                                        bet_amount=recommended_bet,
-                                        confidence=pick['confidence'],
-                                        expected_value=pick['expected_value']
-                                    )
-                                    
-                                    if success:
-                                        st.success("✅ Bet tracked!")
-                                        st.balloons()
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ Failed to track bet")
+                        else:
+                            st.info("💡 **Enable bankroll management above for bet sizing recommendations**")
+                    
+                    with col_c:
+                        # Conditional bet action button
+                        if st.session_state.get('bankroll_initialized', False) and can_bet:
+                            bet_key = f"place_bet_{pick['game_id']}_{i}"
+                            if st.button("📝 Place Bet", key=bet_key, type="primary"):
+                                # Add bet to tracking
+                                success = bankroll_manager.add_bet(
+                                    pick_id=pick['game_id'],
+                                    sport=pick['sport'],
+                                    matchup=pick['matchup'],
+                                    pick_type=pick['pick_type'],
+                                    odds=pick['odds'],
+                                    bet_amount=recommended_bet,
+                                    confidence=pick['confidence'],
+                                    expected_value=pick['expected_value']
+                                )
+                                
+                                if success:
+                                    st.success("✅ Bet tracked!")
+                                    st.balloons()
+                                    # Removed st.rerun() to prevent tab redirect
+                                else:
+                                    st.error("❌ Failed to track bet")
+                        else:
+                            st.markdown("**📊 Analysis Only**")
+                            if not st.session_state.get('bankroll_initialized', False):
+                                st.caption("Initialize bankroll for betting features")
                                 
                                 # Risk level indicator
                                 if recommended_bet > bankroll_manager.data["unit_size"] * 2:
@@ -584,31 +630,35 @@ with tabs[1]:
                                 st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
                                 st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
                 
-                # Summary action buttons
-                st.markdown("---")
-                col_x, col_y, col_z = st.columns(3)
-                
-                with col_x:
-                    if bettable_picks and st.button("📊 Place All Recommended Bets", type="secondary"):
-                        placed_count = 0
-                        for pick in bettable_picks:
-                            success = bankroll_manager.add_bet(
-                                pick_id=pick['game_id'],
-                                sport=pick['sport'],
-                                matchup=pick['matchup'],
-                                pick_type=pick['pick_type'],
-                                odds=pick['odds'],
-                                bet_amount=pick['recommended_bet'],
-                                confidence=pick['confidence'],
-                                expected_value=pick['expected_value']
-                            )
-                            if success:
-                                placed_count += 1
-                        
-                        if placed_count > 0:
-                            st.success(f"✅ Tracked {placed_count} bets!")
-                            st.balloons()
-                            st.rerun()
+                # Summary action buttons - conditional on bankroll initialization
+                if st.session_state.get('bankroll_initialized', False):
+                    st.markdown("---")
+                    col_x, col_y, col_z = st.columns(3)
+                    
+                    # Get bettable picks for this section
+                    bettable_picks = [pick for pick in daily_picks if pick.get('can_bet', False)]
+                    
+                    with col_x:
+                        if bettable_picks and st.button("📊 Place All Recommended Bets", type="secondary"):
+                            placed_count = 0
+                            for pick in bettable_picks:
+                                success = bankroll_manager.add_bet(
+                                    pick_id=pick['game_id'],
+                                    sport=pick['sport'],
+                                    matchup=pick['matchup'],
+                                    pick_type=pick['pick_type'],
+                                    odds=pick['odds'],
+                                    bet_amount=pick['recommended_bet'],
+                                    confidence=pick['confidence'],
+                                    expected_value=pick['expected_value']
+                                )
+                                if success:
+                                    placed_count += 1
+                            
+                            if placed_count > 0:
+                                st.success(f"✅ Tracked {placed_count} bets!")
+                                st.balloons()
+                                # Removed st.rerun() to prevent tab redirect
                 
                 with col_y:
                     if st.button("⚠️ Skip All Picks Today", type="secondary"):
@@ -617,7 +667,11 @@ with tabs[1]:
                 
                 with col_z:
                     if st.button("🔄 Refresh Risk Assessment", type="secondary"):
-                        st.rerun()
+                        # Force refresh of risk calculations
+                        if 'daily_picks' in st.session_state:
+                            # Clear cached picks to force regeneration
+                            st.session_state.picks_generated = False
+                        # Note: Removed st.rerun() to prevent tab redirect
                 
                 # Responsible gambling reminder
                 st.markdown("---")
@@ -692,21 +746,21 @@ with tabs[1]:
                         with col_b:
                             if st.button("✅ Won", key=f"won_{bet['id']}"):
                                 bankroll_manager.settle_bet(bet['id'], 'won')
-                                st.rerun()
+                                st.success("Bet settled as Won!")
                         with col_c:
                             if st.button("❌ Lost", key=f"lost_{bet['id']}"):
                                 bankroll_manager.settle_bet(bet['id'], 'lost')
-                                st.rerun()
+                                st.error("Bet settled as Lost")
                         with col_d:
                             if st.button("➖ Push", key=f"push_{bet['id']}"):
                                 bankroll_manager.settle_bet(bet['id'], 'pushed')
-                                st.rerun()
+                                st.info("Bet settled as Push")
             else:
                 st.info("No betting history yet. Start placing bets to see your performance!")
             
             if st.button("❌ Close History"):
                 st.session_state.show_bet_history = False
-                st.rerun()
+                # Note: Removed st.rerun() to prevent tab redirect
         
         # Settings Modal
         if st.session_state.get('show_settings', False):
