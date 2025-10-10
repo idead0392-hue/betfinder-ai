@@ -510,78 +510,94 @@ with tabs[1]:
             
             st.markdown("---")
             
-            # Display picks with conditional betting features
+            # Display picks as cards in a horizontal layout
+            if len(daily_picks) <= 4:
+                # Single row for 4 or fewer picks
+                cols = st.columns(len(daily_picks))
+            else:
+                # Multiple rows for more than 4 picks
+                cols = st.columns(4)
+            
             for i, pick in enumerate(daily_picks, 1):
                 can_bet = pick.get('can_bet', False)
                 recommended_bet = pick.get('recommended_bet', 0)
                 
-                # Pick status indicator (different logic based on bankroll initialization)
-                if st.session_state.get('bankroll_initialized', False):
-                    status_icon = "✅" if can_bet else "⚠️"
-                    pick_title = f"{status_icon} Pick #{i}: {pick['matchup']}"
-                else:
-                    # Analysis-only mode
-                    status_icon = "🎯"
-                    pick_title = f"{status_icon} Analysis #{i}: {pick['matchup']}"
+                # Calculate which column to use (wrap to new row after 4 cards)
+                col_index = (i - 1) % 4
                 
-                with st.expander(pick_title, expanded=i <= 2):
-                    # Main pick information
-                    col_a, col_b, col_c = st.columns([2, 2, 1])
+                with cols[col_index]:
+                    # Enhanced visual indicators
+                    confidence_emoji = "🔥" if pick['confidence'] >= 80 else "⚡" if pick['confidence'] >= 70 else "📈"
+                    player_prop_indicator = " 👤" if pick.get('pick_type') in ['player_prop', 'player props'] else ""
                     
-                    with col_a:
-                        st.markdown(f"### **{pick['pick']}**")
-                        st.markdown(f"**{pick['sport'].title()}** • {pick['competition']}")
-                        
-                        # Enhanced display for player props
-                        if pick.get('pick_type') == 'player_prop' and pick.get('player_name'):
-                            st.markdown(f"👤 **Player:** {pick['player_name']}")
-                        elif pick.get('pick_type') == 'team_prop':
-                            st.markdown(f"🏟️ **Team Prop**")
-                        
-                        st.markdown(f"📅 {pick['start_time']}")
-                        
-                        # Confidence and value indicators
-                        conf_color = "🟢" if pick['confidence'] >= 75 else "🟡" if pick['confidence'] >= 60 else "🔴"
-                        ev_color = "💚" if pick['expected_value'] >= 5 else "💛" if pick['expected_value'] >= 2 else "💙"
-                        
-                        st.markdown(f"{conf_color} **Confidence:** {pick['confidence']}%")
-                        st.markdown(f"{ev_color} **Expected Value:** +{pick['expected_value']}%")
+                    # Color-coded confidence
+                    if pick['confidence'] >= 80:
+                        confidence_color = "#28a745"  # Green
+                        border_color = "#28a745"
+                    elif pick['confidence'] >= 70:
+                        confidence_color = "#ffc107"  # Yellow
+                        border_color = "#ffc107"
+                    else:
+                        confidence_color = "#dc3545"  # Red
+                        border_color = "#dc3545"
                     
-                    with col_b:
-                        st.markdown(f"**Analysis Details:**")
-                        
-                        # Enhanced pick type display
-                        pick_type_display = {
-                            'player_prop': '👤 Player Prop',
-                            'team_prop': '🏟️ Team Prop', 
-                            'spread': '📊 Point Spread',
-                            'totals': '🎯 Over/Under',
-                            'moneyline': '💰 Moneyline',
-                            'over/under': '🎯 Over/Under'
-                        }
-                        display_type = pick_type_display.get(pick['pick_type'], pick['pick_type'].title())
-                        st.markdown(f"🎯 **{display_type}**")
-                        st.markdown(f"💰 **Odds:** {pick['odds']:+d}")
-                        
-                        # Conditional bankroll-based bet sizing
-                        if st.session_state.get('bankroll_initialized', False):
-                            if can_bet:
-                                st.success(f"💵 **Recommended Bet:** ${recommended_bet:.2f}")
-                                st.markdown(f"🎲 **{pick['bet_reason']}**")
-                                potential_payout = bankroll_manager.calculate_payout(recommended_bet, pick['odds'])
-                                potential_profit = potential_payout - recommended_bet
-                                st.markdown(f"📈 **Potential Profit:** ${potential_profit:.2f}")
+                    # Card container with custom styling
+                    st.markdown(f"""
+                    <div style="
+                        border: 2px solid {border_color};
+                        border-radius: 10px;
+                        padding: 15px;
+                        margin: 5px 0;
+                        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        height: 300px;
+                        overflow-y: auto;
+                    ">
+                    <h4 style="color: {confidence_color}; margin: 0 0 10px 0; font-size: 16px;">
+                        {confidence_emoji} Pick #{i}{player_prop_indicator}
+                    </h4>
+                    <p style="margin: 5px 0; font-size: 14px; font-weight: bold;">{pick['matchup']}</p>
+                    <p style="margin: 5px 0; font-size: 12px;">{pick['sport'].title()}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Pick details
+                    st.markdown(f"**🎯 {pick['pick']}**")
+                    st.caption(f"💰 Odds: {pick['odds']:+d}")
+                    st.caption(f"⚡ Confidence: {pick['confidence']}%")
+                    st.caption(f"📊 EV: +{pick['expected_value']}%")
+                    st.caption(f"📅 {pick['start_time']}")
+                    
+                    # Player prop specific details
+                    if pick.get('pick_type') == 'player_prop' and pick.get('player_name'):
+                        st.caption(f"👤 {pick['player_name']}")
+                    
+                    # Betting information
+                    if st.session_state.get('bankroll_initialized', False):
+                        if can_bet:
+                            st.success(f"💵 ${recommended_bet:.2f}")
+                            
+                            # Risk assessment
+                            risk_pct = (recommended_bet / bankroll_manager.data["bankroll"]) * 100
+                            if risk_pct > 5:
+                                st.caption("⚠️ 🔴 High Risk")
+                            elif risk_pct > 2:
+                                st.caption("⚠️ 🟡 Medium Risk")
                             else:
-                                st.warning(f"❌ **Cannot Bet:** {pick['bet_reason']}")
-                        else:
-                            st.info("💡 **Enable bankroll management above for bet sizing recommendations**")
-                    
-                    with col_c:
-                        # Conditional bet action button
-                        if st.session_state.get('bankroll_initialized', False) and can_bet:
+                                st.caption("⚠️ � Low Risk")
+                            
+                            # Unit sizing
+                            units = recommended_bet / bankroll_manager.data["unit_size"]
+                            st.caption(f"📐 {units:.1f}u")
+                            
+                            # Potential profit
+                            potential_payout = bankroll_manager.calculate_payout(recommended_bet, pick['odds'])
+                            potential_profit = potential_payout - recommended_bet
+                            st.caption(f"� +${potential_profit:.2f}")
+                            
+                            # Bet button
                             bet_key = f"place_bet_{pick['game_id']}_{i}"
-                            if st.button("📝 Place Bet", key=bet_key, type="primary"):
-                                # Add bet to tracking
+                            if st.button("� Bet", key=bet_key, type="primary", use_container_width=True):
                                 success = bankroll_manager.add_bet(
                                     pick_id=pick['game_id'],
                                     sport=pick['sport'],
@@ -594,41 +610,143 @@ with tabs[1]:
                                 )
                                 
                                 if success:
-                                    st.success("✅ Bet tracked!")
+                                    st.success("✅ Tracked!")
                                     st.balloons()
-                                    # Removed st.rerun() to prevent tab redirect
                                 else:
-                                    st.error("❌ Failed to track bet")
+                                    st.error("❌ Failed")
                         else:
-                            st.markdown("**📊 Analysis Only**")
-                            if not st.session_state.get('bankroll_initialized', False):
-                                st.caption("Initialize bankroll for betting features")
-                                
-                                # Risk level indicator
-                                if recommended_bet > bankroll_manager.data["unit_size"] * 2:
-                                    st.warning("🔴 High Risk")
-                                elif recommended_bet > bankroll_manager.data["unit_size"]:
-                                    st.info("🟡 Medium Risk")
-                                else:
-                                    st.success("🟢 Low Risk")
-                            else:
-                                st.markdown("*Bet not recommended due to risk limits*")
-                        
-                        # Detailed reasoning
-                        st.markdown("**🧠 AI Analysis:**")
+                            st.warning("❌ Cannot Bet")
+                            st.caption(pick['bet_reason'])
+                    else:
+                        st.info("💡 Analysis Mode")
+                        st.caption("Enable bankroll for betting")
+                    
+                    # Expandable details
+                    with st.expander("📋 Details", expanded=False):
+                        st.markdown(f"**🧠 AI Analysis:**")
                         st.markdown(pick['reasoning'])
                         
-                        # Market analysis details
+                        # Market analysis
                         if pick['market_analysis']:
                             market = pick['market_analysis']
                             st.markdown("**📊 Market Intelligence:**")
-                            col_x, col_y = st.columns(2)
-                            with col_x:
-                                st.caption(f"Line Movement: {market['line_movement'].title()}")
-                                st.caption(f"Public Bias: {market['public_bias'].title()}")
-                            with col_y:
-                                st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
-                                st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
+                            st.caption(f"Line: {market['line_movement'].title()}")
+                            st.caption(f"Public: {market['public_bias'].title()}")
+                            st.caption(f"Sharp: {'Yes' if market['sharp_action'] else 'No'}")
+                            st.caption(f"Reverse: {'Yes' if market['reverse_line_movement'] else 'No'}")
+            
+            # Create additional rows if more than 4 picks
+            if len(daily_picks) > 4:
+                remaining_picks = daily_picks[4:]
+                for row_start in range(0, len(remaining_picks), 4):
+                    row_picks = remaining_picks[row_start:row_start + 4]
+                    cols = st.columns(len(row_picks))
+                    
+                    for j, pick in enumerate(row_picks):
+                        pick_index = 5 + row_start + j  # Continue numbering from first row
+                        
+                        with cols[j]:
+                            can_bet = pick.get('can_bet', False)
+                            recommended_bet = pick.get('recommended_bet', 0)
+                            
+                            # Same card styling
+                            confidence_emoji = "🔥" if pick['confidence'] >= 80 else "⚡" if pick['confidence'] >= 70 else "📈"
+                            player_prop_indicator = " 👤" if pick.get('pick_type') in ['player_prop', 'player props'] else ""
+                            
+                            if pick['confidence'] >= 80:
+                                confidence_color = "#28a745"
+                                border_color = "#28a745"
+                            elif pick['confidence'] >= 70:
+                                confidence_color = "#ffc107"
+                                border_color = "#ffc107"
+                            else:
+                                confidence_color = "#dc3545"
+                                border_color = "#dc3545"
+                            
+                            st.markdown(f"""
+                            <div style="
+                                border: 2px solid {border_color};
+                                border-radius: 10px;
+                                padding: 15px;
+                                margin: 5px 0;
+                                background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                height: 300px;
+                                overflow-y: auto;
+                            ">
+                            <h4 style="color: {confidence_color}; margin: 0 0 10px 0; font-size: 16px;">
+                                {confidence_emoji} Pick #{pick_index}{player_prop_indicator}
+                            </h4>
+                            <p style="margin: 5px 0; font-size: 14px; font-weight: bold;">{pick['matchup']}</p>
+                            <p style="margin: 5px 0; font-size: 12px;">{pick['sport'].title()}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Same content as first row cards
+                            st.markdown(f"**🎯 {pick['pick']}**")
+                            st.caption(f"💰 Odds: {pick['odds']:+d}")
+                            st.caption(f"⚡ Confidence: {pick['confidence']}%")
+                            st.caption(f"📊 EV: +{pick['expected_value']}%")
+                            st.caption(f"📅 {pick['start_time']}")
+                            
+                            if pick.get('pick_type') == 'player_prop' and pick.get('player_name'):
+                                st.caption(f"👤 {pick['player_name']}")
+                            
+                            if st.session_state.get('bankroll_initialized', False):
+                                if can_bet:
+                                    st.success(f"💵 ${recommended_bet:.2f}")
+                                    risk_pct = (recommended_bet / bankroll_manager.data["bankroll"]) * 100
+                                    
+                                    if risk_pct > 5:
+                                        st.caption("⚠️ 🔴 High Risk")
+                                    elif risk_pct > 2:
+                                        st.caption("⚠️ 🟡 Medium Risk")
+                                    else:
+                                        st.caption("⚠️ � Low Risk")
+                                    
+                                    units = recommended_bet / bankroll_manager.data["unit_size"]
+                                    st.caption(f"📐 {units:.1f}u")
+                                    
+                                    potential_payout = bankroll_manager.calculate_payout(recommended_bet, pick['odds'])
+                                    potential_profit = potential_payout - recommended_bet
+                                    st.caption(f"📈 +${potential_profit:.2f}")
+                                    
+                                    bet_key = f"place_bet_{pick['game_id']}_{pick_index}"
+                                    if st.button("📝 Bet", key=bet_key, type="primary", use_container_width=True):
+                                        success = bankroll_manager.add_bet(
+                                            pick_id=pick['game_id'],
+                                            sport=pick['sport'],
+                                            matchup=pick['matchup'],
+                                            pick_type=pick['pick_type'],
+                                            odds=pick['odds'],
+                                            bet_amount=recommended_bet,
+                                            confidence=pick['confidence'],
+                                            expected_value=pick['expected_value']
+                                        )
+                                        
+                                        if success:
+                                            st.success("✅ Tracked!")
+                                            st.balloons()
+                                        else:
+                                            st.error("❌ Failed")
+                                else:
+                                    st.warning("❌ Cannot Bet")
+                                    st.caption(pick['bet_reason'])
+                            else:
+                                st.info("💡 Analysis Mode")
+                                st.caption("Enable bankroll for betting")
+                            
+                            with st.expander("📋 Details", expanded=False):
+                                st.markdown(f"**🧠 AI Analysis:**")
+                                st.markdown(pick['reasoning'])
+                                
+                                if pick['market_analysis']:
+                                    market = pick['market_analysis']
+                                    st.markdown("**📊 Market Intelligence:**")
+                                    st.caption(f"Line: {market['line_movement'].title()}")
+                                    st.caption(f"Public: {market['public_bias'].title()}")
+                                    st.caption(f"Sharp: {'Yes' if market['sharp_action'] else 'No'}")
+                                    st.caption(f"Reverse: {'Yes' if market['reverse_line_movement'] else 'No'}")
                 
                 # Summary action buttons - conditional on bankroll initialization
                 if st.session_state.get('bankroll_initialized', False):
