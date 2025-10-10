@@ -84,20 +84,23 @@ class PicksEngine:
             # Current date for context
             current_date = datetime.now().strftime("%Y-%m-%d")
             
-            # Enhanced prompt for diverse picks including player props
+            # Enhanced prompt for diverse picks including BOTH over and under player props
             prompt = f"""You are a professional sports betting analyst. Generate {max_picks} diverse, high-quality betting picks for {current_date}.
 
 CRITICAL INSTRUCTIONS:
 1. Respond ONLY with a valid JSON array - no other text
 2. Include exactly {max_picks} picks
-3. Include at least 3 player props and 2 team picks
-4. Cover at least 3 different sports
-5. confidence and expected_value must be numbers only (no % symbols)
+3. Include BOTH over AND under player props (at least 2 overs and 2 unders)
+4. Include team picks: spreads, moneylines, totals (over/under)
+5. Cover at least 3 different sports
+6. confidence and expected_value must be numbers only (no % symbols)
+7. For player props, include 'over_under' field with values 'over' or 'under'
 
 Pick Types to Include:
-- Player props: points, rebounds, assists, passing yards, touchdowns
+- Player props OVER: points over, rebounds over, assists over, passing yards over, touchdowns over
+- Player props UNDER: points under, rebounds under, assists under, passing yards under, touchdowns under
 - Team picks: spreads, moneylines, totals (over/under)
-- Team props: team totals, first quarter totals
+- Team props: team totals over/under, first quarter totals over/under
 
 Sports: basketball, football, hockey, baseball, soccer, tennis
 
@@ -109,6 +112,7 @@ JSON Format (respond with ONLY this array):
     "away_team": "Warriors", 
     "player_name": "LeBron James",
     "pick_type": "player_prop",
+    "over_under": "over",
     "pick": "LeBron James Over 24.5 Points",
     "odds": -115,
     "confidence": 78,
@@ -117,10 +121,25 @@ JSON Format (respond with ONLY this array):
     "key_factors": ["Recent form", "Defensive matchup", "Rest advantage"]
   }},
   {{
+    "sport": "basketball",
+    "home_team": "Celtics",
+    "away_team": "Heat", 
+    "player_name": "Jayson Tatum",
+    "pick_type": "player_prop",
+    "over_under": "under",
+    "pick": "Jayson Tatum Under 8.5 Rebounds",
+    "odds": -120,
+    "confidence": 74,
+    "expected_value": 6.3,
+    "reasoning": "Heat's aggressive rebounding and Tatum's recent low rebounding games suggest under value",
+    "key_factors": ["Matchup difficulty", "Recent trends", "Usage rate"]
+  }},
+  {{
     "sport": "football",
     "home_team": "Chiefs", 
     "away_team": "Bills",
     "pick_type": "spread",
+    "over_under": null,
     "pick": "Chiefs -3.5",
     "odds": -110,
     "confidence": 72,
@@ -216,6 +235,7 @@ JSON Format (respond with ONLY this array):
                             'matchup': matchup_display,
                             'pick': pick_data.get('pick', 'Team A'),
                             'pick_type': pick_type,
+                            'over_under': pick_data.get('over_under'),  # Track over/under for player props
                             'player_name': pick_data.get('player_name', ''),  # For player props
                             'odds': int(pick_data.get('odds', -110)),
                             'confidence': confidence,
@@ -258,7 +278,7 @@ JSON Format (respond with ONLY this array):
         """Fallback method for when AI or API is unavailable - includes player props"""
         print("Using fallback pick generation with player props...")
         
-        # Enhanced mock data with player props and variety
+        # Enhanced mock data with BOTH over and under player props and variety
         current_date = datetime.now().strftime("%Y-%m-%d")
         
         mock_picks = [
@@ -269,6 +289,7 @@ JSON Format (respond with ONLY this array):
                 'matchup': 'Lakers vs Warriors',
                 'pick': 'Lakers +3.5',
                 'pick_type': 'spread',
+                'over_under': None,
                 'odds': -110,
                 'confidence': 78.5,
                 'expected_value': 8.2,
@@ -284,6 +305,7 @@ JSON Format (respond with ONLY this array):
                 'matchup': 'Lakers vs Warriors - LeBron James',
                 'pick': 'LeBron James Over 24.5 Points',
                 'pick_type': 'player_prop',
+                'over_under': 'over',
                 'player_name': 'LeBron James',
                 'odds': -115,
                 'confidence': 82.0,
@@ -294,12 +316,30 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Historical matchup', 'Defensive ranking', 'Recent form', 'Usage rate']
             },
             {
-                'game_id': f"fallback_nfl_{current_date}_3", 
+                'game_id': f"fallback_nba_{current_date}_3",
+                'sport': 'basketball', 
+                'competition': 'NBA',
+                'matchup': 'Celtics vs Heat - Jayson Tatum',
+                'pick': 'Jayson Tatum Under 8.5 Rebounds',
+                'pick_type': 'player_prop',
+                'over_under': 'under',
+                'player_name': 'Jayson Tatum',
+                'odds': -120,
+                'confidence': 75.2,
+                'expected_value': 9.1,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': True},
+                'start_time': (datetime.now() + timedelta(hours=4)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Tatum has gone under 8.5 rebounds in 6 of last 8 games. Heat rank 3rd in defensive rebounding rate. Focus will be on scoring vs tough Miami defense.',
+                'prediction_factors': ['Recent rebounding trends', 'Defensive matchup', 'Role emphasis', 'Usage patterns']
+            },
+            {
+                'game_id': f"fallback_nfl_{current_date}_4", 
                 'sport': 'football',
                 'competition': 'NFL',
                 'matchup': 'Chiefs vs Bills',
                 'pick': 'Over 52.5',
                 'pick_type': 'totals',
+                'over_under': 'over',
                 'odds': -105,
                 'confidence': 72.3,
                 'expected_value': 6.8,
@@ -309,12 +349,13 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Offensive efficiency', 'Weather conditions', 'Historical totals', 'Pace of play']
             },
             {
-                'game_id': f"fallback_nfl_{current_date}_4",
+                'game_id': f"fallback_nfl_{current_date}_5",
                 'sport': 'football',
                 'competition': 'NFL', 
                 'matchup': 'Chiefs vs Bills - Josh Allen',
                 'pick': 'Josh Allen Over 1.5 Passing TDs',
                 'pick_type': 'player_prop',
+                'over_under': 'over',
                 'player_name': 'Josh Allen',
                 'odds': -125,
                 'confidence': 75.5,
@@ -325,12 +366,30 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Red zone trends', 'Defensive matchup', 'Game script', 'Weather conditions']
             },
             {
-                'game_id': f"fallback_nhl_{current_date}_5",
+                'game_id': f"fallback_nfl_{current_date}_6",
+                'sport': 'football',
+                'competition': 'NFL', 
+                'matchup': 'Packers vs Vikings - Aaron Jones',
+                'pick': 'Aaron Jones Under 72.5 Rushing Yards',
+                'pick_type': 'player_prop',
+                'over_under': 'under',
+                'player_name': 'Aaron Jones',
+                'odds': -110,
+                'confidence': 69.8,
+                'expected_value': 7.4,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': True},
+                'start_time': (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Vikings rank 2nd in run defense. Jones has gone under this total in 4 of last 6 road games. Game script may favor passing with high total.',
+                'prediction_factors': ['Defensive matchup', 'Road performance', 'Game script', 'Weather conditions']
+            },
+            {
+                'game_id': f"fallback_nhl_{current_date}_7",
                 'sport': 'hockey',
                 'competition': 'NHL',
                 'matchup': 'Rangers vs Bruins',
                 'pick': 'Rangers +1.5',
                 'pick_type': 'spread',
+                'over_under': None,
                 'odds': -140,
                 'confidence': 68.2,
                 'expected_value': 7.1,
@@ -340,12 +399,13 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Schedule advantage', 'Goalie matchup', 'ATS trends', 'Rest factors']
             },
             {
-                'game_id': f"fallback_nhl_{current_date}_6",
+                'game_id': f"fallback_nhl_{current_date}_8",
                 'sport': 'hockey',
                 'competition': 'NHL',
                 'matchup': 'Rangers vs Bruins - David Pastrnak',
                 'pick': 'David Pastrnak Over 0.5 Goals',
-                'pick_type': 'player_prop', 
+                'pick_type': 'player_prop',
+                'over_under': 'over', 
                 'player_name': 'David Pastrnak',
                 'odds': +105,
                 'confidence': 71.0,
@@ -356,12 +416,30 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Home splits', 'Defensive matchup', 'Special teams', 'Shot volume']
             },
             {
-                'game_id': f"fallback_soccer_{current_date}_7",
+                'game_id': f"fallback_nhl_{current_date}_9",
+                'sport': 'hockey',
+                'competition': 'NHL',
+                'matchup': 'Maple Leafs vs Penguins - Sidney Crosby',
+                'pick': 'Sidney Crosby Under 2.5 Shots on Goal',
+                'pick_type': 'player_prop',
+                'over_under': 'under',
+                'player_name': 'Sidney Crosby',
+                'odds': +115,
+                'confidence': 66.5,
+                'expected_value': 8.9,
+                'market_analysis': {'line_movement': 'stable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': False},
+                'start_time': (datetime.now() + timedelta(hours=5)).strftime("%Y-%m-%d %H:%M"),
+                'reasoning': 'Crosby has gone under 2.5 SOG in 5 of last 7 games. Maple Leafs excellent at limiting high-danger chances. Line combinations may limit his ice time.',
+                'prediction_factors': ['Recent shot trends', 'Defensive system', 'Line combinations', 'Game flow']
+            },
+            {
+                'game_id': f"fallback_soccer_{current_date}_10",
                 'sport': 'soccer',
                 'competition': 'Premier League',
                 'matchup': 'Arsenal vs Chelsea',
                 'pick': 'Both Teams To Score - Yes',
                 'pick_type': 'team_prop',
+                'over_under': None,
                 'odds': -110,
                 'confidence': 76.8,
                 'expected_value': 8.9,
@@ -371,19 +449,20 @@ JSON Format (respond with ONLY this array):
                 'prediction_factors': ['Historical BTTS', 'Home/away splits', 'Team news', 'Match importance']
             },
             {
-                'game_id': f"fallback_tennis_{current_date}_8",
+                'game_id': f"fallback_tennis_{current_date}_11",
                 'sport': 'tennis',
                 'competition': 'ATP Tour',
                 'matchup': 'Djokovic vs Alcaraz',
-                'pick': 'Over 3.5 Sets',
+                'pick': 'Under 3.5 Sets',
                 'pick_type': 'totals',
-                'odds': +120,
-                'confidence': 69.5,
-                'expected_value': 14.2,
-                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'under', 'sharp_action': True, 'reverse_line_movement': True},
+                'over_under': 'under',
+                'odds': -130,
+                'confidence': 64.8,
+                'expected_value': 5.2,
+                'market_analysis': {'line_movement': 'favorable', 'public_bias': 'over', 'sharp_action': True, 'reverse_line_movement': True},
                 'start_time': (datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M"),
-                'reasoning': 'Last 4 meetings went to 4+ sets. Both players in excellent form. Hard court surface favors longer matches between these styles.',
-                'prediction_factors': ['Head-to-head', 'Surface performance', 'Current form', 'Playing style matchup']
+                'reasoning': 'Djokovic has won 4 of last 5 meetings in straight sets. Alcaraz may be fatigued from previous round. Hard court surface favors Djokovic serve.',
+                'prediction_factors': ['Head-to-head', 'Surface performance', 'Fatigue factors', 'Serving efficiency']
             }
         ]
         
