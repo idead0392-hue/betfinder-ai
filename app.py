@@ -223,14 +223,14 @@ def display_pick_with_outcome_selector(pick: Dict, agent_type: str, pick_index: 
                     if success:
                         st.success("✅ Outcome updated!")
                         time.sleep(1)
-                        st.experimental_rerun()
+                        st.rerun()
                 else:
                     # Save new pick
                     success = save_pick_to_csv(pick_with_agent, outcome, bet_amount)
                     if success:
                         st.success("✅ Pick saved!")
                         time.sleep(1)
-                        st.experimental_rerun()
+                        st.rerun()
         
         st.markdown("---")
 
@@ -400,17 +400,16 @@ with tabs[2]:
         sport_stats = df_history.groupby('sport').agg({
             'pick_id': 'count',
             'outcome': lambda x: (x == 'Win').sum(),
-            'profit_loss': 'sum',
-            'confidence': 'mean'
+            'profit_loss': 'sum'
         }).round(2)
         
-        sport_stats.columns = ['Total Picks', 'Wins', 'Total P&L', 'Avg Confidence']
+        sport_stats.columns = ['Total Picks', 'Wins', 'Total P&L']
         sport_stats['Win Rate %'] = ((sport_stats['Wins'] / sport_stats['Total Picks']) * 100).round(1)
         
         st.dataframe(sport_stats, use_container_width=True)
-        
+    
     else:
-        st.info("No performance data available yet. Generate and track some picks first!")
+        st.info("No performance data available yet.")
 
 # Bankroll Tab
 with tabs[3]:
@@ -425,12 +424,13 @@ with tabs[3]:
         st.metric("Current Bankroll", f"${bankroll_mgr.data['current_bankroll']:.2f}")
     
     with col2:
-        st.metric("Unit Size", f"${bankroll_mgr.data['unit_size']:.2f}")
+        st.metric("Starting Bankroll", f"${bankroll_mgr.data['starting_bankroll']:.2f}")
     
     with col3:
-        roi = ((bankroll_mgr.data['current_bankroll'] - bankroll_mgr.data['starting_bankroll']) / 
-               bankroll_mgr.data['starting_bankroll']) * 100
-        st.metric("Total ROI", f"{roi:.1f}%")
+        profit = bankroll_mgr.data['current_bankroll'] - bankroll_mgr.data['starting_bankroll']
+        st.metric("Profit/Loss", f"${profit:.2f}", delta=f"{profit:.2f}")
+    
+    st.markdown("---")
     
     # Bankroll settings
     st.subheader("⚙️ Bankroll Settings")
@@ -439,386 +439,70 @@ with tabs[3]:
     
     with col1:
         new_bankroll = st.number_input(
-            "Update Current Bankroll", 
-            value=bankroll_mgr.data['current_bankroll'],
+            "Set New Bankroll ($)",
             min_value=0.0,
-            step=50.0
+            value=float(bankroll_mgr.data['current_bankroll']),
+            step=10.0
         )
         
         if st.button("Update Bankroll"):
             bankroll_mgr.data['current_bankroll'] = new_bankroll
             bankroll_mgr.save_data()
             st.success("✅ Bankroll updated!")
-            st.experimental_rerun()
+            st.rerun()
     
     with col2:
-        new_unit = st.number_input(
-            "Unit Size ($)", 
-            value=bankroll_mgr.data['unit_size'],
+        unit_size = st.number_input(
+            "Unit Size ($)",
             min_value=1.0,
+            value=float(bankroll_mgr.data['unit_size']),
             step=1.0
         )
         
         if st.button("Update Unit Size"):
-            bankroll_mgr.data['unit_size'] = new_unit
+            bankroll_mgr.data['unit_size'] = unit_size
             bankroll_mgr.save_data()
             st.success("✅ Unit size updated!")
-            st.experimental_rerun()
+            st.rerun()
 
 # Analytics Tab
 with tabs[4]:
-    st.header("📊 Advanced Analytics")
-    
-    df_history = load_picks_history()
-    
-    if len(df_history) > 0:
-        # Time-based performance
-        st.subheader("📅 Performance Over Time")
-        
-        # Convert date to datetime for plotting
-        df_history['date'] = pd.to_datetime(df_history['date'])
-        
-        # Daily P&L chart
-        daily_pnl = df_history.groupby('date')['profit_loss'].sum().cumsum()
-        
-        if len(daily_pnl) > 0:
-            st.line_chart(daily_pnl)
-        
-        # Confidence vs Success Rate
-        st.subheader("🎯 Confidence Calibration")
-        
-        completed = df_history[df_history['outcome'].isin(['Win', 'Loss'])]
-        if len(completed) > 0:
-            # Group by confidence ranges
-            completed['confidence_range'] = pd.cut(
-                completed['confidence'], 
-                bins=[0, 60, 70, 80, 90, 100],
-                labels=['<60%', '60-70%', '70-80%', '80-90%', '90%+']
-            )
-            
-            calibration = completed.groupby('confidence_range').agg({
-                'outcome': [lambda x: (x == 'Win').sum(), 'count']
-            })
-            
-            calibration.columns = ['Wins', 'Total']
-            calibration['Actual Win Rate %'] = (calibration['Wins'] / calibration['Total'] * 100).round(1)
-            
-            st.dataframe(calibration, use_container_width=True)
-    
-    else:
-        st.info("No analytics data available yet.")
+    st.header("📈 Advanced Analytics")
+    st.info("Advanced analytics and charts coming soon!")
 
 # Settings Tab
 with tabs[5]:
     st.header("⚙️ Settings")
     
-    st.subheader("🗂️ Data Management")
+    st.subheader("🔧 Application Settings")
     
+    # Data management
+    st.markdown("**Data Management:**")
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("📥 Download Picks History", type="secondary"):
+        if st.button("🗑️ Clear All Pick History", type="secondary"):
             if os.path.exists(PICKS_HISTORY_CSV):
-                with open(PICKS_HISTORY_CSV, 'rb') as file:
-                    st.download_button(
-                        label="💾 Download CSV",
-                        data=file.read(),
-                        file_name=f"picks_history_{datetime.now().strftime('%Y%m%d')}.csv",
-                        mime="text/csv"
-                    )
-            else:
-                st.warning("No history file found.")
+                os.remove(PICKS_HISTORY_CSV)
+                st.success("✅ Pick history cleared!")
+                st.rerun()
     
     with col2:
-        if st.button("🗑️ Clear All Data", type="secondary"):
-            if st.checkbox("I understand this will delete all pick history"):
-                if os.path.exists(PICKS_HISTORY_CSV):
-                    os.remove(PICKS_HISTORY_CSV)
-                st.session_state.current_picks = []
-                st.success("✅ All data cleared!")
-                st.experimental_rerun()
+        if st.button("💾 Export Pick History", type="secondary"):
+            if os.path.exists(PICKS_HISTORY_CSV):
+                df = pd.read_csv(PICKS_HISTORY_CSV)
+                csv = df.to_csv(index=False)
+                st.download_button(
+                    label="📥 Download CSV",
+                    data=csv,
+                    file_name=f"picks_history_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.warning("No pick history to export.")
     
-    st.subheader("🔧 Agent Configuration")
-    
-    # API key status
-    try:
-        import os
-        openai_key = os.getenv('OPENAI_API_KEY')
-        if openai_key and openai_key != 'sk-proj-placeholder':
-            st.success("✅ OpenAI API key configured")
-        else:
-            st.warning("⚠️ OpenAI API key not configured or using placeholder")
-    except:
-        st.error("❌ Error checking API configuration")
-
-# Ensure CSV file exists on app startup
-ensure_csv_exists()
-    - Focus on consistency over high payouts
-    
-    Respond ONLY with valid JSON array format:
-    [
-        {{
-            "sport": "basketball",
-            "matchup": "Team A vs Team B",
-            "pick": "Team A Moneyline",
-            "pick_type": "moneyline",
-            "odds": -150,
-            "confidence": 75,
-            "expected_value": 3.5,
-            "reasoning": "Detailed analysis",
-            "key_factors": ["Factor 1", "Factor 2"]
-        }}
-    ]
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a conservative sports betting analyst. Respond ONLY with valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=2000
-        )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
-    except Exception as e:
-        st.error(f"Low Risk Agent Error: {str(e)}")
-        return []
-
-# Agent 2: High Expected Value Strategy
-def high_ev_agent(max_picks: int = 5) -> List[Dict]:
-    prompt = f"""You are a VALUE-FOCUSED sports betting analyst seeking HIGH EXPECTED VALUE picks.
-    
-    Generate {max_picks} betting picks with these characteristics:
-    - Focus on +EV opportunities (expected value 5%+)
-    - Underdog value plays
-    - Market inefficiencies
-    - Higher risk but justified by math
-    
-    Respond ONLY with valid JSON array format:
-    [
-        {{
-            "sport": "basketball",
-            "matchup": "Team A vs Team B",
-            "pick": "Team B +6.5",
-            "pick_type": "spread",
-            "odds": -110,
-            "confidence": 60,
-            "expected_value": 8.5,
-            "reasoning": "Detailed analysis",
-            "key_factors": ["Factor 1", "Factor 2"]
-        }}
-    ]
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a value-seeking sports betting analyst. Respond ONLY with valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=2000
-        )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
-    except Exception as e:
-        st.error(f"High EV Agent Error: {str(e)}")
-        return []
-
-# Agent 3: Props Only Strategy
-def props_only_agent(max_picks: int = 5) -> List[Dict]:
-    prompt = f"""You are a PLAYER PROPS specialist focused exclusively on player performance bets.
-    
-    Generate {max_picks} PLAYER PROP picks with these characteristics:
-    - Points, rebounds, assists, yards, touchdowns, etc.
-    - Focus on individual matchups
-    - Statistical trends and recent form
-    - Over/Under player performance lines
-    
-    Respond ONLY with valid JSON array format:
-    [
-        {{
-            "sport": "basketball",
-            "matchup": "Lakers vs Warriors",
-            "pick": "LeBron James Over 25.5 Points",
-            "pick_type": "player_prop",
-            "odds": -110,
-            "confidence": 68,
-            "expected_value": 4.2,
-            "reasoning": "Detailed analysis",
-            "key_factors": ["Factor 1", "Factor 2"]
-        }}
-    ]
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a player props specialist. Respond ONLY with valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.4,
-            max_tokens=2000
-        )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
-    except Exception as e:
-        st.error(f"Props Only Agent Error: {str(e)}")
-        return []
-
-# Agent 4: Spread Hunter Strategy
-def spread_hunter_agent(max_picks: int = 5) -> List[Dict]:
-    prompt = f"""You are a SPREAD BETTING specialist focused on point spreads and handicaps.
-    
-    Generate {max_picks} SPREAD picks with these characteristics:
-    - Focus on point spreads across all sports
-    - Identify teams that cover consistently
-    - Analyze margin of victory patterns
-    - Both favorites and underdogs with the spread
-    
-    Respond ONLY with valid JSON array format:
-    [
-        {{
-            "sport": "football",
-            "matchup": "Chiefs vs Raiders",
-            "pick": "Chiefs -7.5",
-            "pick_type": "spread",
-            "odds": -110,
-            "confidence": 72,
-            "expected_value": 5.5,
-            "reasoning": "Detailed analysis",
-            "key_factors": ["Factor 1", "Factor 2"]
-        }}
-    ]
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a spread betting specialist. Respond ONLY with valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.4,
-            max_tokens=2000
-        )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
-    except Exception as e:
-        st.error(f"Spread Hunter Agent Error: {str(e)}")
-        return []
-
-# Display picks in a formatted column
-def display_picks(picks: List[Dict], agent_name: str, agent_strategy: str):
-    st.subheader(f"🤖 {agent_name}")
-    st.caption(f"Strategy: {agent_strategy}")
-    
-    if not picks:
-        st.warning("No picks generated")
-        return
-    
-    for i, pick in enumerate(picks, 1):
-        with st.expander(f"Pick #{i}: {pick.get('pick', 'N/A')}"):
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.write(f"**Sport:** {pick.get('sport', 'N/A').title()}")
-                st.write(f"**Matchup:** {pick.get('matchup', 'N/A')}")
-                st.write(f"**Pick Type:** {pick.get('pick_type', 'N/A').replace('_', ' ').title()}")
-                st.write(f"**Odds:** {pick.get('odds', 'N/A')}")
-            
-            with col2:
-                confidence = pick.get('confidence', 0)
-                ev = pick.get('expected_value', 0)
-                st.metric("Confidence", f"{confidence}%")
-                st.metric("Expected Value", f"{ev}%")
-            
-            st.write(f"**Reasoning:** {pick.get('reasoning', 'N/A')}")
-            
-            key_factors = pick.get('key_factors', [])
-            if key_factors:
-                st.write("**Key Factors:**")
-                for factor in key_factors:
-                    st.write(f"  • {factor}")
-
-# Main Streamlit App
-def main():
-    st.set_page_config(page_title="AI Sports Betting Dashboard", page_icon="🎯", layout="wide")
-    
-    # Initialize CSV
-    initialize_csv()
-    
-    # Title
-    st.title("🎯 AI Sports Betting Dashboard")
-    st.markdown("### Multi-Agent GPT-4 Daily Picks")
     st.markdown("---")
     
-    # Generate button
-    if st.button("🚀 Generate Daily Picks from All Agents", type="primary", use_container_width=True):
-        st.info("Generating picks from 4 specialized AI agents...")
-        
-        # Create 4 columns for 4 agents
-        col1, col2, col3, col4 = st.columns(4)
-        
-        # Agent 1: Low Risk
-        with col1:
-            with st.spinner("Low Risk Agent thinking..."):
-                low_risk_picks = low_risk_agent(max_picks=5)
-                if low_risk_picks:
-                    display_picks(low_risk_picks, "Low Risk Agent", "Conservative, High Confidence")
-                    append_picks_to_csv(low_risk_picks, "Low Risk Agent", "Conservative, High Confidence")
-        
-        # Agent 2: High EV
-        with col2:
-            with st.spinner("High EV Agent thinking..."):
-                high_ev_picks = high_ev_agent(max_picks=5)
-                if high_ev_picks:
-                    display_picks(high_ev_picks, "High EV Agent", "Value-Focused, Math-Based")
-                    append_picks_to_csv(high_ev_picks, "High EV Agent", "Value-Focused, Math-Based")
-        
-        # Agent 3: Props Only
-        with col3:
-            with st.spinner("Props Agent thinking..."):
-                props_picks = props_only_agent(max_picks=5)
-                if props_picks:
-                    display_picks(props_picks, "Props Specialist", "Player Props Only")
-                    append_picks_to_csv(props_picks, "Props Specialist", "Player Props Only")
-        
-        # Agent 4: Spread Hunter
-        with col4:
-            with st.spinner("Spread Hunter thinking..."):
-                spread_picks = spread_hunter_agent(max_picks=5)
-                if spread_picks:
-                    display_picks(spread_picks, "Spread Hunter", "Point Spread Specialist")
-                    append_picks_to_csv(spread_picks, "Spread Hunter", "Point Spread Specialist")
-        
-        st.success("✅ All picks generated and saved to CSV for ML training!")
-        st.balloons()
-    
-    # Display CSV history
-    st.markdown("---")
-    st.subheader("📊 Historical Picks Data (ML Training Set)")
-    
-    if os.path.exists(CSV_FILE):
-        df = pd.read_csv(CSV_FILE)
-        st.write(f"Total picks recorded: {len(df)}")
-        st.dataframe(df.tail(20), use_container_width=True)
-        
-        # Download button
-        csv_data = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Full CSV",
-            data=csv_data,
-            file_name="ai_picks_history.csv",
-            mime="text/csv"
-        )
-    else:
-        st.info("No historical data yet. Generate picks to start building the dataset.")
-
-if __name__ == "__main__":
-    main()
+    # Agent settings
+    st.subheader("🤖 Agent Configuration")
+    st.info("Agent settings and API key management coming soon!")
