@@ -8,9 +8,15 @@ used throughout the BetFinder AI platform.
 import logging
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
+
+# Optional re-export to support tests importing SportbexProvider from here
+try:
+    from sportbex_provider import SportbexProvider  # type: ignore
+except Exception:
+    SportbexProvider = None  # Will be imported lazily in factory if needed
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +160,10 @@ class BaseAPIProvider(ABC):
         """Get player/game props"""
         pass
 
-def create_sportbex_provider(api_key: str = None) -> 'SportbexProvider':
+if TYPE_CHECKING:
+    from sportbex_provider import SportbexProvider as _SportbexProvider
+
+def create_sportbex_provider(api_key: str = None):
     """Factory function to create a SportbexProvider instance"""
     if api_key is None:
         api_key = 'NZLDw8ZXFv0O8elaPq0wjbP4zxb2gCwJDsArWQUF'

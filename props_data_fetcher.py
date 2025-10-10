@@ -1,3 +1,243 @@
+"""
+Props data fetcher for PrizePicks and Underdog.
+
+Since we don't have live API integrations here, these functions generate
+well-structured mock props aligned with the existing schema used across the app:
+
+Required/common fields:
+- game_id (str)
+- player_name (str)
+- stat_type (str)
+- line (float | int)
+- odds (int)  # American odds; PrizePicks/Underdog approximated
+- event_start_time (ISO str)
+- matchup (str)
+- sportsbook (str)  # "PrizePicks" | "Underdog"
+- recent_form (float 0-10)
+- matchup_difficulty (float 0-10)
+- injury_status (str)
+
+Optional esports fields (added when sport is an esports title):
+- map (str)
+- side_preference (str)
+- team_chemistry (float)
+- recent_map_performance (float)
+- opponent_map_ban_rate (float)
+
+These mocks are deterministic per run and sport-agnostic but adapt stat types/names.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timedelta
+import random
+from typing import Dict, List
+
+
+# Seed randomness lightly for variability per run while keeping consistency
+random.seed()
+
+
+ESPORTS_TITLES = {
+    "csgo", "league_of_legends", "dota2", "valorant", "overwatch", "rocket_league"
+}
+
+
+def _now_plus_hours(hours: int) -> str:
+    return (datetime.utcnow() + timedelta(hours=hours)).isoformat()
+
+
+def _sample_players_for_sport(sport: str) -> List[str]:
+    sport = (sport or "").lower()
+    if sport in {"basketball", "nba"}:
+        return ["LeBron James", "Stephen Curry", "Luka Doncic", "Jayson Tatum"]
+    if sport in {"football", "nfl"}:
+        return ["Patrick Mahomes", "Travis Kelce", "Justin Jefferson", "Josh Allen"]
+    if sport in {"baseball", "mlb"}:
+        return ["Shohei Ohtani", "Aaron Judge", "Mookie Betts", "Juan Soto"]
+    if sport in {"hockey", "nhl"}:
+        return ["Connor McDavid", "Auston Matthews", "Nathan MacKinnon", "Sidney Crosby"]
+    if sport in {"tennis"}:
+        return ["Novak Djokovic", "Carlos Alcaraz", "Iga Swiatek", "Jannik Sinner"]
+    if sport in {"soccer", "football_global"}:
+        return ["Erling Haaland", "Kylian Mbappé", "Lionel Messi", "Harry Kane"]
+
+    # Esports
+    if sport == "csgo":
+        return ["s1mple", "ZywOo", "NiKo", "sh1ro", "blameF", "stavn"]
+    if sport == "league_of_legends":
+        return ["Faker", "Chovy", "Canyon", "Ruler", "Knight", "Caps"]
+    if sport == "dota2":
+        return ["N0tail", "Topson", "Yatoro", "Abed", "Mira", "SumaiL"]
+    if sport == "valorant":
+        return ["TenZ", "yay", "aspas", "Derke", "ShahZaM", "ScreaM"]
+    if sport == "overwatch":
+        return ["Carpe", "Fleta", "Alarm", "Profit", "JJoNak", "Meko"]
+    if sport == "rocket_league":
+        return ["jstn", "GarrettG", "Squishy", "Firstkiller", "ApparentlyJack", "BeastMode"]
+
+    # Fallback generic names
+    return ["Player A", "Player B", "Player C", "Player D"]
+
+
+def _stat_types_for_sport(sport: str) -> List[str]:
+    sport = (sport or "").lower()
+    if sport in {"basketball", "nba"}:
+        return ["points", "rebounds", "assists", "threes"]
+    if sport in {"football", "nfl"}:
+        return ["passing_yards", "rushing_yards", "receiving_yards", "receptions"]
+    if sport in {"baseball", "mlb"}:
+        return ["total_bases", "hits", "strikeouts", "runs"]
+    if sport in {"hockey", "nhl"}:
+        return ["shots_on_goal", "points", "assists", "saves"]
+    if sport in {"tennis"}:
+        return ["aces", "double_faults", "winners", "break_points_saved"]
+    if sport in {"soccer", "football_global"}:
+        return ["shots", "shots_on_target", "passes", "tackles"]
+
+    # Esports
+    if sport == "csgo":
+        return ["kills", "deaths", "adr", "headshot_percentage", "first_kills"]
+    if sport == "league_of_legends":
+        return ["kills", "deaths", "assists", "cs", "kp"]
+    if sport == "dota2":
+        return ["kills", "deaths", "assists", "gpm", "xpm"]
+    if sport == "valorant":
+        return ["kills", "deaths", "first_bloods", "kast", "adr"]
+    if sport == "overwatch":
+        return ["eliminations", "deaths", "final_blows", "damage", "healing"]
+    if sport == "rocket_league":
+        return ["goals", "assists", "saves", "shots", "score"]
+
+    # Fallback
+    return ["stat"]
+
+
+def _matchups_for_sport(sport: str) -> List[str]:
+    sport = (sport or "").lower()
+    mapping = {
+        "basketball": ["LAL vs BOS", "GSW vs DEN", "DAL vs PHX"],
+        "football": ["KC vs BUF", "PHI vs SF", "DAL vs GB"],
+        "baseball": ["LAD vs NYY", "ATL vs HOU", "BOS vs TOR"],
+        "hockey": ["EDM vs TOR", "COL vs VGK", "PIT vs WSH"],
+        "tennis": ["Djokovic vs Alcaraz", "Sinner vs Medvedev"],
+        "soccer": ["Man City vs Real Madrid", "PSG vs Bayern"],
+        # Esports
+        "csgo": ["G2 vs FURIA", "FaZe vs NAVI", "Vitality vs ENCE"],
+        "league_of_legends": ["T1 vs GEN", "G2 vs FNC", "TES vs JDG"],
+        "dota2": ["OG vs Liquid", "Spirit vs EG", "GG vs Tundra"],
+        "valorant": ["LOUD vs SEN", "FNATIC vs PRX", "NRG vs EG"],
+        "overwatch": ["Shock vs Fuel", "Dragons vs Dynasty"],
+        "rocket_league": ["NRG vs G2", "BDS vs Vitality", "Endpoint vs Karmine"]
+    }
+    # generalize keys
+    key = sport
+    if sport in {"nba", "nfl", "mlb", "nhl", "football_global"}:
+        key = {
+            "nba": "basketball",
+            "nfl": "football",
+            "mlb": "baseball",
+            "nhl": "hockey",
+            "football_global": "soccer",
+        }[sport]
+    return mapping.get(key, ["Team A vs Team B"])
+
+
+def _create_prop(sportsbook: str, sport: str, player: str, stat: str, matchup: str, idx: int) -> Dict:
+    # Lines tuned by stat type rough ranges
+    base_line = {
+        # sports
+        "points": (15, 35), "rebounds": (5, 15), "assists": (4, 12), "threes": (2, 6),
+        "passing_yards": (200, 330), "rushing_yards": (40, 110), "receiving_yards": (40, 110), "receptions": (3, 9),
+        "total_bases": (1, 3), "hits": (0.5, 2.5), "strikeouts": (4, 9), "runs": (0.5, 1.5),
+        "shots_on_goal": (2, 5), "saves": (20, 35),
+        "aces": (4, 14), "double_faults": (1, 6), "winners": (20, 45), "break_points_saved": (2, 10),
+        "shots": (1, 5), "shots_on_target": (1, 3), "passes": (40, 90), "tackles": (1, 5),
+        # esports
+        "kills": (10, 28), "deaths": (8, 22), "assists": (8, 20), "cs": (250, 380), "kp": (55, 78),
+        "gpm": (400, 650), "xpm": (400, 700),
+        "first_bloods": (1, 6), "kast": (60, 80), "adr": (60, 95), "headshot_percentage": (30, 60),
+        "eliminations": (20, 45), "final_blows": (8, 20), "damage": (6000, 13000), "healing": (5000, 12000),
+        "goals": (0.5, 2.5), "saves": (1, 5), "score": (250, 600),
+        # fallback
+        "stat": (1, 10)
+    }
+    low, high = base_line.get(stat, (1, 10))
+    line = round(random.uniform(low, high), 1)
+
+    american_odds = random.choice([-137, -119, -110, 100, 105, 115])
+    injury_status = random.choice(["healthy", "questionable", "healthy", "healthy"])  # mostly healthy
+
+    prop: Dict = {
+        "game_id": f"{sport}_{sportsbook.lower()}_{idx}",
+        "player_name": player,
+        "stat_type": stat,
+        "line": line,
+        "odds": american_odds,
+        "event_start_time": _now_plus_hours(random.randint(1, 72)),
+        "matchup": matchup,
+        "sportsbook": sportsbook,
+        "recent_form": round(random.uniform(5.0, 9.8), 3),
+        "matchup_difficulty": round(random.uniform(4.5, 8.5), 3),
+        "injury_status": injury_status,
+    }
+
+    # Enrich esports with extra context fields to match UI expectations
+    if sport in ESPORTS_TITLES:
+        prop.update({
+            "map": random.choice(["Mirage", "Inferno", "Overpass", "Ascent", "Bind", "Haven", "King's Row", "Utopia"]),
+            "side_preference": random.choice(["T", "CT", "Attack", "Defense", "balanced"]),
+            "team_chemistry": round(random.uniform(0.6, 1.0), 3),
+            "recent_map_performance": round(random.uniform(0.3, 0.95), 3),
+            "opponent_map_ban_rate": round(random.uniform(0.05, 0.35), 3),
+        })
+
+    return prop
+
+
+def _generate_props_for_provider(provider: str, sport: str, count: int = 10) -> List[Dict]:
+    players = _sample_players_for_sport(sport)
+    stats = _stat_types_for_sport(sport)
+    matchups = _matchups_for_sport(sport)
+    props: List[Dict] = []
+    for i in range(count):
+        player = random.choice(players)
+        stat = random.choice(stats)
+        matchup = random.choice(matchups)
+        props.append(_create_prop(provider, sport, player, stat, matchup, i))
+    return props
+
+
+def fetch_prizepicks_props(sport: str) -> List[Dict]:
+    """Fetch PrizePicks props for a given sport (mocked).
+
+    Args:
+        sport: sport or esports key, e.g., 'basketball', 'csgo'.
+
+    Returns:
+        List of prop dicts conforming to the app schema.
+    """
+    try:
+        return _generate_props_for_provider("PrizePicks", sport, count=10)
+    except Exception:
+        # Fail safe
+        return []
+
+
+def fetch_underdog_props(sport: str) -> List[Dict]:
+    """Fetch Underdog props for a given sport (mocked).
+
+    Args:
+        sport: sport or esports key, e.g., 'football', 'valorant'.
+
+    Returns:
+        List of prop dicts conforming to the app schema.
+    """
+    try:
+        return _generate_props_for_provider("Underdog", sport, count=10)
+    except Exception:
+        # Fail safe
+        return []
 #!/usr/bin/env python3
 """
 Props Data Fetcher

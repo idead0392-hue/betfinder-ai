@@ -43,17 +43,53 @@ class SportAgent(ABC):
     
     def fetch_props(self, max_props: int = 50) -> List[Dict]:
         """
-        Fetch props data for the sport
-        
+        Fetch props data for the sport by merging multiple providers.
+        Sources:
+        - Internal mock generator (existing behavior)
+        - PrizePicks provider
+        - Underdog provider
+
         Args:
             max_props (int): Maximum number of props to fetch
-            
+
         Returns:
-            List[Dict]: List of props data
+            List[Dict]: Combined props list
         """
-        # This would typically fetch from an API or data source
-        # For now, we'll generate mock data specific to each sport
-        return self._generate_mock_props(max_props)
+        # Attempt to import provider fetchers (optional dependency)
+        try:
+            from props_data_fetcher import fetch_prizepicks_props, fetch_underdog_props
+        except Exception:
+            fetch_prizepicks_props = None
+            fetch_underdog_props = None
+
+        combined: List[Dict] = []
+
+        # 1) Existing mock props
+        try:
+            combined.extend(self._generate_mock_props(max_props))
+        except Exception:
+            pass
+
+        # 2) PrizePicks
+        if fetch_prizepicks_props is not None:
+            try:
+                combined.extend(fetch_prizepicks_props(self.sport_name))
+            except Exception:
+                pass
+
+        # 3) Underdog
+        if fetch_underdog_props is not None:
+            try:
+                combined.extend(fetch_underdog_props(self.sport_name))
+            except Exception:
+                pass
+
+        # Limit to max_props while keeping variety: interleave chunks
+        if max_props and len(combined) > max_props:
+            step = max(1, len(combined) // max_props)
+            combined = [combined[i] for i in range(0, len(combined), step)][:max_props]
+
+        return combined
     
     @abstractmethod
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
