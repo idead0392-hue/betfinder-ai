@@ -527,13 +527,17 @@ JSON Format (respond with ONLY this array):
     def get_daily_picks(self, max_picks: int = 8) -> List[Dict]:
         """Generate daily betting picks - uses AI when available, fallback otherwise"""
         
-        # Try AI-powered picks first
+        # Try AI-powered picks first with timeout protection
         if self.openai_client:
-            print("🤖 Generating AI-powered picks using OpenAI...")
-            return self.generate_ai_powered_picks(max_picks)
+            try:
+                print("🤖 Generating AI-powered picks using OpenAI...")
+                return self.generate_ai_powered_picks(max_picks)
+            except Exception as e:
+                print(f"⚠️ OpenAI generation failed ({str(e)[:50]}...), using enhanced fallback")
+                return self.get_daily_picks_fallback(max_picks)
         else:
-            print("🔄 OpenAI not available, using traditional approach...")
-            return self.get_traditional_picks(max_picks)
+            print("🔄 OpenAI not available, using enhanced fallback...")
+            return self.get_daily_picks_fallback(max_picks)
     
     def get_traditional_picks(self, max_picks: int = 5) -> List[Dict]:
         """Original method - tries to fetch from API, falls back to enhanced mock data"""

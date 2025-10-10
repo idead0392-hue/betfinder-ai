@@ -442,7 +442,7 @@ with tabs[1]:
             max_picks = st.slider("Number of picks to generate", 1, 15, 8)
         
         with col2:
-            min_confidence = st.slider("Min confidence %", 50, 90, 65)
+            min_confidence = st.slider("Min confidence %", 50, 90, 60)
         
         with col3:
             if st.button("🔄 Generate New Picks", type="primary"):
@@ -660,18 +660,18 @@ with tabs[1]:
                                 st.balloons()
                                 # Removed st.rerun() to prevent tab redirect
                 
-                with col_y:
-                    if st.button("⚠️ Skip All Picks Today", type="secondary"):
-                        st.session_state.picks_skipped = True
-                        st.info("All picks skipped for today")
+                    with col_y:
+                        if st.button("⚠️ Skip All Picks Today", type="secondary"):
+                            st.session_state.picks_skipped = True
+                            st.info("All picks skipped for today")
                 
-                with col_z:
-                    if st.button("🔄 Refresh Risk Assessment", type="secondary"):
-                        # Force refresh of risk calculations
-                        if 'daily_picks' in st.session_state:
-                            # Clear cached picks to force regeneration
-                            st.session_state.picks_generated = False
-                        # Note: Removed st.rerun() to prevent tab redirect
+                    with col_z:
+                        if st.button("🔄 Refresh Risk Assessment", type="secondary"):
+                            # Force refresh of risk calculations
+                            if 'daily_picks' in st.session_state:
+                                # Clear cached picks to force regeneration
+                                st.session_state.picks_generated = False
+                            # Note: Removed st.rerun() to prevent tab redirect
                 
                 # Responsible gambling reminder
                 st.markdown("---")
