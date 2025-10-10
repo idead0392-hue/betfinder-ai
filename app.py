@@ -14,7 +14,7 @@ st.set_page_config(
     page_title="BetFinder AI",
     page_icon="🎯",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Initialize session state for caching
@@ -66,6 +66,91 @@ def load_api_data(url, cache_key, method='GET', data=None):
         pass
     
     return None
+
+# Sidebar - Bankroll Management
+st.sidebar.header("💰 Bankroll Management")
+
+# Initialize modules for sidebar
+try:
+    from picks_engine import PicksEngine
+    from bankroll_manager import BankrollManager
+    
+    # Initialize systems
+    picks_engine = PicksEngine()
+    bankroll_manager = BankrollManager()
+    
+    # Initialize bankroll if needed
+    if 'bankroll_initialized' not in st.session_state:
+        st.session_state.bankroll_initialized = False
+    
+    if not st.session_state.bankroll_initialized:
+        st.sidebar.info("💡 **First time setup:** Initialize your bankroll to start tracking")
+        
+        starting_bankroll = st.sidebar.number_input("Starting Bankroll ($)", 
+                                              min_value=100.0, max_value=100000.0, 
+                                              value=1000.0, step=50.0)
+        unit_size = st.sidebar.number_input("Unit Size ($)", 
+                                      min_value=1.0, max_value=500.0, 
+                                      value=starting_bankroll * 0.01, step=1.0)
+        
+        if st.sidebar.button("🚀 Initialize Bankroll", type="primary"):
+            bankroll_manager.initialize_bankroll(starting_bankroll, unit_size)
+            st.session_state.bankroll_initialized = True
+            st.sidebar.success(f"✅ Bankroll initialized: ${starting_bankroll:,.2f} | Unit: ${unit_size:.2f}")
+            st.balloons()
+            # Note: Removed st.rerun() to prevent tab redirect after initialization
+    else:
+        # Display current bankroll status
+        performance = bankroll_manager.get_performance_metrics()
+        risk_assessment = bankroll_manager.get_risk_assessment()
+        
+        # Bankroll overview (compact sidebar version)
+        current_bankroll = performance.get('current_bankroll', 1000)
+        bankroll_change = performance.get('bankroll_change', 0)
+        roi = performance.get('roi_percentage', 0)
+        win_rate = performance.get('win_rate', 0)
+        risk_level = risk_assessment['risk_level']
+        
+        st.sidebar.metric("Current Bankroll", f"${current_bankroll:,.2f}", 
+                 f"${bankroll_change:+.2f}")
+        
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            st.metric("ROI", f"{roi:.1f}%")
+        with col2:
+            risk_color = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
+            st.metric("Risk", f"{risk_color.get(risk_level, '⚪')} {risk_level}")
+        
+        st.sidebar.metric("Win Rate", f"{win_rate:.1f}%", 
+                 f"{performance.get('total_bets', 0)} bets")
+        
+        # Risk recommendations
+        if risk_assessment['recommendations']:
+            with st.sidebar.expander("🎯 Risk Recommendations", expanded=risk_assessment['risk_level'] == 'High'):
+                for rec in risk_assessment['recommendations']:
+                    st.markdown(f"• {rec}")
+        
+        # Daily risk tracking
+        daily_risk_used = risk_assessment['daily_risk_used']
+        daily_risk_limit = risk_assessment['daily_risk_limit']
+        daily_risk_pct = risk_assessment['daily_risk_percentage']
+        
+        st.sidebar.progress(min(daily_risk_pct / 15, 1.0))  # 15% is high risk
+        st.sidebar.caption(f"Daily Risk: ${daily_risk_used:.2f} / ${daily_risk_limit:.2f} ({daily_risk_pct:.1f}%)")
+        
+        # Quick actions (compact sidebar version)
+        if st.sidebar.button("📊 View Bet History"):
+            st.session_state.show_bet_history = True
+        if st.sidebar.button("⚙️ Adjust Settings"):
+            st.session_state.show_settings = True
+        if st.sidebar.button("💾 Export Data"):
+            filename = bankroll_manager.export_data("csv")
+            st.sidebar.success(f"Data exported: {filename}")
+
+except ImportError as e:
+    st.sidebar.error(f"Failed to load bankroll system: {e}")
+
+st.sidebar.markdown("---")
 
 # Data visualization functions
 def create_odds_trend_chart(odds_data, sport_name):
@@ -335,102 +420,18 @@ with tabs[0]:
 
 # Daily Picks Tab
 with tabs[1]:
-    st.header("🤖 Daily AI Picks & Bankroll Management")
-    st.markdown("**AI-generated betting recommendations with professional bankroll tracking**")
+    st.header("🤖 Daily AI Picks")
+    st.markdown("**AI-generated betting recommendations with professional analysis**")
     
     # Import required modules
     try:
         from picks_engine import PicksEngine
         from bankroll_manager import BankrollManager
         
-        # Initialize systems
+        # Initialize systems (reuse bankroll_manager from sidebar)
         picks_engine = PicksEngine()
-        bankroll_manager = BankrollManager()
-        
-        # Bankroll Management Section
-        st.subheader("💰 Bankroll Management")
-        
-        # Initialize bankroll if needed
-        if 'bankroll_initialized' not in st.session_state:
-            st.session_state.bankroll_initialized = False
-        
-        if not st.session_state.bankroll_initialized:
-            st.info("💡 **First time setup:** Initialize your bankroll to start tracking")
-            col1, col2 = st.columns(2)
-            with col1:
-                starting_bankroll = st.number_input("Starting Bankroll ($)", 
-                                                  min_value=100.0, max_value=100000.0, 
-                                                  value=1000.0, step=50.0)
-            with col2:
-                unit_size = st.number_input("Unit Size ($)", 
-                                          min_value=1.0, max_value=500.0, 
-                                          value=starting_bankroll * 0.01, step=1.0)
-            
-            if st.button("🚀 Initialize Bankroll", type="primary"):
-                bankroll_manager.initialize_bankroll(starting_bankroll, unit_size)
-                st.session_state.bankroll_initialized = True
-                st.success(f"✅ Bankroll initialized: ${starting_bankroll:,.2f} | Unit: ${unit_size:.2f}")
-                st.balloons()
-                # Note: Removed st.rerun() to prevent tab redirect after initialization
-        else:
-            # Display current bankroll status
-            performance = bankroll_manager.get_performance_metrics()
-            risk_assessment = bankroll_manager.get_risk_assessment()
-            
-            # Bankroll overview
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                current_bankroll = performance.get('current_bankroll', 1000)
-                bankroll_change = performance.get('bankroll_change', 0)
-                change_color = "normal" if bankroll_change >= 0 else "inverse"
-                st.metric("Current Bankroll", f"${current_bankroll:,.2f}", 
-                         f"${bankroll_change:+.2f}")
-            
-            with col2:
-                roi = performance.get('roi_percentage', 0)
-                roi_color = "normal" if roi >= 0 else "inverse"
-                st.metric("ROI", f"{roi:.1f}%", 
-                         f"{performance.get('bankroll_change_pct', 0):+.1f}%")
-            
-            with col3:
-                win_rate = performance.get('win_rate', 0)
-                st.metric("Win Rate", f"{win_rate:.1f}%", 
-                         f"{performance.get('total_bets', 0)} bets")
-            
-            with col4:
-                risk_level = risk_assessment['risk_level']
-                risk_color = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
-                st.metric("Risk Level", f"{risk_color.get(risk_level, '⚪')} {risk_level}",
-                         f"{risk_assessment['current_drawdown']:.1f}% drawdown")
-            
-            # Risk recommendations
-            if risk_assessment['recommendations']:
-                with st.expander("🎯 Risk Management Recommendations", expanded=risk_assessment['risk_level'] == 'High'):
-                    for rec in risk_assessment['recommendations']:
-                        st.markdown(f"• {rec}")
-            
-            # Daily risk tracking
-            daily_risk_used = risk_assessment['daily_risk_used']
-            daily_risk_limit = risk_assessment['daily_risk_limit']
-            daily_risk_pct = risk_assessment['daily_risk_percentage']
-            
-            st.progress(min(daily_risk_pct / 15, 1.0))  # 15% is high risk
-            st.caption(f"Daily Risk: ${daily_risk_used:.2f} / ${daily_risk_limit:.2f} ({daily_risk_pct:.1f}% of bankroll)")
-            
-            # Quick actions
-            col_a, col_b, col_c = st.columns(3)
-            with col_a:
-                if st.button("📊 View Bet History"):
-                    st.session_state.show_bet_history = True
-            with col_b:
-                if st.button("⚙️ Adjust Settings"):
-                    st.session_state.show_settings = True
-            with col_c:
-                if st.button("💾 Export Data"):
-                    filename = bankroll_manager.export_data("csv")
-                    st.success(f"Data exported: {filename}")
-        
-        st.markdown("---")
+        if 'bankroll_manager' not in locals():
+            bankroll_manager = BankrollManager()
         
         # AI Picks Section - Always Available for Analysis
         st.subheader("🎯 Today's AI Picks")
