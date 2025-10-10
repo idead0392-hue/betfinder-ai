@@ -21,6 +21,17 @@ from typing import Dict, List, Any, Optional, Tuple
 import time
 import random
 
+# Esports restrictions
+ESPORTS_TITLES = {"csgo", "league_of_legends", "dota2", "valorant", "overwatch", "rocket_league"}
+ALLOWED_ESPORTS_STATS = [
+    'combined_map_1_2_kills',
+    'combined_map_1_2_headshots',
+    'fantasy_points'
+]
+ALLOWED_ESPORTS_STATS_PER_SPORT = {
+    "league_of_legends": ALLOWED_ESPORTS_STATS + ['combined_map_1_2_assists']
+}
+
 # Import our provider system
 try:
     from api_providers import SportbexProvider, SportType, create_sportbex_provider
@@ -241,7 +252,10 @@ def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
     """Fetch props data using SportbexProvider."""
     if not provider:
         # Return mock data if provider unavailable
-        return generate_mock_props_data(sport), "Using mock data - provider unavailable"
+        data = generate_mock_props_data(sport)
+        # Filter esports props if any appear (future-proofing)
+        data = _filter_esports_props(data)
+        return data, "Using mock data - provider unavailable"
     
     try:
         sport_type = getattr(SportType, sport.upper(), SportType.BASKETBALL)
@@ -249,14 +263,38 @@ def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
         
         if response.success and response.data:
             # Process real data (implementation depends on API response format)
-            # For now, return mock data with success message
-            return generate_mock_props_data(sport), None
+            # For now, return mock data with success message while filtering esports props
+            data = generate_mock_props_data(sport)
+            data = _filter_esports_props(data)
+            return data, None
         else:
             error_msg = response.error_message if hasattr(response, 'error_message') else "Unknown error"
             return generate_mock_props_data(sport), f"API error: {error_msg}. Using mock data."
             
     except Exception as e:
-        return generate_mock_props_data(sport), f"Error fetching data: {str(e)}. Using mock data."
+        data = generate_mock_props_data(sport)
+        data = _filter_esports_props(data)
+        return data, f"Error fetching data: {str(e)}. Using mock data."
+
+
+def _filter_esports_props(data: List[Dict]) -> List[Dict]:
+    """Filter a list of prop dicts so that esports entries only include allowed stat types.
+
+    This is a no-op for non-esports data structures used by this app today,
+    but keeps the pipeline safe if esports props are introduced.
+    """
+    filtered: List[Dict] = []
+    for item in data:
+        sport_val = str(item.get('sport', '')).lower()
+        if sport_val in ESPORTS_TITLES:
+            stat_type = str(item.get('stat_type', '')).lower()
+            allowed = ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport_val, ALLOWED_ESPORTS_STATS)
+            if stat_type in allowed:
+                filtered.append(item)
+            # else drop
+        else:
+            filtered.append(item)
+    return filtered
 
 def format_odds(odds: int) -> str:
     """Format odds for display."""

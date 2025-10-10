@@ -42,6 +42,18 @@ ESPORTS_TITLES = {
     "csgo", "league_of_legends", "dota2", "valorant", "overwatch", "rocket_league"
 }
 
+# Allowed esports stat types per new spec (default for most esports)
+ALLOWED_ESPORTS_STATS = [
+    'combined_map_1_2_kills',
+    'combined_map_1_2_headshots',
+    'fantasy_points'
+]
+
+# LoL-specific extension: allow assists as 4th type
+ALLOWED_ESPORTS_STATS_PER_SPORT = {
+    "league_of_legends": ALLOWED_ESPORTS_STATS + ['combined_map_1_2_assists']
+}
+
 
 def _now_plus_hours(hours: int) -> str:
     return (datetime.utcnow() + timedelta(hours=hours)).isoformat()
@@ -95,19 +107,9 @@ def _stat_types_for_sport(sport: str) -> List[str]:
     if sport in {"soccer", "football_global"}:
         return ["shots", "shots_on_target", "passes", "tackles"]
 
-    # Esports
-    if sport == "csgo":
-        return ["kills", "deaths", "adr", "headshot_percentage", "first_kills"]
-    if sport == "league_of_legends":
-        return ["kills", "deaths", "assists", "cs", "kp"]
-    if sport == "dota2":
-        return ["kills", "deaths", "assists", "gpm", "xpm"]
-    if sport == "valorant":
-        return ["kills", "deaths", "first_bloods", "kast", "adr"]
-    if sport == "overwatch":
-        return ["eliminations", "deaths", "final_blows", "damage", "healing"]
-    if sport == "rocket_league":
-        return ["goals", "assists", "saves", "shots", "score"]
+    # Esports: restrict to allowed stats only; LoL allows assists as well
+    if sport in ESPORTS_TITLES:
+        return ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport, ALLOWED_ESPORTS_STATS)
 
     # Fallback
     return ["stat"]
@@ -153,15 +155,20 @@ def _create_prop(sportsbook: str, sport: str, player: str, stat: str, matchup: s
         "shots_on_goal": (2, 5), "saves": (20, 35),
         "aces": (4, 14), "double_faults": (1, 6), "winners": (20, 45), "break_points_saved": (2, 10),
         "shots": (1, 5), "shots_on_target": (1, 3), "passes": (40, 90), "tackles": (1, 5),
-        # esports
-        "kills": (10, 28), "deaths": (8, 22), "assists": (8, 20), "cs": (250, 380), "kp": (55, 78),
-        "gpm": (400, 650), "xpm": (400, 700),
-        "first_bloods": (1, 6), "kast": (60, 80), "adr": (60, 95), "headshot_percentage": (30, 60),
-        "eliminations": (20, 45), "final_blows": (8, 20), "damage": (6000, 13000), "healing": (5000, 12000),
-        "goals": (0.5, 2.5), "saves": (1, 5), "score": (250, 600),
+    # esports (restricted)
+    "combined_map_1_2_kills": (10, 45),
+    "combined_map_1_2_headshots": (3, 28),
+    "fantasy_points": (20, 100),
+    "combined_map_1_2_assists": (8, 30),
         # fallback
         "stat": (1, 10)
     }
+    # For esports, ensure stat is one of allowed (sport-specific); otherwise skip by returning marker
+    if sport in ESPORTS_TITLES:
+        allowed = ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport, ALLOWED_ESPORTS_STATS)
+        if stat not in allowed:
+            return {"_skip": True}
+
     low, high = base_line.get(stat, (1, 10))
     line = round(random.uniform(low, high), 1)
 
@@ -204,7 +211,21 @@ def _generate_props_for_provider(provider: str, sport: str, count: int = 10) -> 
         player = random.choice(players)
         stat = random.choice(stats)
         matchup = random.choice(matchups)
-        props.append(_create_prop(provider, sport, player, stat, matchup, i))
+        created = _create_prop(provider, sport, player, stat, matchup, i)
+        # Filter out non-allowed esports stats
+        if created.get("_skip"):
+            continue
+        if sport in ESPORTS_TITLES:
+            allowed = ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport, ALLOWED_ESPORTS_STATS)
+            # Ensure stat_type exists and enforce allowed set
+            created["stat_type"] = stat
+            if created["stat_type"] not in allowed:
+                continue
+        props.append(created)
+    # Additional safety: filter esports props strictly
+    if sport in ESPORTS_TITLES:
+        allowed = ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport, ALLOWED_ESPORTS_STATS)
+        props = [p for p in props if p.get("stat_type") in allowed]
     return props
 
 

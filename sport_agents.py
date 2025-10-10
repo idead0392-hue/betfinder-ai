@@ -1459,55 +1459,56 @@ class CSGOAgent(EsportsAgent):
         super().__init__("csgo")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate CSGO-specific props"""
+        """Generate CSGO-specific props restricted to allowed esports prop types"""
         players = [
             "s1mple", "ZywOo", "sh1ro", "electronic", "Ax1Le",
             "nafany", "jks", "stavn", "blameF", "ropz"
         ]
-        
-        stat_types = ["kills", "deaths", "adr", "rating", "headshot_percentage", "first_kills"]
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'fantasy_points'
+        ]
         maps = ["Dust2", "Mirage", "Inferno", "Cache", "Overpass", "Vertigo", "Ancient"]
-        
-        props = []
-        
-        for i in range(min(max_props, 12)):
+
+        # Line ranges for allowed stats
+        line_ranges = {
+            'combined_map_1_2_kills': (24.5, 45.5),
+            'combined_map_1_2_headshots': (8.5, 28.5),
+            'fantasy_points': (45.5, 95.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 30):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # CSGO-specific line ranges
-            if stat_type == "kills":
-                line = random.uniform(15.5, 25.5)
-            elif stat_type == "deaths":
-                line = random.uniform(12.5, 20.5)
-            elif stat_type == "adr":  # Average Damage per Round
-                line = random.uniform(65.5, 85.5)
-            elif stat_type == "rating":
-                line = random.uniform(0.95, 1.35)
-            elif stat_type == "headshot_percentage":
-                line = random.uniform(35.5, 55.5)
-            else:  # first_kills
-                line = random.uniform(2.5, 6.5)
-            
-            props.append({
-                'game_id': f"csgo_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': round(line, 1),
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                'matchup': f"{random.choice(['NAVI', 'G2', 'FaZe', 'Vitality'])} vs {random.choice(['Astralis', 'FURIA', 'NIP', 'Heroic'])}",
-                'sportsbook': random.choice(['DraftKings', 'Betway', 'GGBET']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': 'healthy',
-                # CSGO-specific factors
-                'map': random.choice(maps),
-                'side_preference': random.choice(['T', 'CT', 'balanced']),
-                'team_chemistry': random.uniform(0.6, 1.0),
-                'recent_map_performance': random.uniform(0.4, 0.8),
-                'opponent_map_ban_rate': random.uniform(0.1, 0.4)
-            })
-        
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
+                props.append({
+                    'game_id': f"csgo_{i}",
+                    'player_name': player,
+                    'stat_type': stat_type,
+                    'line': line,
+                    'odds': random.choice([-110, -105, -115, +100, +105]),
+                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
+                    'matchup': f"{random.choice(['NAVI', 'G2', 'FaZe', 'Vitality'])} vs {random.choice(['Astralis', 'FURIA', 'NIP', 'Heroic'])}",
+                    'sportsbook': random.choice(['DraftKings', 'Betway', 'GGBET']),
+                    'recent_form': random.uniform(6, 9),
+                    'matchup_difficulty': random.uniform(4, 8),
+                    'injury_status': 'healthy',
+                    # CSGO-specific factors
+                    'map': random.choice(maps),
+                    'side_preference': random.choice(['T', 'CT', 'balanced']),
+                    'team_chemistry': random.uniform(0.6, 1.0),
+                    'recent_map_performance': random.uniform(0.4, 0.8),
+                    'opponent_map_ban_rate': random.uniform(0.1, 0.4)
+                })
+                i += 1
+            if len(props) >= max_props:
+                break
         return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
@@ -1563,64 +1564,57 @@ class LeagueOfLegendsAgent(EsportsAgent):
         super().__init__("league_of_legends")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate League of Legends props"""
+        """Generate League of Legends props restricted to allowed esports prop types"""
         players = [
             "Faker", "Caps", "Jankos", "Rekkles", "Perkz", "Bjergsen", 
             "Canyon", "ShowMaker", "Chovy", "Deft", "Gumayusi", "Keria"
         ]
-        
-        stat_types = ["kills", "deaths", "assists", "cs", "gold", "damage_dealt", "vision_score"]
         roles = ["Top", "Jungle", "Mid", "ADC", "Support"]
-        
-        props = []
-        
-        for i in range(min(max_props, 15)):
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'combined_map_1_2_assists',
+            'fantasy_points'
+        ]
+        line_ranges = {
+            'combined_map_1_2_kills': (8.5, 24.5),  # aggregated across games
+            'combined_map_1_2_headshots': (3.5, 12.5),  # synthetic for consistency
+            'combined_map_1_2_assists': (12.5, 28.5),
+            'fantasy_points': (20.5, 60.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 30):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
             role = random.choice(roles)
-            
-            # LoL-specific line ranges based on role
-            if stat_type == "kills":
-                base = 3.5 if role == "Support" else 5.5
-                line = random.uniform(base, base + 4)
-            elif stat_type == "deaths":
-                line = random.uniform(1.5, 4.5)
-            elif stat_type == "assists":
-                base = 8.5 if role == "Support" else 6.5
-                line = random.uniform(base, base + 6)
-            elif stat_type == "cs":
-                base = 50 if role == "Support" else 180
-                line = random.uniform(base, base + 100)
-            elif stat_type == "gold":
-                base = 8000 if role == "Support" else 12000
-                line = random.uniform(base, base + 6000)
-            elif stat_type == "damage_dealt":
-                base = 15000 if role == "Support" else 25000
-                line = random.uniform(base, base + 15000)
-            else:  # vision_score
-                base = 25 if role == "Support" else 15
-                line = random.uniform(base, base + 20)
-            
-            props.append({
-                'game_id': f"lol_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': round(line, 1),
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                'matchup': f"{random.choice(['T1', 'DK', 'GEN', 'DRX'])} vs {random.choice(['KT', 'LSB', 'HLE', 'BRO'])}",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': 'healthy',
-                # LoL-specific factors
-                'role': role,
-                'champion_pool': random.choice(['meta', 'off-meta', 'comfort']),
-                'patch_adaptation': random.uniform(0.6, 1.0),
-                'team_playstyle': random.choice(['aggressive', 'passive', 'balanced']),
-                'average_game_time': random.uniform(25, 35)
-            })
-        
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
+                props.append({
+                    'game_id': f"lol_{i}",
+                    'player_name': player,
+                    'stat_type': stat_type,
+                    'line': line,
+                    'odds': random.choice([-110, -105, -115, +100, +105]),
+                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
+                    'matchup': f"{random.choice(['T1', 'DK', 'GEN', 'DRX'])} vs {random.choice(['KT', 'LSB', 'HLE', 'BRO'])}",
+                    'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
+                    'recent_form': random.uniform(6, 9),
+                    'matchup_difficulty': random.uniform(4, 8),
+                    'injury_status': 'healthy',
+                    # LoL-specific factors
+                    'role': role,
+                    'champion_pool': random.choice(['meta', 'off-meta', 'comfort']),
+                    'patch_adaptation': random.uniform(0.6, 1.0),
+                    'team_playstyle': random.choice(['aggressive', 'passive', 'balanced']),
+                    'average_game_time': random.uniform(25, 35)
+                })
+                i += 1
+            if len(props) >= max_props:
+                break
         return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
@@ -1685,63 +1679,54 @@ class Dota2Agent(EsportsAgent):
         super().__init__("dota2")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Dota 2 props"""
+        """Generate Dota 2 props restricted to allowed esports prop types"""
         players = [
             "Topson", "Ceb", "N0tail", "ana", "JerAx",
             "Puppey", "Nisha", "MATUMBAMAN", "zai", "YapzOr"
         ]
-        
-        stat_types = ["kills", "deaths", "assists", "last_hits", "gpm", "xpm", "hero_damage"]
         positions = ["Position 1", "Position 2", "Position 3", "Position 4", "Position 5"]
-        
-        props = []
-        
-        for i in range(min(max_props, 12)):
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'fantasy_points'
+        ]
+        line_ranges = {
+            'combined_map_1_2_kills': (7.5, 22.5),
+            'combined_map_1_2_headshots': (2.5, 8.5),
+            'fantasy_points': (25.5, 70.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 30):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
             position = random.choice(positions)
-            
-            # Dota 2 line ranges
-            if stat_type == "kills":
-                base = 2.5 if position in ["Position 4", "Position 5"] else 4.5
-                line = random.uniform(base, base + 6)
-            elif stat_type == "deaths":
-                line = random.uniform(2.5, 6.5)
-            elif stat_type == "assists":
-                base = 8.5 if position in ["Position 4", "Position 5"] else 6.5
-                line = random.uniform(base, base + 8)
-            elif stat_type == "last_hits":
-                base = 50 if position in ["Position 4", "Position 5"] else 200
-                line = random.uniform(base, base + 150)
-            elif stat_type == "gpm":  # Gold per minute
-                base = 300 if position == "Position 5" else 450
-                line = random.uniform(base, base + 200)
-            elif stat_type == "xpm":  # Experience per minute
-                base = 350 if position == "Position 5" else 500
-                line = random.uniform(base, base + 200)
-            else:  # hero_damage
-                base = 15000 if position in ["Position 4", "Position 5"] else 25000
-                line = random.uniform(base, base + 20000)
-            
-            props.append({
-                'game_id': f"dota2_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': round(line, 1),
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                'matchup': f"{random.choice(['OG', 'Secret', 'EG', 'VP'])} vs {random.choice(['Liquid', 'Alliance', 'Nigma', 'NaVi'])}",
-                'sportsbook': random.choice(['DraftKings', 'Betway', 'GG.Bet']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': 'healthy',
-                # Dota 2 specific factors
-                'position': position,
-                'hero_pool': random.choice(['meta', 'comfort', 'versatile']),
-                'draft_priority': random.uniform(0.3, 0.9),
-                'team_coordination': random.uniform(0.6, 1.0)
-            })
-        
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
+                props.append({
+                    'game_id': f"dota2_{i}",
+                    'player_name': player,
+                    'stat_type': stat_type,
+                    'line': line,
+                    'odds': random.choice([-110, -105, -115, +100, +105]),
+                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
+                    'matchup': f"{random.choice(['OG', 'Secret', 'EG', 'VP'])} vs {random.choice(['Liquid', 'Alliance', 'Nigma', 'NaVi'])}",
+                    'sportsbook': random.choice(['DraftKings', 'Betway', 'GG.Bet']),
+                    'recent_form': random.uniform(6, 9),
+                    'matchup_difficulty': random.uniform(4, 8),
+                    'injury_status': 'healthy',
+                    # Dota 2 specific factors
+                    'position': position,
+                    'hero_pool': random.choice(['meta', 'comfort', 'versatile']),
+                    'draft_priority': random.uniform(0.3, 0.9),
+                    'team_coordination': random.uniform(0.6, 1.0)
+                })
+                i += 1
+            if len(props) >= max_props:
+                break
         return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
@@ -1779,55 +1764,54 @@ class VALORANTAgent(EsportsAgent):
         super().__init__("valorant")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate VALORANT props"""
+        """Generate VALORANT props restricted to allowed esports prop types"""
         players = [
             "TenZ", "Sick", "dapr", "ShahZaM", "zombs",
             "ScreaM", "Nivera", "Jamppi", "soulcas", "L1NK"
         ]
-        
-        stat_types = ["kills", "deaths", "assists", "acs", "first_kills", "clutch_rate"]
         agents = ["Jett", "Reyna", "Phoenix", "Sage", "Cypher", "Sova", "Breach", "Omen"]
         maps = ["Bind", "Haven", "Split", "Ascent", "Icebox", "Breeze", "Fracture"]
-        
-        props = []
-        
-        for i in range(min(max_props, 10)):
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'fantasy_points'
+        ]
+        line_ranges = {
+            'combined_map_1_2_kills': (22.5, 42.5),
+            'combined_map_1_2_headshots': (6.5, 24.5),
+            'fantasy_points': (40.5, 90.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 30):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # VALORANT line ranges
-            if stat_type == "kills":
-                line = random.uniform(14.5, 22.5)
-            elif stat_type == "deaths":
-                line = random.uniform(11.5, 18.5)
-            elif stat_type == "assists":
-                line = random.uniform(3.5, 8.5)
-            elif stat_type == "acs":  # Average Combat Score
-                line = random.uniform(180.5, 280.5)
-            elif stat_type == "first_kills":
-                line = random.uniform(2.5, 6.5)
-            else:  # clutch_rate
-                line = random.uniform(0.15, 0.45)
-            
-            props.append({
-                'game_id': f"valorant_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': round(line, 1),
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                'matchup': f"{random.choice(['SEN', 'TSM', 'C9', 'NV'])} vs {random.choice(['100T', 'FaZe', 'XSET', 'LG'])}",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': 'healthy',
-                # VALORANT specific factors
-                'agent_pool': random.choice(agents),
-                'map': random.choice(maps),
-                'role': random.choice(['Duelist', 'Controller', 'Initiator', 'Sentinel']),
-                'team_strategy': random.choice(['aggressive', 'tactical', 'adaptive'])
-            })
-        
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
+                props.append({
+                    'game_id': f"valorant_{i}",
+                    'player_name': player,
+                    'stat_type': stat_type,
+                    'line': line,
+                    'odds': random.choice([-110, -105, -115, +100, +105]),
+                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
+                    'matchup': f"{random.choice(['SEN', 'TSM', 'C9', 'NV'])} vs {random.choice(['100T', 'FaZe', 'XSET', 'LG'])}",
+                    'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
+                    'recent_form': random.uniform(6, 9),
+                    'matchup_difficulty': random.uniform(4, 8),
+                    'injury_status': 'healthy',
+                    # VALORANT specific factors
+                    'agent_pool': random.choice(agents),
+                    'map': random.choice(maps),
+                    'role': random.choice(['Duelist', 'Controller', 'Initiator', 'Sentinel']),
+                    'team_strategy': random.choice(['aggressive', 'tactical', 'adaptive'])
+                })
+                i += 1
+            if len(props) >= max_props:
+                break
         return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
@@ -1870,46 +1854,38 @@ class OverwatchAgent(EsportsAgent):
         super().__init__("overwatch")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Overwatch props"""
+        """Generate Overwatch props restricted to allowed esports prop types"""
         players = [
             "Profit", "Gesture", "Bdosin", "Fury", "Fleta",
             "Carpe", "Alarm", "Poko", "EQO", "FunnyAstro"
         ]
-        
-        stat_types = ["eliminations", "deaths", "damage", "healing", "objective_time", "final_blows"]
         roles = ["Tank", "Damage", "Support"]
-        
-        props = []
-        
-        for i in range(min(max_props, 8)):
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'fantasy_points'
+        ]
+        line_ranges = {
+            'combined_map_1_2_kills': (18.5, 38.5),
+            'combined_map_1_2_headshots': (5.5, 18.5),
+            'fantasy_points': (35.5, 85.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 24):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
             role = random.choice(roles)
-            
-            # Overwatch line ranges by role
-            if stat_type == "eliminations":
-                base = 15 if role == "Support" else 25
-                line = random.uniform(base, base + 15)
-            elif stat_type == "deaths":
-                line = random.uniform(4.5, 8.5)
-            elif stat_type == "damage":
-                base = 5000 if role == "Support" else 12000
-                line = random.uniform(base, base + 8000)
-            elif stat_type == "healing":
-                base = 8000 if role == "Support" else 0
-                line = random.uniform(base, base + 4000) if role == "Support" else 0
-            elif stat_type == "objective_time":
-                line = random.uniform(45.5, 90.5)
-            else:  # final_blows
-                base = 8 if role == "Support" else 15
-                line = random.uniform(base, base + 10)
-            
-            if line > 0:  # Skip healing for non-support roles
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
                 props.append({
                     'game_id': f"overwatch_{i}",
                     'player_name': player,
                     'stat_type': stat_type,
-                    'line': round(line, 1),
+                    'line': line,
                     'odds': random.choice([-110, -105, -115, +100, +105]),
                     'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
                     'matchup': f"{random.choice(['London', 'Seoul', 'Philly'])} vs {random.choice(['Dallas', 'SF', 'Boston'])}",
@@ -1922,8 +1898,10 @@ class OverwatchAgent(EsportsAgent):
                     'hero_flexibility': random.uniform(0.6, 1.0),
                     'team_synergy': random.uniform(0.7, 1.0)
                 })
-        
-        return props[:max_props]
+                i += 1
+            if len(props) >= max_props:
+                break
+        return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze Overwatch specific factors"""
@@ -1959,52 +1937,51 @@ class RocketLeagueAgent(EsportsAgent):
         super().__init__("rocket_league")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Rocket League props"""
+        """Generate Rocket League props restricted to allowed esports prop types"""
         players = [
             "jstn", "GarrettG", "Squishy", "Turbo", "Kaydop",
             "Fairy Peak", "Alpha54", "Extra", "Monkey Moon", "BeastMode"
         ]
-        
-        stat_types = ["goals", "saves", "assists", "shots", "score", "demos"]
-        
-        props = []
-        
-        for i in range(min(max_props, 8)):
+        allowed_stats = [
+            'combined_map_1_2_kills',
+            'combined_map_1_2_headshots',
+            'fantasy_points'
+        ]
+        line_ranges = {
+            'combined_map_1_2_kills': (6.5, 16.5),
+            'combined_map_1_2_headshots': (2.5, 6.5),
+            'fantasy_points': (25.5, 65.5)
+        }
+
+        props: List[Dict] = []
+        i = 0
+        while len(props) < min(max_props, 24):
             player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Rocket League line ranges
-            if stat_type == "goals":
-                line = random.uniform(1.5, 3.5)
-            elif stat_type == "saves":
-                line = random.uniform(2.5, 5.5)
-            elif stat_type == "assists":
-                line = random.uniform(1.5, 3.5)
-            elif stat_type == "shots":
-                line = random.uniform(4.5, 8.5)
-            elif stat_type == "score":
-                line = random.uniform(350.5, 550.5)
-            else:  # demos
-                line = random.uniform(0.5, 2.5)
-            
-            props.append({
-                'game_id': f"rocket_league_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': round(line, 1),
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                'matchup': f"{random.choice(['NRG', 'G2', 'SSG', 'C9'])} vs {random.choice(['BDS', 'Vitality', 'Endpoint', 'DIG'])}",
-                'sportsbook': random.choice(['DraftKings', 'Betway']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': 'healthy',
-                # Rocket League specific factors
-                'playstyle': random.choice(['mechanical', 'positional', 'aggressive']),
-                'team_rotation': random.uniform(0.7, 1.0),
-                'boost_management': random.uniform(0.6, 1.0)
-            })
-        
+            for stat_type in allowed_stats:
+                if len(props) >= max_props:
+                    break
+                low, high = line_ranges[stat_type]
+                line = round(random.uniform(low, high), 1)
+                props.append({
+                    'game_id': f"rocket_league_{i}",
+                    'player_name': player,
+                    'stat_type': stat_type,
+                    'line': line,
+                    'odds': random.choice([-110, -105, -115, +100, +105]),
+                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
+                    'matchup': f"{random.choice(['NRG', 'G2', 'SSG', 'C9'])} vs {random.choice(['BDS', 'Vitality', 'Endpoint', 'DIG'])}",
+                    'sportsbook': random.choice(['DraftKings', 'Betway']),
+                    'recent_form': random.uniform(6, 9),
+                    'matchup_difficulty': random.uniform(4, 8),
+                    'injury_status': 'healthy',
+                    # Rocket League specific factors
+                    'playstyle': random.choice(['mechanical', 'positional', 'aggressive']),
+                    'team_rotation': random.uniform(0.7, 1.0),
+                    'boost_management': random.uniform(0.6, 1.0)
+                })
+                i += 1
+            if len(props) >= max_props:
+                break
         return props
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
