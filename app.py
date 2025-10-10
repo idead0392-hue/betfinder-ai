@@ -439,7 +439,7 @@ with tabs[1]:
         col1, col2, col3 = st.columns([2, 1, 1])
         
         with col1:
-            max_picks = st.slider("Number of picks to generate", 1, 10, 5)
+            max_picks = st.slider("Number of picks to generate", 1, 15, 8)
         
         with col2:
             min_confidence = st.slider("Min confidence %", 50, 90, 65)
