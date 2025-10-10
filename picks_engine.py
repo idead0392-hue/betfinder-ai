@@ -1,4 +1,5 @@
 """
+
 AI Picks Engine for BetFinder AI
 Analyzes sports data and generates betting recommendations using OpenAI
 """
@@ -86,158 +87,171 @@ class PicksEngine:
             # Enhanced prompt for diverse picks including player props
             prompt = f"""You are a professional sports betting analyst. Generate {max_picks} diverse, high-quality betting picks for {current_date}.
 
-IMPORTANT: Include a mix of pick types:
+CRITICAL INSTRUCTIONS:
+1. Respond ONLY with a valid JSON array - no other text
+2. Include exactly {max_picks} picks
+3. Include at least 3 player props and 2 team picks
+4. Cover at least 3 different sports
+5. confidence and expected_value must be numbers only (no % symbols)
+
+Pick Types to Include:
+- Player props: points, rebounds, assists, passing yards, touchdowns
 - Team picks: spreads, moneylines, totals (over/under)
-- Player props: points, rebounds, assists, passing yards, touchdowns, etc.
-- Game props: first quarter totals, team props, etc.
+- Team props: team totals, first quarter totals
 
-Sports to cover: NBA, NFL, NHL, MLB, Soccer, Tennis
+Sports: basketball, football, hockey, baseball, soccer, tennis
 
-For each pick, provide:
-1. Sport (basketball, football, soccer, tennis, hockey, baseball)
-2. Teams/Players (realistic names)
-3. Pick type (spread, moneyline, over/under, player_prop, team_prop)
-4. Specific pick recommendation 
-5. Odds (American format, realistic -300 to +400)
-6. Confidence percentage (60-95, NUMBER ONLY)
-7. Expected value percentage (2-20, NUMBER ONLY)
-8. Detailed reasoning (80-120 words)
-9. Key factors (3-4 factors)
-
-EXAMPLE PLAYER PROP:
-{{
-  "sport": "basketball",
-  "home_team": "Lakers",
-  "away_team": "Warriors",
-  "player_name": "LeBron James",
-  "pick_type": "player_prop",
-  "pick": "LeBron James Over 24.5 Points",
-  "odds": -115,
-  "confidence": 82,
-  "expected_value": 12.5,
-  "reasoning": "LeBron has averaged 26.8 points in last 5 games vs Warriors. Warriors allow 4th most points to opposing forwards this season. He's hit this number in 7 of last 10 games.",
-  "key_factors": ["Recent form vs opponent", "Defensive matchup", "Rest advantage", "Historical performance"]
-}}
-
-EXAMPLE TEAM PROP:
-{{
-  "sport": "football", 
-  "home_team": "Chiefs",
-  "away_team": "Bills",
-  "pick_type": "team_prop",
-  "pick": "Chiefs Team Total Over 26.5 Points",
-  "odds": -110,
-  "confidence": 75,
-  "expected_value": 8.0,
-  "reasoning": "Chiefs average 28.2 points at home this season. Bills defense allows 24.8 points per game on the road. Mahomes has strong record in primetime games.",
-  "key_factors": ["Home field advantage", "Defensive matchup", "Weather conditions", "Quarterback performance"]
-}}
-
-Respond ONLY with valid JSON array in this exact format:
+JSON Format (respond with ONLY this array):
 [
   {{
     "sport": "basketball",
     "home_team": "Lakers",
-    "away_team": "Warriors",
+    "away_team": "Warriors", 
     "player_name": "LeBron James",
     "pick_type": "player_prop",
     "pick": "LeBron James Over 24.5 Points",
     "odds": -115,
     "confidence": 78,
     "expected_value": 8.2,
-    "reasoning": "Detailed analysis here...",
-    "key_factors": ["factor1", "factor2", "factor3"]
+    "reasoning": "Strong performance vs Warriors historically with 26.8 average in last 5 games",
+    "key_factors": ["Recent form", "Defensive matchup", "Rest advantage"]
+  }},
+  {{
+    "sport": "football",
+    "home_team": "Chiefs", 
+    "away_team": "Bills",
+    "pick_type": "spread",
+    "pick": "Chiefs -3.5",
+    "odds": -110,
+    "confidence": 72,
+    "expected_value": 5.8,
+    "reasoning": "Strong home performance and defensive advantages",
+    "key_factors": ["Home field", "Defensive stats", "Weather"]
   }}
-]
-
-REQUIREMENTS:
-- Generate exactly {max_picks} picks
-- Include at least 3 player props
-- Include at least 2 team totals/spreads 
-- Cover at least 3 different sports
-- confidence and expected_value must be numbers only (no % signs)
-- Make all picks realistic and well-reasoned
-REQUIREMENTS:
-- Generate exactly {max_picks} picks
-- Include at least 3 player props
-- Include at least 2 team totals/spreads 
-- Cover at least 3 different sports
-- confidence and expected_value must be numbers only (no % signs)
-- Make all picks realistic and well-reasoned
-- Vary the pick types for diversity"""
+]"""
 
             response = self.openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert sports betting analyst with deep knowledge of statistics, team performance, and market analysis."},
+                    {"role": "system", "content": "You are an expert sports betting analyst. Respond ONLY with valid JSON arrays. Do not include any text before or after the JSON."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
-                max_tokens=2500
+                temperature=0.5,
+                max_tokens=3000
             )
             
             # Parse the AI response
             ai_content = response.choices[0].message.content
+            print(f"🔍 AI Response length: {len(ai_content)} characters")
             
-            # Extract JSON from the response
+            # Clean the response text
+            ai_content = ai_content.strip()
+            # Remove any potential BOM or invisible characters
+            ai_content = ''.join(char for char in ai_content if ord(char) >= 32 or char in '\n\r\t')
+            
+            # Extract JSON from the response with improved parsing
             import re
-            json_match = re.search(r'\[.*\]', ai_content, re.DOTALL)
-            if json_match:
-                picks_data = json.loads(json_match.group())
-                
+            
+            # Find the JSON array boundaries more precisely
+            start_idx = ai_content.find('[')
+            end_idx = ai_content.rfind(']')
+            
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                json_str = ai_content[start_idx:end_idx+1]
+                try:
+                    picks_data = json.loads(json_str)
+                    print(f"✅ Successfully parsed JSON with {len(picks_data)} picks")
+                except json.JSONDecodeError as je:
+                    print(f"⚠️ JSON parse error: {je}")
+                    print(f"🔍 Problematic JSON around error: ...{json_str[max(0, je.pos-50):je.pos+50]}...")
+                    picks_data = None
+            else:
+                print("⚠️ Could not find JSON array boundaries")
+                picks_data = None
+            
+            if picks_data:
                 # Convert to our pick format with enhanced handling for player props
                 ai_picks = []
                 for i, pick_data in enumerate(picks_data[:max_picks]):
-                    # Clean and parse confidence (remove % if present)
-                    confidence_str = str(pick_data.get('confidence', 75))
-                    confidence = float(confidence_str.replace('%', ''))
-                    
-                    # Clean and parse expected_value (remove % if present)
-                    ev_str = str(pick_data.get('expected_value', 5))
-                    expected_value = float(ev_str.replace('%', ''))
-                    
-                    # Handle different pick types with enhanced formatting
-                    pick_type = pick_data.get('pick_type', 'moneyline')
-                    
-                    # Create matchup display based on pick type
-                    if pick_type == 'player_prop':
-                        player_name = pick_data.get('player_name', 'Unknown Player')
-                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')} - {player_name}"
-                    elif pick_type == 'team_prop':
-                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')} - Team Prop"
-                    else:
-                        matchup_display = f"{pick_data.get('home_team', 'Team A')} vs {pick_data.get('away_team', 'Team B')}"
-                    
-                    pick = {
-                        'game_id': f"ai_pick_{current_date}_{i+1}",
-                        'sport': pick_data.get('sport', 'basketball'),
-                        'competition': 'AI Analysis',
-                        'matchup': matchup_display,
-                        'pick': pick_data.get('pick', 'Team A'),
-                        'pick_type': pick_type,
-                        'player_name': pick_data.get('player_name', ''),  # For player props
-                        'odds': pick_data.get('odds', -110),
-                        'confidence': confidence,
-                        'expected_value': expected_value,
-                        'market_analysis': self.analyze_odds_movement({}),  # Basic analysis
-                        'start_time': (datetime.now() + timedelta(hours=random.randint(2, 8))).strftime("%Y-%m-%d %H:%M"),
-                        'reasoning': pick_data.get('reasoning', 'AI-generated analysis'),
-                        'prediction_factors': pick_data.get('key_factors', [])
-                    }
-                    
-                    # Only include picks that meet our quality threshold
-                    if pick['confidence'] >= self.confidence_threshold and pick['expected_value'] > 0:
-                        ai_picks.append(pick)
+                    try:
+                        # Validate required fields
+                        if not pick_data.get('sport') or not pick_data.get('pick'):
+                            print(f"⚠️ Skipping invalid pick {i+1}: missing required fields")
+                            continue
+                            
+                        # Clean and parse confidence (remove % if present)
+                        confidence_str = str(pick_data.get('confidence', 75))
+                        confidence = float(confidence_str.replace('%', ''))
+                        
+                        # Clean and parse expected_value (remove % if present)
+                        ev_str = str(pick_data.get('expected_value', 5))
+                        expected_value = float(ev_str.replace('%', ''))
+                        
+                        # Handle different pick types with enhanced formatting
+                        pick_type = pick_data.get('pick_type', 'moneyline')
+                        
+                        # Ensure we have team names (use defaults for player-only sports)
+                        home_team = pick_data.get('home_team', 'Team A')
+                        away_team = pick_data.get('away_team', 'Team B')
+                        
+                        # For tennis/individual sports, create meaningful matchup
+                        if pick_data.get('sport') == 'tennis' and pick_data.get('player_name'):
+                            player_name = pick_data.get('player_name')
+                            home_team = player_name
+                            away_team = "vs Opponent"
+                        
+                        # Create matchup display based on pick type
+                        if pick_type == 'player_prop' and pick_data.get('player_name'):
+                            player_name = pick_data.get('player_name')
+                            matchup_display = f"{home_team} vs {away_team} - {player_name}"
+                        elif pick_type == 'team_prop':
+                            matchup_display = f"{home_team} vs {away_team} - Team Prop"
+                        else:
+                            matchup_display = f"{home_team} vs {away_team}"
+                        
+                        pick = {
+                            'game_id': f"ai_pick_{current_date}_{i+1}",
+                            'sport': pick_data.get('sport', 'basketball'),
+                            'competition': 'AI Analysis',
+                            'matchup': matchup_display,
+                            'pick': pick_data.get('pick', 'Team A'),
+                            'pick_type': pick_type,
+                            'player_name': pick_data.get('player_name', ''),  # For player props
+                            'odds': int(pick_data.get('odds', -110)),
+                            'confidence': confidence,
+                            'expected_value': expected_value,
+                            'market_analysis': self.analyze_odds_movement({}),  # Basic analysis
+                            'start_time': (datetime.now() + timedelta(hours=random.randint(2, 8))).strftime("%Y-%m-%d %H:%M"),
+                            'reasoning': pick_data.get('reasoning', 'AI-generated analysis'),
+                            'prediction_factors': pick_data.get('key_factors', [])
+                        }
+                        
+                        # Only include picks that meet our quality threshold
+                        if pick['confidence'] >= self.confidence_threshold and pick['expected_value'] > 0:
+                            ai_picks.append(pick)
+                            
+                    except (ValueError, KeyError, TypeError) as e:
+                        print(f"⚠️ Error processing pick {i+1}: {e}")
+                        continue
                 
                 print(f"✅ Generated {len(ai_picks)} AI-powered picks")
                 return ai_picks
             
             else:
-                print("⚠️ Could not parse AI response, using fallback")
+                print("⚠️ Could not parse AI response as JSON")
+                print(f"🔍 First 200 chars of response: {ai_content[:200]}...")
+                print("🔄 Using fallback picks...")
                 return self.get_daily_picks_fallback(max_picks)
                 
+        except json.JSONDecodeError as je:
+            print(f"❌ JSON parsing error: {je}")
+            print(f"🔍 Response preview: {ai_content[:300] if 'ai_content' in locals() else 'No response'}...")
+            print("🔄 Using fallback picks...")
+            return self.get_daily_picks_fallback(max_picks)
         except Exception as e:
             print(f"❌ Error generating AI picks: {e}")
+            print(f"🔍 Error type: {type(e).__name__}")
+            print("🔄 Using fallback picks...")
             return self.get_daily_picks_fallback(max_picks)
     
     def get_daily_picks_fallback(self, max_picks: int = 8) -> List[Dict]:
