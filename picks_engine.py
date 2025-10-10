@@ -131,7 +131,7 @@ JSON Format (respond with ONLY this array):
 ]"""
 
             response = self.openai_client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-5",
                 messages=[
                     {"role": "system", "content": "You are an expert sports betting analyst. Respond ONLY with valid JSON arrays. Do not include any text before or after the JSON."},
                     {"role": "user", "content": prompt}
