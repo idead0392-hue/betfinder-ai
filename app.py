@@ -392,44 +392,104 @@ st.markdown("""
 # Load data
 load_sports_data_with_agents()
 
-# Create tabs
-tab_names = ["🏀 Basketball", "🏈 Football", "🎾 Tennis", "⚾ Baseball", "🏒 Hockey", "⚽ Soccer", "🎮 Esports"]
+
+# New tab names: add College Football and individual esports
+tab_names = [
+    "🏀 Basketball", "🏈 Football", "🎾 Tennis", "⚾ Baseball", "🏒 Hockey", "⚽ Soccer", "� College Football",
+    "🔫 CSGO", "🧙 League of Legends", "🐉 Dota2", "🎯 Valorant", "🛡️ Overwatch", "🚗 Rocket League"
+]
 tabs = st.tabs(tab_names)
 
-# Basketball Tab
-with tabs[0]:
-    picks = (get_cached_data("basketball_props") or {}).get('data', [])
-    display_sport_picks("Basketball", picks, "🏀")
+# Load PickFinder CSV and group props by sport/esport
+def load_pickfinder_csv(csv_path: str) -> dict:
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception:
+        return {}
+    props = []
+    for _, row in df.iterrows():
+        prop = {
+            'player_name': row.get('Player', ''),
+            'team': row.get('Team/Opp', ''),
+            'pick': row.get('Prop', ''),
+            'stat_type': row.get('Prop', '').lower(),
+            'line': float(row.get('Line', 0)) if row.get('Line', '') else 0.0,
+            'odds': int(row.get('Odds', -110)) if str(row.get('Odds', '')).replace('+','').replace('-','').isdigit() else -110,
+            'confidence': float(row.get('IP', 50)) if row.get('IP', '') else 50.0,
+            'expected_value': float(row.get('Diff', 0)) if row.get('Diff', '') else 0.0,
+            'avg_l10': float(row.get('Avg_L10', 0)) if row.get('Avg_L10', '') else 0.0,
+            'start_time': '',
+            'sport': '',
+            'over_under': 'over' if 'over' in str(row.get('Prop', '')).lower() else 'under' if 'under' in str(row.get('Prop', '')).lower() else None
+        }
+        props.append(prop)
+    # Group by sport/esport
+    grouped = {k: [] for k in [
+        'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
+        'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'rocket_league']}
+    for p in props:
+        stat = str(p.get('stat_type', '')).lower()
+        # Heuristic mapping
+        if 'college' in stat or 'ncaa' in stat:
+            grouped['college_football'].append(p)
+        elif 'csgo' in stat or 'kill' in stat or 'headshot' in stat or 'fantasy' in stat:
+            grouped['csgo'].append(p)
+        elif 'league' in stat or 'lol' in stat or 'assist' in stat:
+            grouped['league_of_legends'].append(p)
+        elif 'dota' in stat:
+            grouped['dota2'].append(p)
+        elif 'valorant' in stat:
+            grouped['valorant'].append(p)
+        elif 'overwatch' in stat:
+            grouped['overwatch'].append(p)
+        elif 'rocket' in stat:
+            grouped['rocket_league'].append(p)
+        elif 'basket' in stat or 'point' in stat or 'rebound' in stat or 'assist' in stat or 'block' in stat or 'steal' in stat or 'three' in stat:
+            grouped['basketball'].append(p)
+        elif 'foot' in stat or 'yard' in stat or 'touchdown' in stat or 'reception' in stat or 'passing' in stat or 'rushing' in stat:
+            grouped['football'].append(p)
+        elif 'base' in stat or 'hit' in stat or 'run' in stat or 'home_run' in stat or 'strikeout' in stat:
+            grouped['baseball'].append(p)
+        elif 'hock' in stat or 'goal' in stat or 'shot' in stat or 'penalty' in stat:
+            grouped['hockey'].append(p)
+        elif 'soccer' in stat or 'card' in stat or 'goal' in stat or 'assist' in stat:
+            grouped['soccer'].append(p)
+        elif 'tennis' in stat:
+            grouped['tennis'].append(p)
+    return grouped
 
-# Football Tab  
-with tabs[1]:
-    picks = (get_cached_data("football_props") or {}).get('data', [])
-    display_sport_picks("Football", picks, "🏈")
+csv_props = load_pickfinder_csv('pickfinder_all_projections.csv')
 
-# Tennis Tab
-with tabs[2]:
-    picks = (get_cached_data("tennis_props") or {}).get('data', [])
-    display_sport_picks("Tennis", picks, "🎾")
+# Assign agents for all tabs
+from sport_agents import (
+    BasketballAgent, FootballAgent, TennisAgent, BaseballAgent, HockeyAgent, SoccerAgent,
+    CollegeFootballAgent, CSGOAgent, LeagueOfLegendsAgent, Dota2Agent, VALORANTAgent, OverwatchAgent, RocketLeagueAgent
+)
+agents = [
+    (BasketballAgent(), 'basketball', '🏀'),
+    (FootballAgent(), 'football', '🏈'),
+    (TennisAgent(), 'tennis', '🎾'),
+    (BaseballAgent(), 'baseball', '⚾'),
+    (HockeyAgent(), 'hockey', '🏒'),
+    (SoccerAgent(), 'soccer', '⚽'),
+    (CollegeFootballAgent(), 'college_football', '🎓'),
+    (CSGOAgent(), 'csgo', '🔫'),
+    (LeagueOfLegendsAgent(), 'league_of_legends', '🧙'),
+    (Dota2Agent(), 'dota2', '🐉'),
+    (VALORANTAgent(), 'valorant', '🎯'),
+    (OverwatchAgent(), 'overwatch', '🛡️'),
+    (RocketLeagueAgent(), 'rocket_league', '🚗')
+]
 
-# Baseball Tab
-with tabs[3]:
-    picks = (get_cached_data("baseball_props") or {}).get('data', [])
-    display_sport_picks("Baseball", picks, "⚾")
-
-# Hockey Tab
-with tabs[4]:
-    picks = (get_cached_data("hockey_props") or {}).get('data', [])
-    display_sport_picks("Hockey", picks, "🏒")
-
-# Soccer Tab
-with tabs[5]:
-    picks = (get_cached_data("soccer_props") or {}).get('data', [])
-    display_sport_picks("Soccer", picks, "⚽")
-
-# Esports Tab
-with tabs[6]:
-    picks = (get_cached_data("esports_props") or {}).get('data', [])
-    display_sport_picks("Esports", picks, "🎮")
+for i, (agent, key, emoji) in enumerate(agents):
+    with tabs[i]:
+        props = csv_props.get(key, [])
+        if not props:
+            # fallback to agent's own props if CSV empty
+            props = agent.make_picks()
+        else:
+            props = agent.make_picks(props_data=props)
+        display_sport_picks(agent.__class__.__name__.replace('Agent',''), props, emoji)
 
 # Footer
 st.markdown("---")
