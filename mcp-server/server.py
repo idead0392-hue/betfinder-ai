@@ -148,9 +148,8 @@ class BetFinderMCPServer:
         try:
             if self.picks_engine:
                 picks = await asyncio.to_thread(
-                    self.picks_engine.generate_daily_picks,
-                    sport=sport,
-                    min_confidence=confidence_threshold
+                    self.picks_engine.get_daily_picks,
+                    max_picks=10
                 )
                 
                 return {
