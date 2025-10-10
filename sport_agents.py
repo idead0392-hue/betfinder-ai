@@ -18,6 +18,18 @@ from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
 
 # Import the picks ledger for logging and analytics
+
+def generate_half_increment_line(min_val: float, max_val: float) -> float:
+    """Generate a random line value that uses only 0.5 increments."""
+    # Convert to half-point scale (multiply by 2)
+    min_half = int(min_val * 2)
+    max_half = int(max_val * 2)
+    
+    # Generate random half-point value
+    random_half = random.randint(min_half, max_half)
+    
+    # Convert back to decimal (divide by 2)
+    return random_half / 2.0
 from picks_ledger import picks_ledger
 
 
@@ -1086,9 +1098,190 @@ class SportAgent(ABC):
         # Cap bet size for risk management
         return min(bet_size, base_bet * 2)
     
+    def render_prop_card(self, prop: Dict, include_ml_prediction: bool = True) -> Dict[str, Any]:
+        """
+        Render prop card with ML value highlighting and recommendations
+        
+        Args:
+            prop: Prop data dictionary
+            include_ml_prediction: Whether to include ML predictions
+            
+        Returns:
+            Dict with card rendering data and ML highlights
+        """
+        try:
+            # Get ML prediction if requested
+            ml_prediction = None
+            if include_ml_prediction:
+                ml_prediction = self.get_ml_prediction(prop)
+            
+            # Determine card styling based on ML prediction
+            card_style = self._get_card_styling(ml_prediction)
+            
+            # Extract basic prop info
+            player_name = prop.get('player_name', 'Unknown Player')
+            stat_type = prop.get('stat_type', 'Unknown Stat')
+            line = prop.get('line', 0)
+            odds = prop.get('odds', -110)
+            
+            # Build card data
+            card_data = {
+                'player_name': player_name,
+                'stat_type': stat_type.replace('_', ' ').title(),
+                'line': line,
+                'odds': odds,
+                'matchup': prop.get('matchup', 'TBD vs TBD'),
+                'event_time': prop.get('event_start_time', 'TBD'),
+                'sportsbook': prop.get('sportsbook', 'Multiple'),
+                'card_style': card_style,
+                'ml_prediction': ml_prediction,
+                'recommendation_badge': self._get_recommendation_badge(ml_prediction),
+                'value_indicators': self._get_value_indicators(ml_prediction)
+            }
+            
+            # Add warning flags for missing/stale predictions
+            if not ml_prediction or ml_prediction.get('error'):
+                card_data['warning'] = {
+                    'type': 'missing_prediction',
+                    'message': 'ML prediction unavailable',
+                    'style': 'opacity: 0.6; border: 2px dashed #ffc107;'
+                }
+            elif self._is_prediction_stale(ml_prediction):
+                card_data['warning'] = {
+                    'type': 'stale_prediction',
+                    'message': 'Prediction may be outdated',
+                    'style': 'border-left: 4px solid #fd7e14;'
+                }
+            
+            return card_data
+            
+        except Exception as e:
+            print(f"⚠️ Error rendering prop card: {e}")
+            return {
+                'player_name': prop.get('player_name', 'Unknown'),
+                'stat_type': prop.get('stat_type', 'Unknown'),
+                'line': prop.get('line', 0),
+                'odds': prop.get('odds', -110),
+                'card_style': {'background': '#f8f9fa', 'border': '1px solid #dee2e6'},
+                'warning': {
+                    'type': 'render_error',
+                    'message': 'Unable to process prop data',
+                    'style': 'opacity: 0.5;'
+                }
+            }
+    
+    def _get_card_styling(self, ml_prediction: Optional[Dict]) -> Dict[str, str]:
+        """Get CSS styling for prop card based on ML prediction"""
+        if not ml_prediction:
+            return {
+                'background': '#f8f9fa',
+                'border': '1px solid #dee2e6',
+                'box_shadow': 'none'
+            }
+        
+        edge = ml_prediction.get('edge', 0.0)
+        confidence = ml_prediction.get('confidence', 50)
+        
+        if edge > 0.05 and confidence > 70:
+            # Strong positive value - green highlight
+            return {
+                'background': 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
+                'border': '2px solid #28a745',
+                'box_shadow': '0 4px 12px rgba(40, 167, 69, 0.3)',
+                'animation': 'pulse-green 2s infinite'
+            }
+        elif edge > 0.02 and confidence > 60:
+            # Moderate positive value - light green
+            return {
+                'background': 'linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%)',
+                'border': '2px solid #20c997',
+                'box_shadow': '0 2px 8px rgba(32, 201, 151, 0.2)'
+            }
+        elif edge < -0.03 or confidence < 40:
+            # Poor value - red highlight
+            return {
+                'background': 'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)',
+                'border': '2px solid #dc3545',
+                'box_shadow': '0 2px 8px rgba(220, 53, 69, 0.2)'
+            }
+        else:
+            # Neutral/fair value - default styling
+            return {
+                'background': 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
+                'border': '1px solid #ffc107',
+                'box_shadow': '0 2px 6px rgba(255, 193, 7, 0.1)'
+            }
+    
+    def _get_recommendation_badge(self, ml_prediction: Optional[Dict]) -> Dict[str, str]:
+        """Get recommendation badge based on ML prediction"""
+        if not ml_prediction:
+            return {'text': 'NO DATA', 'style': 'badge-secondary'}
+        
+        edge = ml_prediction.get('edge', 0.0)
+        confidence = ml_prediction.get('confidence', 50)
+        
+        if edge > 0.05 and confidence > 70:
+            return {'text': 'STRONG VALUE', 'style': 'badge-success'}
+        elif edge > 0.02 and confidence > 60:
+            return {'text': 'GOOD VALUE', 'style': 'badge-info'}
+        elif edge > -0.02 and confidence > 50:
+            return {'text': 'FAIR VALUE', 'style': 'badge-warning'}
+        else:
+            return {'text': 'POOR VALUE', 'style': 'badge-danger'}
+    
+    def _get_value_indicators(self, ml_prediction: Optional[Dict]) -> List[Dict]:
+        """Get value indicator metrics for display"""
+        if not ml_prediction:
+            return []
+        
+        indicators = []
+        
+        # Edge indicator
+        edge = ml_prediction.get('edge', 0.0)
+        edge_color = 'success' if edge > 0.02 else 'danger' if edge < -0.02 else 'warning'
+        indicators.append({
+            'label': 'Edge',
+            'value': f"{edge:+.1%}",
+            'color': edge_color
+        })
+        
+        # Confidence indicator
+        confidence = ml_prediction.get('confidence', 50)
+        conf_color = 'success' if confidence > 70 else 'warning' if confidence > 50 else 'danger'
+        indicators.append({
+            'label': 'ML Confidence',
+            'value': f"{confidence:.0f}%",
+            'color': conf_color
+        })
+        
+        # Expected ROI indicator
+        roi = ml_prediction.get('expected_roi', 0.0)
+        roi_color = 'success' if roi > 5 else 'warning' if roi > 0 else 'danger'
+        indicators.append({
+            'label': 'Expected ROI',
+            'value': f"{roi:+.1f}%",
+            'color': roi_color
+        })
+        
+        return indicators
+    
+    def _is_prediction_stale(self, ml_prediction: Dict) -> bool:
+        """Check if ML prediction is stale (older than 1 hour)"""
+        try:
+            prediction_time = ml_prediction.get('prediction_time')
+            if not prediction_time:
+                return True
+            
+            pred_dt = datetime.fromisoformat(prediction_time.replace('Z', '+00:00'))
+            age = datetime.now() - pred_dt.replace(tzinfo=None)
+            
+            return age.total_seconds() > 3600  # 1 hour threshold
+        except:
+            return True
     def learn_from_history(self) -> None:
         """
         Analyze historical picks to identify winning patterns and adjust strategy
+        Also triggers ML model training with latest data
         """
         try:
             # Get learning insights from the picks ledger
@@ -1257,22 +1450,22 @@ class TennisAgent(SportAgent):
             
             # Tennis-specific line ranges
             if stat_type == "games_won":
-                line = random.uniform(8.5, 15.5)
+                line = generate_half_increment_line(8.5, 15.5)
             elif stat_type == "sets_won":
                 line = random.choice([1.5, 2.5])
             elif stat_type == "aces":
-                line = random.uniform(3.5, 12.5)
+                line = generate_half_increment_line(3.5, 12.5)
             elif stat_type == "double_faults":
-                line = random.uniform(1.5, 4.5)
+                line = generate_half_increment_line(1.5, 4.5)
             else:  # break_points_converted
-                line = random.uniform(1.5, 5.5)
+                line = generate_half_increment_line(1.5, 5.5)
             
             # Tennis-specific enhancements
             prop = {
                 'game_id': f"tennis_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(hours=random.randint(1, 48))).isoformat(),
                 'matchup': f"{player} vs {random.choice(players)}",
@@ -1377,24 +1570,24 @@ class BasketballAgent(SportAgent):
             
             # Basketball-specific line ranges
             if stat_type == "points":
-                line = random.uniform(18.5, 32.5)
+                line = generate_half_increment_line(18.5, 32.5)
             elif stat_type == "rebounds":
-                line = random.uniform(5.5, 13.5)
+                line = generate_half_increment_line(5.5, 13.5)
             elif stat_type == "assists":
-                line = random.uniform(3.5, 11.5)
+                line = generate_half_increment_line(3.5, 11.5)
             elif stat_type == "steals":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             elif stat_type == "blocks":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             else:  # threes_made
-                line = random.uniform(1.5, 5.5)
+                line = generate_half_increment_line(1.5, 5.5)
             
             # Enhanced NBA analytics
             prop = {
                 'game_id': f"basketball_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(hours=random.randint(2, 72))).isoformat(),
                 'matchup': f"{random.choice(['LAL', 'GSW', 'MIL', 'DAL', 'BOS', 'DEN', 'PHI', 'POR'])} vs {random.choice(['LAC', 'MIA', 'PHX', 'BRK', 'NYK'])}",
@@ -1517,22 +1710,22 @@ class FootballAgent(SportAgent):
             
             # Football-specific line ranges
             if stat_type == "passing_yards":
-                line = random.uniform(225.5, 325.5)
+                line = generate_half_increment_line(225.5, 325.5)
             elif stat_type == "rushing_yards":
-                line = random.uniform(45.5, 125.5)
+                line = generate_half_increment_line(45.5, 125.5)
             elif stat_type == "receiving_yards":
-                line = random.uniform(35.5, 95.5)
+                line = generate_half_increment_line(35.5, 95.5)
             elif stat_type == "touchdowns":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             else:  # receptions
-                line = random.uniform(3.5, 8.5)
+                line = generate_half_increment_line(3.5, 8.5)
             
             # Enhanced NFL analytics
             prop = {
                 'game_id': f"football_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(days=random.randint(1, 7))).isoformat(),
                 'matchup': f"{random.choice(['KC', 'BUF', 'CIN', 'DAL', 'SF', 'PHI'])} vs {random.choice(['MIA', 'NYJ', 'LV', 'DEN'])}",
@@ -1664,23 +1857,23 @@ class BaseballAgent(SportAgent):
             
             # Baseball-specific line ranges
             if stat_type == "hits":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             elif stat_type == "runs":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             elif stat_type == "rbis":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             elif stat_type == "home_runs":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             elif stat_type == "stolen_bases":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             else:  # strikeouts (for pitchers)
-                line = random.uniform(4.5, 9.5)
+                line = generate_half_increment_line(4.5, 9.5)
             
             props.append({
                 'game_id': f"baseball_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 48))).isoformat(),
                 'matchup': f"Team vs Team",
@@ -1719,21 +1912,21 @@ class HockeyAgent(SportAgent):
             
             # Hockey-specific line ranges
             if stat_type == "goals":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             elif stat_type == "assists":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             elif stat_type == "points":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             elif stat_type == "shots_on_goal":
-                line = random.uniform(2.5, 5.5)
+                line = generate_half_increment_line(2.5, 5.5)
             else:  # penalty_minutes
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             
             props.append({
                 'game_id': f"hockey_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(hours=random.randint(4, 72))).isoformat(),
                 'matchup': f"Team vs Team",
@@ -1771,21 +1964,21 @@ class SoccerAgent(SportAgent):
             
             # Soccer-specific line ranges
             if stat_type == "goals":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             elif stat_type == "assists":
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             elif stat_type == "shots":
-                line = random.uniform(2.5, 4.5)
+                line = generate_half_increment_line(2.5, 4.5)
             elif stat_type == "shots_on_target":
-                line = random.uniform(1.5, 3.5)
+                line = generate_half_increment_line(1.5, 3.5)
             else:  # cards
-                line = random.uniform(0.5, 1.5)
+                line = generate_half_increment_line(0.5, 1.5)
             
             props.append({
                 'game_id': f"soccer_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(hours=random.randint(12, 168))).isoformat(),
                 'matchup': f"Team vs Team",
@@ -1856,7 +2049,7 @@ class CSGOAgent(EsportsAgent):
                 if len(props) >= max_props:
                     break
                 low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
+                line = generate_half_increment_line(low, high)
                 props.append({
                     'game_id': f"csgo_{i}",
                     'player_name': player,
@@ -2411,21 +2604,21 @@ class CollegeFootballAgent(SportAgent):
             
             # College football-specific line ranges (generally lower than NFL)
             if stat_type == "passing_yards":
-                line = random.uniform(185.5, 285.5)
+                line = generate_half_increment_line(185.5, 285.5)
             elif stat_type == "rushing_yards":
-                line = random.uniform(35.5, 105.5)
+                line = generate_half_increment_line(35.5, 105.5)
             elif stat_type == "receiving_yards":
-                line = random.uniform(25.5, 85.5)
+                line = generate_half_increment_line(25.5, 85.5)
             elif stat_type == "touchdowns":
-                line = random.uniform(0.5, 2.5)
+                line = generate_half_increment_line(0.5, 2.5)
             else:  # receptions
-                line = random.uniform(2.5, 7.5)
+                line = generate_half_increment_line(2.5, 7.5)
             
             props.append({
                 'game_id': f"college_football_{i}",
                 'player_name': player,
                 'stat_type': stat_type,
-                'line': round(line, 1),
+                'line': line,
                 'odds': random.choice([-110, -105, -115, +100, +105]),
                 'event_start_time': (datetime.now() + timedelta(days=random.randint(1, 14))).isoformat(),
                 'matchup': f"University vs University",

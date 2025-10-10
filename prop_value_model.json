@@ -1,0 +1,14 @@
+{
+  "weights": {
+    "confidence_factor": 0.25,
+    "historical_performance": 0.3,
+    "stat_type_success": 0.2,
+    "over_under_preference": 0.15,
+    "recency_factor": 0.1
+  },
+  "version": "1.0",
+  "last_training_time": "2025-10-10T17:56:11.777071",
+  "training_sample_size": 0,
+  "feature_importance": {},
+  "accuracy": 0.0
+}

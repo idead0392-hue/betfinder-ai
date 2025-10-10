@@ -139,10 +139,19 @@ class BaseAPIProvider(ABC):
             
         except Exception as e:
             response_time = time.time() - start_time if 'start_time' in locals() else None
+            
+            # Safely extract status code from exception
+            status_code = None
+            if hasattr(e, 'response') and e.response is not None:
+                if hasattr(e.response, 'status_code'):
+                    status_code = e.response.status_code
+                elif isinstance(e.response, dict):
+                    status_code = e.response.get('status_code')
+            
             return APIResponse.error_response(
                 error_message=str(e),
                 response_time=response_time,
-                status_code=getattr(e, 'response', {}).get('status_code') if hasattr(e, 'response') else None
+                status_code=status_code
             )
     
     @abstractmethod
