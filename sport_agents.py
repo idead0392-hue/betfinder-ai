@@ -359,6 +359,7 @@ class SportAgent(ABC):
         - Internal mock generator (existing behavior)
         - PrizePicks provider
         - Underdog provider
+        - SportBex-backed PropsDataFetcher (real data, normalized)
 
         Args:
             max_props (int): Maximum number of props to fetch
@@ -372,6 +373,13 @@ class SportAgent(ABC):
         except Exception:
             fetch_prizepicks_props = None
             fetch_underdog_props = None
+
+        # Attempt to import PropsDataFetcher for SportBex-backed real data (optional)
+        try:
+            from props_data_fetcher import PropsDataFetcher
+            _props_fetcher = PropsDataFetcher()
+        except Exception:
+            _props_fetcher = None
 
         combined: List[Dict] = []
 
@@ -392,6 +400,17 @@ class SportAgent(ABC):
         if fetch_underdog_props is not None:
             try:
                 combined.extend(fetch_underdog_props(self.sport_name))
+            except Exception:
+                pass
+
+        # 4) SportBex-backed real props via PropsDataFetcher
+        if _props_fetcher is not None:
+            try:
+                real_props = _props_fetcher.fetch_all_props(max_props=max(200, max_props))
+                # Filter to this agent's sport
+                sport_lower = self.sport_name.lower()
+                real_props = [p for p in real_props if str(p.get('sport', '')).lower() == sport_lower]
+                combined.extend(real_props)
             except Exception:
                 pass
 
