@@ -9,6 +9,9 @@ PicksLedger integration for performance tracking and machine learning from histo
 import time
 import random
 import statistics
+import numpy as np
+import json
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from abc import ABC, abstractmethod
@@ -16,6 +19,269 @@ from collections import defaultdict, Counter
 
 # Import the picks ledger for logging and analytics
 from picks_ledger import picks_ledger
+
+
+class PropValueMLModel:
+    """
+    Machine Learning model for predicting prop value/edge/ROI using historical data
+    """
+    
+    def __init__(self):
+        self.weights = {
+            'confidence_factor': 0.25,
+            'historical_performance': 0.30,
+            'stat_type_success': 0.20,
+            'over_under_preference': 0.15,
+            'recency_factor': 0.10
+        }
+        self.model_version = "1.0"
+        self.last_training_time = None
+        self.training_sample_size = 0
+        self.feature_importance = {}
+        self.model_accuracy = 0.0
+        
+        # Load existing model if available
+        self.load_model()
+    
+    def load_model(self) -> None:
+        """Load pre-trained model weights and parameters"""
+        try:
+            model_file = "prop_value_model.json"
+            if os.path.exists(model_file):
+                with open(model_file, 'r') as f:
+                    model_data = json.load(f)
+                    self.weights = model_data.get('weights', self.weights)
+                    self.model_version = model_data.get('version', self.model_version)
+                    self.last_training_time = model_data.get('last_training_time')
+                    self.training_sample_size = model_data.get('training_sample_size', 0)
+                    self.feature_importance = model_data.get('feature_importance', {})
+                    self.model_accuracy = model_data.get('accuracy', 0.0)
+                    print(f"✅ Loaded ML model v{self.model_version} (accuracy: {self.model_accuracy:.1%})")
+        except Exception as e:
+            print(f"⚠️ Error loading ML model: {e}")
+    
+    def save_model(self) -> None:
+        """Save trained model weights and parameters"""
+        try:
+            model_data = {
+                'weights': self.weights,
+                'version': self.model_version,
+                'last_training_time': datetime.now().isoformat(),
+                'training_sample_size': self.training_sample_size,
+                'feature_importance': self.feature_importance,
+                'accuracy': self.model_accuracy
+            }
+            
+            with open("prop_value_model.json", 'w') as f:
+                json.dump(model_data, f, indent=2)
+            
+            print(f"💾 Saved ML model v{self.model_version}")
+        except Exception as e:
+            print(f"⚠️ Error saving ML model: {e}")
+    
+    def train_model(self, historical_picks: List[Dict]) -> None:
+        """
+        Train/update the model using historical pick outcomes
+        
+        Args:
+            historical_picks: List of historical picks with outcomes
+        """
+        if len(historical_picks) < 10:
+            print("⚠️ Insufficient data for ML training (need at least 10 picks)")
+            return
+        
+        # Filter for completed picks only
+        completed_picks = [p for p in historical_picks if p.get('outcome') in ['won', 'lost']]
+        
+        if len(completed_picks) < 5:
+            print("⚠️ Insufficient completed picks for ML training")
+            return
+        
+        self.training_sample_size = len(completed_picks)
+        
+        # Extract features and outcomes
+        features = []
+        outcomes = []
+        
+        for pick in completed_picks:
+            feature_vector = self._extract_features(pick)
+            outcome = 1 if pick['outcome'] == 'won' else 0
+            
+            features.append(feature_vector)
+            outcomes.append(outcome)
+        
+        # Simple logistic regression-style weight updates
+        features_array = np.array(features)
+        outcomes_array = np.array(outcomes)
+        
+        # Calculate feature importance
+        self.feature_importance = self._calculate_feature_importance(features_array, outcomes_array)
+        
+        # Update weights based on correlation with success
+        self._update_weights(features_array, outcomes_array)
+        
+        # Calculate model accuracy
+        self.model_accuracy = self._calculate_accuracy(features_array, outcomes_array)
+        
+        # Save updated model
+        self.save_model()
+        
+        print(f"🤖 ML model trained on {self.training_sample_size} picks (accuracy: {self.model_accuracy:.1%})")
+    
+    def predict_value(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
+        """
+        Predict value/edge/ROI for a given prop
+        
+        Args:
+            prop: Prop data dictionary
+            agent_context: Additional context from the sport agent
+            
+        Returns:
+            Dict with predicted_value, confidence, edge, expected_roi
+        """
+        try:
+            # Extract features for prediction
+            features = self._extract_features_for_prediction(prop, agent_context)
+            
+            # Calculate weighted score
+            predicted_value = sum(
+                features.get(feature, 0.5) * weight 
+                for feature, weight in self.weights.items()
+            )
+            
+            # Convert to probability
+            probability = self._sigmoid(predicted_value)
+            
+            # Calculate edge (value over market)
+            odds = prop.get('odds', -110)
+            implied_probability = self._american_odds_to_probability(odds)
+            edge = probability - implied_probability
+            
+            # Calculate expected ROI
+            if edge > 0:
+                expected_roi = edge * 100  # Simple ROI calculation
+            else:
+                expected_roi = edge * 50   # Penalty for negative edge
+            
+            return {
+                'predicted_value': round(predicted_value, 3),
+                'confidence': round(probability * 100, 1),
+                'edge': round(edge, 3),
+                'expected_roi': round(expected_roi, 2),
+                'model_version': self.model_version,
+                'prediction_time': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            print(f"⚠️ Error in ML prediction: {e}")
+            return {
+                'predicted_value': 0.5,
+                'confidence': 50.0,
+                'edge': 0.0,
+                'expected_roi': 0.0,
+                'model_version': self.model_version,
+                'prediction_time': datetime.now().isoformat(),
+                'error': str(e)
+            }
+    
+    def _extract_features(self, pick: Dict) -> Dict[str, float]:
+        """Extract numerical features from a historical pick"""
+        return {
+            'confidence_factor': pick.get('confidence', 50) / 100,
+            'historical_performance': 0.6,  # Will be enhanced with more data
+            'stat_type_success': 0.5,      # Will be enhanced with stat-specific data
+            'over_under_preference': 0.5,   # Will be enhanced with O/U analysis
+            'recency_factor': 0.8           # Recent picks weighted more
+        }
+    
+    def _extract_features_for_prediction(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
+        """Extract features for making predictions on new props"""
+        confidence = agent_context.get('confidence', 50) if agent_context else 50
+        
+        # Get historical performance for this stat type
+        stat_type_performance = 0.5
+        over_under_performance = 0.5
+        
+        if agent_context and agent_context.get('learning_insights'):
+            insights = agent_context['learning_insights']
+            
+            # Stat type performance
+            best_stats = insights.get('best_stat_types', [])
+            for stat_info in best_stats:
+                if stat_info.get('stat_type') == prop.get('stat_type'):
+                    stat_type_performance = stat_info.get('win_rate', 50) / 100
+                    break
+            
+            # Over/under preference
+            over_under_pref = insights.get('best_over_under_preference')
+            if over_under_pref:
+                over_under_performance = over_under_pref.get('win_rate', 50) / 100
+        
+        return {
+            'confidence_factor': confidence / 100,
+            'historical_performance': agent_context.get('overall_win_rate', 50) / 100 if agent_context else 0.5,
+            'stat_type_success': stat_type_performance,
+            'over_under_preference': over_under_performance,
+            'recency_factor': 0.8  # Default high recency factor
+        }
+    
+    def _calculate_feature_importance(self, features: np.ndarray, outcomes: np.ndarray) -> Dict[str, float]:
+        """Calculate feature importance using correlation with outcomes"""
+        importance = {}
+        feature_names = list(self.weights.keys())
+        
+        for i, feature_name in enumerate(feature_names):
+            if features.shape[1] > i:
+                correlation = np.corrcoef(features[:, i], outcomes)[0, 1]
+                importance[feature_name] = abs(correlation) if not np.isnan(correlation) else 0.0
+        
+        return importance
+    
+    def _update_weights(self, features: np.ndarray, outcomes: np.ndarray) -> None:
+        """Update model weights based on feature importance"""
+        feature_names = list(self.weights.keys())
+        
+        for i, feature_name in enumerate(feature_names):
+            if features.shape[1] > i:
+                importance = self.feature_importance.get(feature_name, 0.0)
+                # Adjust weights based on importance (learning rate = 0.1)
+                self.weights[feature_name] = 0.9 * self.weights[feature_name] + 0.1 * importance
+        
+        # Normalize weights to sum to 1
+        total_weight = sum(self.weights.values())
+        if total_weight > 0:
+            self.weights = {k: v / total_weight for k, v in self.weights.items()}
+    
+    def _calculate_accuracy(self, features: np.ndarray, outcomes: np.ndarray) -> float:
+        """Calculate model accuracy on training data"""
+        predictions = []
+        
+        for feature_vector in features:
+            feature_dict = dict(zip(self.weights.keys(), feature_vector))
+            predicted_value = sum(
+                feature_dict.get(feature, 0.5) * weight 
+                for feature, weight in self.weights.items()
+            )
+            probability = self._sigmoid(predicted_value)
+            predictions.append(1 if probability > 0.5 else 0)
+        
+        correct = sum(p == o for p, o in zip(predictions, outcomes))
+        return correct / len(outcomes) if outcomes else 0.0
+    
+    def _sigmoid(self, x: float) -> float:
+        """Sigmoid activation function"""
+        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+    
+    def _american_odds_to_probability(self, odds: int) -> float:
+        """Convert American odds to implied probability"""
+        if odds > 0:
+            return 100 / (odds + 100)
+        else:
+            return abs(odds) / (abs(odds) + 100)
+
+
+# Global ML model instance shared across all agents
+ml_model = PropValueMLModel()
 
 
 class SportAgent(ABC):
@@ -38,8 +304,41 @@ class SportAgent(ABC):
         self.learning_insights = {}
         self.performance_metrics = {}
         
-        # Load historical insights on initialization
+        # Load historical insights and train ML model on initialization
         self.learn_from_history()
+        self.train_ml_model()
+    
+    def train_ml_model(self) -> None:
+        """Train the shared ML model using this agent's historical data"""
+        try:
+            # Get historical picks for this agent
+            historical_picks = picks_ledger.get_picks_by_agent(self.agent_type, days_back=90)
+            
+            if len(historical_picks) >= 5:
+                print(f"🤖 Training ML model for {self.agent_type} with {len(historical_picks)} historical picks")
+                ml_model.train_model(historical_picks)
+            else:
+                print(f"⚠️ Insufficient historical data for {self.agent_type} ML training ({len(historical_picks)} picks)")
+        except Exception as e:
+            print(f"⚠️ Error training ML model for {self.agent_type}: {e}")
+    
+    def get_ml_prediction(self, prop: Dict) -> Dict[str, float]:
+        """
+        Get ML model prediction for a prop's value/edge/ROI
+        
+        Args:
+            prop: Prop data dictionary
+            
+        Returns:
+            Dict with ML predictions and confidence metrics
+        """
+        agent_context = {
+            'confidence': prop.get('confidence', 50),
+            'learning_insights': self.learning_insights,
+            'overall_win_rate': self.performance_metrics.get('win_rate', 50)
+        }
+        
+        return ml_model.predict_value(prop, agent_context)
     
     def fetch_props(self, max_props: int = 50) -> List[Dict]:
         """
@@ -102,13 +401,13 @@ class SportAgent(ABC):
     def make_picks(self, props_data: Optional[List[Dict]] = None) -> List[Dict]:
         """
         Analyze props and make over/under picks with confidence scores
-        Includes detailed multi-factor reasoning and PicksLedger integration
+        Includes detailed multi-factor reasoning, PicksLedger integration, and ML predictions
         
         Args:
             props_data (List[Dict], optional): Props data to analyze
             
         Returns:
-            List[Dict]: List of picks with confidence scores
+            List[Dict]: List of picks with confidence scores and ML predictions
         """
         if props_data is None:
             props_data = self.fetch_props()
@@ -116,22 +415,93 @@ class SportAgent(ABC):
         self.props_data = props_data
         picks = []
         
-        # Update learning insights before making picks
+        # Update learning insights and retrain ML model before making picks
         self.learn_from_history()
+        self.train_ml_model()
         
         for prop in props_data:
             pick = self._analyze_prop_and_make_pick(prop)
             if pick:
+                # Get ML prediction for this prop
+                ml_prediction = self.get_ml_prediction(prop)
+                pick['ml_prediction'] = ml_prediction
+                
+                # Enhance pick with ML insights
+                pick = self._enhance_pick_with_ml(pick, ml_prediction)
+                
                 # Log pick to ledger and get pick_id
                 pick_id = picks_ledger.log_pick(pick)
                 pick['pick_id'] = pick_id
                 picks.append(pick)
         
-        # Sort picks by time and confidence
-        sorted_picks = self.sort_picks_by_time_and_confidence(picks)
+        # Sort picks by ML-enhanced confidence and expected value
+        sorted_picks = self.sort_picks_by_ml_value(picks)
         self.picks = sorted_picks
         
         return sorted_picks
+    
+    def _enhance_pick_with_ml(self, pick: Dict, ml_prediction: Dict) -> Dict:
+        """
+        Enhance pick with ML prediction insights
+        
+        Args:
+            pick: Original pick data
+            ml_prediction: ML model predictions
+            
+        Returns:
+            Enhanced pick with ML insights
+        """
+        # Adjust confidence based on ML prediction
+        original_confidence = pick['confidence']
+        ml_confidence = ml_prediction.get('confidence', 50)
+        
+        # Weighted average: 60% original analysis, 40% ML prediction
+        enhanced_confidence = 0.6 * original_confidence + 0.4 * ml_confidence
+        
+        # Update pick with ML enhancements
+        pick['confidence'] = round(enhanced_confidence, 1)
+        pick['ml_edge'] = ml_prediction.get('edge', 0.0)
+        pick['ml_expected_roi'] = ml_prediction.get('expected_roi', 0.0)
+        pick['ml_model_version'] = ml_prediction.get('model_version', 'unknown')
+        
+        # Add ML recommendation flags
+        edge = ml_prediction.get('edge', 0.0)
+        if edge > 0.05:
+            pick['ml_recommendation'] = 'strong_value'
+        elif edge > 0.02:
+            pick['ml_recommendation'] = 'moderate_value'
+        elif edge > -0.02:
+            pick['ml_recommendation'] = 'fair_value'
+        else:
+            pick['ml_recommendation'] = 'poor_value'
+        
+        # Update expected value with ML insights
+        original_ev = pick.get('expected_value', 0)
+        ml_ev = ml_prediction.get('expected_roi', 0)
+        pick['expected_value'] = round(0.7 * original_ev + 0.3 * ml_ev, 2)
+        
+        return pick
+    
+    def sort_picks_by_ml_value(self, picks: List[Dict]) -> List[Dict]:
+        """
+        Sort picks by ML-enhanced value metrics
+        
+        Args:
+            picks: List of picks to sort
+            
+        Returns:
+            Sorted list prioritizing high ML value picks
+        """
+        def sort_key(pick):
+            ml_edge = pick.get('ml_edge', 0.0)
+            confidence = pick.get('confidence', 0.0)
+            expected_roi = pick.get('ml_expected_roi', 0.0)
+            
+            # Combined score: edge (40%) + confidence (35%) + expected ROI (25%)
+            score = 0.4 * ml_edge + 0.35 * (confidence / 100) + 0.25 * (expected_roi / 100)
+            return score
+        
+        return sorted(picks, key=sort_key, reverse=True)
     
     def _analyze_prop_and_make_pick(self, prop: Dict) -> Optional[Dict]:
         """
