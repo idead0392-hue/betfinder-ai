@@ -22,6 +22,8 @@ from typing import Dict, List, Any, Optional, Tuple
 from collections import defaultdict
 from datetime import datetime
 
+import pandas as pd
+
 # Local imports
 from sport_agents import create_sport_agent, ml_model
 
@@ -77,9 +79,52 @@ def group_by_sport(props: List[Dict]) -> Dict[str, List[Dict]]:
     grouped: Dict[str, List[Dict]] = defaultdict(list)
     for p in props:
         sport = (p.get('sport') or '').lower().strip()
+        # Try to infer sport from prop/stat type if missing
+        if not sport:
+            stat = str(p.get('stat_type', '')).lower()
+            if 'point' in stat or 'rebound' in stat or 'assist' in stat or 'block' in stat or 'steal' in stat or 'three' in stat:
+                sport = 'basketball'
+            elif 'yard' in stat or 'touchdown' in stat or 'reception' in stat or 'passing' in stat or 'rushing' in stat:
+                sport = 'football'
+            elif 'hit' in stat or 'run' in stat or 'home_run' in stat or 'strikeout' in stat:
+                sport = 'baseball'
+            elif 'goal' in stat or 'shot' in stat or 'penalty' in stat:
+                sport = 'hockey'
+            elif 'card' in stat or 'goal' in stat or 'assist' in stat:
+                sport = 'soccer'
+            elif 'kill' in stat or 'headshot' in stat or 'fantasy' in stat:
+                sport = 'csgo'
         if sport in SPORT_KEYS:
             grouped[sport].append(p)
     return grouped
+def load_pickfinder_csv(csv_path: str) -> List[Dict]:
+    """Load and normalize pickfinder_all_projections.csv to agent prop dicts."""
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as e:
+        print(f"⚠️ Could not load {csv_path}: {e}")
+        return []
+
+    props = []
+    for _, row in df.iterrows():
+        # Normalize columns to agent prop format
+        prop = {
+            'player_name': row.get('Player', ''),
+            'team': row.get('Team/Opp', ''),
+            'pick': row.get('Prop', ''),
+            'stat_type': row.get('Prop', '').lower(),
+            'line': float(row.get('Line', 0)) if row.get('Line', '') else 0.0,
+            'odds': int(row.get('Odds', -110)) if str(row.get('Odds', '')).replace('+','').replace('-','').isdigit() else -110,
+            'confidence': float(row.get('IP', 50)) if row.get('IP', '') else 50.0,
+            'expected_value': float(row.get('Diff', 0)) if row.get('Diff', '') else 0.0,
+            'avg_l10': float(row.get('Avg_L10', 0)) if row.get('Avg_L10', '') else 0.0,
+            'start_time': '',  # Not available
+            'sport': '',  # Will be inferred
+            'over_under': 'over' if 'over' in str(row.get('Prop', '')).lower() else 'under' if 'under' in str(row.get('Prop', '')).lower() else None
+        }
+        props.append(prop)
+    print(f"Loaded {len(props)} props from {csv_path}")
+    return props
 
 
 def load_all_real_props(max_props: int = 250) -> Tuple[Dict[str, List[Dict]], Dict[str, int]]:
@@ -218,7 +263,15 @@ def main():
     print("=== Ingest Real Props & Predict ===")
     print(f"Run at: {datetime.now().isoformat()}")
 
-    grouped, counts = load_all_real_props(max_props=300)
+    # Try to load pickfinder_all_projections.csv first
+    csv_path = 'pickfinder_all_projections.csv'
+    csv_props = load_pickfinder_csv(csv_path)
+    if csv_props:
+        grouped = group_by_sport(csv_props)
+        counts = {'pickfinder_csv': len(csv_props)}
+        print(f"Loaded {len(csv_props)} props from PickFinder CSV.")
+    else:
+        grouped, counts = load_all_real_props(max_props=300)
 
     # Print source counts
     print("\n-- Data source counts --")

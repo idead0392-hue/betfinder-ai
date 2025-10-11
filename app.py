@@ -3,6 +3,9 @@ import pandas as pd
 import requests
 import os
 import time
+import threading
+import importlib
+from datetime import datetime
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -23,6 +26,13 @@ if 'cache_timestamp' not in st.session_state:
     st.session_state.cache_timestamp = {}
 if 'data_loaded' not in st.session_state:
     st.session_state.data_loaded = False
+if 'auto_scraper_started' not in st.session_state:
+    st.session_state.auto_scraper_started = False
+if 'csv_last_mtime' not in st.session_state:
+    st.session_state.csv_last_mtime = 0.0
+if 'auto_scrape_interval_sec' not in st.session_state:
+    # Default: scrape every 5 minutes
+    st.session_state.auto_scrape_interval_sec = int(os.environ.get('AUTO_SCRAPE_INTERVAL_SEC', '300'))
 
 # Cache duration (5 minutes)
 CACHE_DURATION = 300
@@ -44,6 +54,32 @@ def set_cached_data(cache_key, data):
     """Store data in cache with timestamp"""
     st.session_state.data_cache[cache_key] = data
     st.session_state.cache_timestamp[cache_key] = time.time()
+
+def _run_prizepicks_scraper_loop(csv_path: str, interval_sec: int = 300):
+    """Background loop to refresh PrizePicks CSV on an interval."""
+    # Import locally to avoid import-time overhead on main thread
+    from prizepicks_scrape import main as scrape_main
+    while True:
+        try:
+            # Ensure scraper writes to the same path the app reads
+            os.environ['PRIZEPICKS_CSV'] = csv_path
+            scrape_main()
+        except Exception:
+            # Keep loop alive even on failures
+            pass
+        finally:
+            try:
+                # Small guard sleep before checking/writing again
+                time.sleep(max(10, int(interval_sec)))
+            except Exception:
+                time.sleep(300)
+
+def start_auto_scraper(csv_path: str, interval_sec: int = 300):
+    """Start the background auto-scraper thread once per session."""
+    if not st.session_state.auto_scraper_started:
+        t = threading.Thread(target=_run_prizepicks_scraper_loop, args=(csv_path, interval_sec), daemon=True)
+        t.start()
+        st.session_state.auto_scraper_started = True
 
 def load_sports_data_with_agents():
     """Load all sports data using sport agents"""
@@ -392,73 +428,169 @@ st.markdown("""
 # Load data
 load_sports_data_with_agents()
 
+# Sidebar: Automation status (no manual upload/refresh)
+st.sidebar.header("Live Data")
+if 'prizepicks_csv_path' not in st.session_state:
+    st.session_state['prizepicks_csv_path'] = 'prizepicks_props.csv'
+
+st.sidebar.success("Automatic mode enabled. Scraper runs in the background and UI refreshes automatically.")
+st.sidebar.write(f"CSV path: `{st.session_state['prizepicks_csv_path']}`")
+last_ts = st.session_state.get('csv_last_mtime', 0)
+if last_ts:
+    st.sidebar.write(f"Last update: {datetime.fromtimestamp(last_ts).strftime('%Y-%m-%d %H:%M:%S')}")
+else:
+    st.sidebar.write("Last update: pending…")
+st.sidebar.write(f"Interval: {st.session_state.get('auto_scrape_interval_sec', 300)}s")
+
+# Start auto-scraper in the background (no manual uploads or refreshes needed)
+effective_csv_path = st.session_state.get('prizepicks_csv_path', 'prizepicks_props.csv')
+start_auto_scraper(effective_csv_path, st.session_state.auto_scrape_interval_sec)
+
+# Auto-refresh the app periodically so updated CSVs are picked up without user action
+st_autorefresh_counter = st.experimental_memo.clear if False else None  # placeholder to keep linter calm
+st_autorefresh = None
+try:
+    spec = importlib.util.find_spec("streamlit_autorefresh")
+    if spec is not None:
+        st_autorefresh = importlib.import_module("streamlit_autorefresh").st_autorefresh
+except Exception:
+    st_autorefresh = None
+
+# Use built-in Streamlit autorefresh if helper isn't available
+if st_autorefresh is not None:
+    st_autorefresh(interval=20000, key="auto_refresh_interval")
+else:
+    # Pure-Streamlit fallback via a zero-size component that injects a timer-based reload
+    try:
+        import streamlit.components.v1 as components
+        components.html("""
+            <script>
+                setTimeout(function(){
+                    if (window && window.parent) {
+                        window.parent.location.reload();
+                    } else {
+                        window.location.reload();
+                    }
+                }, 20000);
+            </script>
+        """, height=0, width=0)
+    except Exception:
+        # As a last resort, do nothing; data will still update when user interacts
+        pass
+
 
 # New tab names: add College Football and individual esports
 tab_names = [
-    "🏀 Basketball", "🏈 Football", "🎾 Tennis", "⚾ Baseball", "🏒 Hockey", "⚽ Soccer", "� College Football",
+    "🏀 Basketball", "🏈 Football", "🎾 Tennis", "⚾ Baseball", "🏒 Hockey", "⚽ Soccer", "🎓 College Football",
     "🔫 CSGO", "🧙 League of Legends", "🐉 Dota2", "🎯 Valorant", "🛡️ Overwatch", "🚗 Rocket League"
 ]
 tabs = st.tabs(tab_names)
 
-# Load PickFinder CSV and group props by sport/esport
-def load_pickfinder_csv(csv_path: str) -> dict:
+# Load PrizePicks CSV and group props by sport/esport (cached for 5 minutes)
+def load_prizepicks_csv_cached(csv_path: str) -> dict:
+    # Incorporate file path and mtime into cache key so cache updates when CSV changes
+    try:
+        mtime = os.path.getmtime(csv_path)
+    except Exception:
+        mtime = 0
+    cache_key = f"prizepicks_csv_props::{csv_path}::{mtime}"
+    cached = get_cached_data(cache_key)
+    if cached is not None:
+        return cached
     try:
         df = pd.read_csv(csv_path)
     except Exception:
+        set_cached_data(cache_key, {})
         return {}
     props = []
+    cols = {c.lower(): c for c in df.columns}
+    name_col = cols.get('name') or cols.get('player')
+    line_col = cols.get('points') or cols.get('line')
+    prop_col = cols.get('prop')
+    sport_col = cols.get('sport')  # optional
     for _, row in df.iterrows():
+        player_name = row.get(name_col, '') if name_col else ''
+        stat_type = str(row.get(prop_col, '')).strip() if prop_col else ''
+        line_val = row.get(line_col, '') if line_col else ''
+        try:
+            line = float(line_val) if line_val != '' else 0.0
+        except Exception:
+            try:
+                line = float(str(line_val).split()[0])
+            except Exception:
+                line = 0.0
+        sport_val = str(row.get(sport_col, '')).strip().lower() if sport_col else ''
         prop = {
-            'player_name': row.get('Player', ''),
-            'team': row.get('Team/Opp', ''),
-            'pick': row.get('Prop', ''),
-            'stat_type': row.get('Prop', '').lower(),
-            'line': float(row.get('Line', 0)) if row.get('Line', '') else 0.0,
-            'odds': int(row.get('Odds', -110)) if str(row.get('Odds', '')).replace('+','').replace('-','').isdigit() else -110,
-            'confidence': float(row.get('IP', 50)) if row.get('IP', '') else 50.0,
-            'expected_value': float(row.get('Diff', 0)) if row.get('Diff', '') else 0.0,
-            'avg_l10': float(row.get('Avg_L10', 0)) if row.get('Avg_L10', '') else 0.0,
+            'player_name': player_name,
+            'team': '',
+            'pick': stat_type,
+            'stat_type': stat_type.lower(),
+            'line': line,
+            'odds': -110,
+            'confidence': 50.0,
+            'expected_value': 0.0,
+            'avg_l10': 0.0,
             'start_time': '',
-            'sport': '',
-            'over_under': 'over' if 'over' in str(row.get('Prop', '')).lower() else 'under' if 'under' in str(row.get('Prop', '')).lower() else None
+            'sport': sport_val,
+            'over_under': None
         }
         props.append(prop)
-    # Group by sport/esport
     grouped = {k: [] for k in [
         'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
         'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'rocket_league']}
-    for p in props:
+    def map_to_sport(p: dict) -> str:
+        if p.get('sport'):
+            s = p['sport']
+            aliases = {
+                'nba': 'basketball', 'wnba': 'basketball', 'nfl': 'football', 'cfb': 'college_football', 'cbb': 'basketball',
+                'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'lol': 'league_of_legends', 'cs2': 'csgo', 'cs:go': 'csgo'
+            }
+            return aliases.get(s, s)
         stat = str(p.get('stat_type', '')).lower()
-        # Heuristic mapping
-        if 'college' in stat or 'ncaa' in stat:
-            grouped['college_football'].append(p)
-        elif 'csgo' in stat or 'kill' in stat or 'headshot' in stat or 'fantasy' in stat:
-            grouped['csgo'].append(p)
-        elif 'league' in stat or 'lol' in stat or 'assist' in stat:
-            grouped['league_of_legends'].append(p)
-        elif 'dota' in stat:
-            grouped['dota2'].append(p)
-        elif 'valorant' in stat:
-            grouped['valorant'].append(p)
-        elif 'overwatch' in stat:
-            grouped['overwatch'].append(p)
-        elif 'rocket' in stat:
-            grouped['rocket_league'].append(p)
-        elif 'basket' in stat or 'point' in stat or 'rebound' in stat or 'assist' in stat or 'block' in stat or 'steal' in stat or 'three' in stat:
-            grouped['basketball'].append(p)
-        elif 'foot' in stat or 'yard' in stat or 'touchdown' in stat or 'reception' in stat or 'passing' in stat or 'rushing' in stat:
-            grouped['football'].append(p)
-        elif 'base' in stat or 'hit' in stat or 'run' in stat or 'home_run' in stat or 'strikeout' in stat:
-            grouped['baseball'].append(p)
-        elif 'hock' in stat or 'goal' in stat or 'shot' in stat or 'penalty' in stat:
-            grouped['hockey'].append(p)
-        elif 'soccer' in stat or 'card' in stat or 'goal' in stat or 'assist' in stat:
-            grouped['soccer'].append(p)
-        elif 'tennis' in stat:
-            grouped['tennis'].append(p)
+        if any(k in stat for k in ['csgo', 'cs2', 'kill', 'headshot']):
+            return 'csgo'
+        if any(k in stat for k in ['league', 'lol', 'assists per game (lol)']):
+            return 'league_of_legends'
+        if 'dota' in stat:
+            return 'dota2'
+        if 'valorant' in stat:
+            return 'valorant'
+        if 'overwatch' in stat:
+            return 'overwatch'
+        if 'rocket' in stat:
+            return 'rocket_league'
+        if any(k in stat for k in ['point', 'rebound', 'assist', 'block', 'steal', '3pt', 'three']):
+            return 'basketball'
+        if any(k in stat for k in ['passing', 'rushing', 'receiving', 'touchdown', 'yards', 'receptions']):
+            return 'football'
+        if any(k in stat for k in ['hits', 'home run', 'strikeout', 'total bases', 'rbis']):
+            return 'baseball'
+        if any(k in stat for k in ['shots on goal', 'goal', 'assist (nhl)', 'saves']):
+            return 'hockey'
+        if any(k in stat for k in ['goals', 'cards', 'clean sheets']):
+            return 'soccer'
+        if 'ace' in stat or 'double fault' in stat:
+            return 'tennis'
+        return 'basketball'
+    for p in props:
+        sport_key = map_to_sport(p)
+        if sport_key in grouped:
+            grouped[sport_key].append(p)
+    set_cached_data(cache_key, grouped)
     return grouped
 
-csv_props = load_pickfinder_csv('pickfinder_all_projections.csv')
+# Track mtime and surface a small status indicator
+try:
+    current_mtime = os.path.getmtime(effective_csv_path)
+except Exception:
+    current_mtime = 0.0
+
+if current_mtime != st.session_state.csv_last_mtime:
+    st.session_state.csv_last_mtime = current_mtime
+    if current_mtime:
+        st.toast(f"PrizePicks CSV updated at {datetime.fromtimestamp(current_mtime).strftime('%H:%M:%S')}", icon="✅")
+
+csv_props = load_prizepicks_csv_cached(effective_csv_path)
 
 # Assign agents for all tabs
 from sport_agents import (
@@ -484,11 +616,12 @@ agents = [
 for i, (agent, key, emoji) in enumerate(agents):
     with tabs[i]:
         props = csv_props.get(key, [])
-        if not props:
-            # fallback to agent's own props if CSV empty
-            props = agent.make_picks()
-        else:
+        # Only use props from PrizePicks CSV, do not fallback to agent or external providers
+        if props:
             props = agent.make_picks(props_data=props)
+        else:
+            st.warning(f"No prop lines available for {key.replace('_',' ').title()} in PrizePicks CSV at '{effective_csv_path}'.")
+            props = []
         display_sport_picks(agent.__class__.__name__.replace('Agent',''), props, emoji)
 
 # Footer
