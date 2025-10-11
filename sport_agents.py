@@ -359,7 +359,7 @@ class SportAgent(ABC):
         - Internal mock generator (existing behavior)
         - PrizePicks provider
         - Underdog provider
-        - SportBex-backed PropsDataFetcher (real data, normalized)
+        - PrizePicks CSV data and automated scraping
 
         Args:
             max_props (int): Maximum number of props to fetch
@@ -374,7 +374,7 @@ class SportAgent(ABC):
             fetch_prizepicks_props = None
             fetch_underdog_props = None
 
-        # Attempt to import PropsDataFetcher for SportBex-backed real data (optional)
+        # Load PrizePicks CSV data directly if available
         try:
             from props_data_fetcher import PropsDataFetcher
             _props_fetcher = PropsDataFetcher()
@@ -403,7 +403,7 @@ class SportAgent(ABC):
             except Exception:
                 pass
 
-        # 4) SportBex-backed real props via PropsDataFetcher
+        # 4) Real props from PrizePicks CSV data
         if _props_fetcher is not None:
             try:
                 real_props = _props_fetcher.fetch_all_props(max_props=max(200, max_props))
@@ -2514,27 +2514,29 @@ class OverwatchAgent(EsportsAgent):
         return factors
 
 
-class RocketLeagueAgent(EsportsAgent):
-    """Rocket League specific agent"""
+class GolfAgent(SportAgent):
+    """Golf specific agent"""
     
     def __init__(self):
-        super().__init__("rocket_league")
+        super().__init__("golf")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Rocket League props restricted to allowed esports prop types"""
+        """Generate Golf props"""
         players = [
-            "jstn", "GarrettG", "Squishy", "Turbo", "Kaydop",
-            "Fairy Peak", "Alpha54", "Extra", "Monkey Moon", "BeastMode"
+            "Tiger Woods", "Rory McIlroy", "Jon Rahm", "Scottie Scheffler", "Viktor Hovland",
+            "Collin Morikawa", "Justin Thomas", "Xander Schauffele", "Patrick Cantlay", "Dustin Johnson"
         ]
         allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'fantasy_points'
+            'total_strokes',
+            'birdies',
+            'eagles',
+            'pars'
         ]
         line_ranges = {
-            'combined_map_1_2_kills': (6.5, 16.5),
-            'combined_map_1_2_headshots': (2.5, 6.5),
-            'fantasy_points': (25.5, 65.5)
+            'total_strokes': (65.5, 75.5),
+            'birdies': (2.5, 8.5),
+            'eagles': (0.5, 2.5),
+            'pars': (8.5, 14.5)
         }
 
         props: List[Dict] = []
@@ -2547,57 +2549,56 @@ class RocketLeagueAgent(EsportsAgent):
                 low, high = line_ranges[stat_type]
                 line = round(random.uniform(low, high), 1)
                 props.append({
-                    'game_id': f"rocket_league_{i}",
+                    'game_id': f"golf_{i}",
                     'player_name': player,
                     'stat_type': stat_type,
                     'line': line,
                     'odds': random.choice([-110, -105, -115, +100, +105]),
                     'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['NRG', 'G2', 'SSG', 'C9'])} vs {random.choice(['BDS', 'Vitality', 'Endpoint', 'DIG'])}",
+                    'matchup': f"{random.choice(['Masters', 'US Open', 'PGA Championship', 'The Open'])}",
                     'sportsbook': random.choice(['DraftKings', 'Betway']),
                     'recent_form': random.uniform(6, 9),
                     'matchup_difficulty': random.uniform(4, 8),
                     'injury_status': 'healthy',
-                    # Rocket League specific factors
-                    'playstyle': random.choice(['mechanical', 'positional', 'aggressive']),
-                    'team_rotation': random.uniform(0.7, 1.0),
-                    'boost_management': random.uniform(0.6, 1.0)
+                    # Golf specific factors
+                    'driving_accuracy': random.uniform(0.6, 0.9),
+                    'putting_average': random.uniform(1.7, 2.1),
+                    'course_history': random.uniform(0.5, 1.0)
                 })
                 i += 1
             if len(props) >= max_props:
                 break
         return props
     
-    def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
-        """Analyze Rocket League specific factors"""
-        playstyle = prop.get('playstyle', 'balanced')
-        team_rotation = prop.get('team_rotation', 0.8)
-        boost_management = prop.get('boost_management', 0.8)
+    def _analyze_golf_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+        """Analyze Golf specific factors"""
+        driving_accuracy = prop.get('driving_accuracy', 0.75)
+        putting_average = prop.get('putting_average', 1.9)
+        course_history = prop.get('course_history', 0.75)
         
         score = 5.0
         
-        # Playstyle impact on stats
-        stat_type = prop.get('stat_type', '')
-        if playstyle == 'mechanical' and stat_type in ['goals', 'shots']:
-            score += 1
-        elif playstyle == 'positional' and stat_type == 'saves':
-            score += 1
+        # Driving accuracy impact
+        score += (driving_accuracy - 0.75) * 3
         
-        score += (team_rotation - 0.8) * 2
-        score += (boost_management - 0.8) * 1.5
+        # Putting impact (lower is better)
+        score += (1.9 - putting_average) * 2
+        
+        # Course history impact
+        score += (course_history - 0.75) * 2
         
         return {
-            'playstyle': playstyle,
-            'team_rotation': team_rotation,
-            'boost_management': boost_management,
+            'driving_accuracy': driving_accuracy,
+            'putting_average': putting_average,
+            'course_history': course_history,
             'score': max(1, min(10, score)),
-            'reasoning': f"Style: {playstyle}, Rotation: {team_rotation:.1%}, Boost: {boost_management:.1%}"
+            'reasoning': f"Driving: {driving_accuracy:.1%}, Putting: {putting_average:.1f}, History: {course_history:.1%}"
         }
     
     def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
-        """Enhanced analysis including Rocket League specific factors"""
+        """Enhanced analysis including Golf specific factors"""
         factors = super()._perform_detailed_analysis(prop)
-        factors['rocket_league_specific'] = self._analyze_esports_specific_factors(prop)
+        factors['golf_specific'] = self._analyze_golf_specific_factors(prop)
         factor_scores = [f['score'] for f in factors.values() if isinstance(f, dict) and 'score' in f]
         factors['overall_score'] = statistics.mean(factor_scores) if factor_scores else 5.0
         return factors
@@ -2681,7 +2682,7 @@ def create_sport_agent(sport_name: str) -> SportAgent:
         'dota2': Dota2Agent,
         'valorant': VALORANTAgent,
         'overwatch': OverwatchAgent,
-        'rocket_league': RocketLeagueAgent
+        'golf': GolfAgent
     }
     
     agent_class = sport_agents.get(sport_name.lower())
