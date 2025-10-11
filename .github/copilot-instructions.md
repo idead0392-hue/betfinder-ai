@@ -16,6 +16,12 @@ This workspace contains a comprehensive Model Context Protocol (MCP) server for 
 3. **calculate_bet_size**: Kelly Criterion-based bet sizing with risk management
 4. **get_performance_metrics**: Comprehensive bankroll and performance tracking
 5. **analyze_value_bet**: Expected value analysis for betting opportunities
+### Sports Data Tools
+1. **get_live_odds**: Real-time betting odds from PrizePicks data
+2. **get_ai_picks**: AI-generated betting recommendations with confidence scores
+3. **calculate_bet_size**: Kelly Criterion-based bet sizing with risk management
+4. **get_performance_metrics**: Comprehensive bankroll and performance tracking
+5. **analyze_value_bet**: Expected value analysis for betting opportunities
 
 ### Resource Endpoints
 - `betfinder://sports/current-odds`: Live odds data
@@ -24,11 +30,11 @@ This workspace contains a comprehensive Model Context Protocol (MCP) server for 
 - `betfinder://config/settings`: Server configuration
 
 ### Integration Points
-- **Sportbex Provider**: Real-time sports data and odds
+### Integration Points
+- **PrizePicks Provider**: Real-time player prop data via automated scraping
 - **Picks Engine**: AI-powered betting analysis
 - **Bankroll Manager**: Professional money management with Kelly Criterion
 - **Risk Assessment**: Multi-factor risk evaluation system
-
 ## Development Guidelines
 
 ### MCP Server Development
@@ -55,3 +61,5 @@ This workspace contains a comprehensive Model Context Protocol (MCP) server for 
 
 ## Architecture Notes
 The MCP server acts as a bridge between OpenAI Agent Builder and BetFinder AI's sports betting analysis capabilities, enabling automated workflows while maintaining professional-grade risk management and data integrity.
+## Architecture Notes
+The MCP server acts as a bridge between OpenAI Agent Builder and BetFinder AI's sports betting analysis capabilities, leveraging real-time PrizePicks data through automated scraping to enable intelligent betting workflows while maintaining professional-grade risk management and data integrity.

@@ -4,7 +4,7 @@ Ingest real props and stats, feed to agents, retrain ML, and print predictions.
 Usage: python3 ingest_real_props_and_predict.py
 
 This script:
-- Loads real props from PropsDataFetcher (SportBex-backed) and optional PrizePicks/Underdog fetchers if present
+- Loads real props from PropsDataFetcher (PrizePicks CSV data) and optional PrizePicks/Underdog fetchers if present
 - Groups props by sport
 - Feeds them to all sport agents (NBA, NFL, MLB, NHL, Soccer, CFB, plus CS2 where applicable)
 - Triggers learn_from_history and make_picks on each agent with the real data
@@ -31,7 +31,7 @@ from sport_agents import create_sport_agent, ml_model
 props_fetcher = None
 pp_fetch = None
 ud_fetch = None
-sportbex_provider = None
+csv_data = None
 
 # Map friendly sport names to agent creation keys
 SPORT_KEYS = {
@@ -63,10 +63,10 @@ except Exception:
     ud_fetch = None
 
 try:
-    import sportbex_provider as sportbex_provider  # noqa: F401
-    sportbex_provider_available = True
+    import csv_data as csv_data  # noqa: F401
+    csv_data_available = True
 except Exception:
-    sportbex_provider_available = False
+    csv_data_available = False
 
 
 def american_to_prob(odds: int) -> float:
@@ -132,26 +132,22 @@ def load_all_real_props(max_props: int = 250) -> Tuple[Dict[str, List[Dict]], Di
     all_props: List[Dict] = []
     counts: Dict[str, int] = {}
 
-    # Source 1: SportBex-backed PropsDataFetcher (normalized)
+    # Source 1: PrizePicks CSV data PropsDataFetcher (normalized)
     if props_fetcher:
         try:
             props = props_fetcher.fetch_all_props(max_props=max_props)
-            counts['sportbex_props'] = len(props)
+            counts['csv_props'] = len(props)
             all_props.extend(props)
         except Exception as e:
             print(f"⚠️ Error fetching from PropsDataFetcher: {e}")
-            counts['sportbex_props'] = 0
+            counts['csv_props'] = 0
     else:
-        counts['sportbex_props'] = 0
+        counts['csv_props'] = 0
 
     # Source 2: PrizePicks (if available)
     if pp_fetch:
         try:
-            # Pull for primary sports only to avoid volume blow-up
-            sports_to_pull = ['basketball', 'football', 'baseball', 'hockey', 'soccer']
-            pp_total = 0
-            for s in sports_to_pull:
-                try:
+     Loads real props from PrizePicks CSV data and optional provider fetchers if present
                     data = pp_fetch(s)
                     if isinstance(data, list):
                         all_props.extend(data)
