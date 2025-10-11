@@ -429,13 +429,14 @@ class SportAgent(ABC):
         """
         pass
     
-    def make_picks(self, props_data: Optional[List[Dict]] = None) -> List[Dict]:
+    def make_picks(self, props_data: Optional[List[Dict]] = None, log_to_ledger: bool = True) -> List[Dict]:
         """
         Analyze props and make over/under picks with confidence scores
         Includes detailed multi-factor reasoning, PicksLedger integration, and ML predictions
         
         Args:
             props_data (List[Dict], optional): Props data to analyze
+            log_to_ledger (bool): When False, skip logging picks to the persistent ledger
             
         Returns:
             List[Dict]: List of picks with confidence scores and ML predictions
@@ -460,9 +461,10 @@ class SportAgent(ABC):
                 # Enhance pick with ML insights
                 pick = self._enhance_pick_with_ml(pick, ml_prediction)
                 
-                # Log pick to ledger and get pick_id
-                pick_id = picks_ledger.log_pick(pick)
-                pick['pick_id'] = pick_id
+                # Log pick to ledger and get pick_id (optional)
+                if log_to_ledger:
+                    pick_id = picks_ledger.log_pick(pick)
+                    pick['pick_id'] = pick_id
                 picks.append(pick)
         
         # Sort picks by ML-enhanced confidence and expected value

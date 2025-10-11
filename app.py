@@ -10,6 +10,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from lxml import etree
+import json
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse
 
 # Page configuration
 st.set_page_config(
@@ -31,8 +34,8 @@ if 'auto_scraper_started' not in st.session_state:
 if 'csv_last_mtime' not in st.session_state:
     st.session_state.csv_last_mtime = 0.0
 if 'auto_scrape_interval_sec' not in st.session_state:
-    # Default: scrape every 5 minutes
-    st.session_state.auto_scrape_interval_sec = int(os.environ.get('AUTO_SCRAPE_INTERVAL_SEC', '300'))
+    # Default: scrape every 60 seconds for near real-time updates
+    st.session_state.auto_scrape_interval_sec = int(os.environ.get('AUTO_SCRAPE_INTERVAL_SEC', '60'))
 
 # Cache duration (5 minutes)
 CACHE_DURATION = 300
@@ -444,9 +447,26 @@ st.sidebar.write(f"Interval: {st.session_state.get('auto_scrape_interval_sec', 3
 
 # Start auto-scraper in the background (no manual uploads or refreshes needed)
 effective_csv_path = st.session_state.get('prizepicks_csv_path', 'prizepicks_props.csv')
+
+# Kick off an immediate scrape on startup if file missing or stale (>2*interval)
+def _ensure_fresh_csv(path: str, max_age_sec: int):
+    try:
+        mtime = os.path.getmtime(path)
+    except Exception:
+        mtime = 0
+    age = time.time() - mtime if mtime else 1e9
+    if age > max(30, 2 * max_age_sec):
+        try:
+            os.environ['PRIZEPICKS_CSV'] = path
+            from prizepicks_scrape import main as scrape_main
+            scrape_main()
+        except Exception:
+            pass
+
+_ensure_fresh_csv(effective_csv_path, st.session_state.auto_scrape_interval_sec)
 start_auto_scraper(effective_csv_path, st.session_state.auto_scrape_interval_sec)
 
-# Auto-refresh the app periodically so updated CSVs are picked up without user action
+# Auto-refresh trigger: prefer streamlit_autorefresh; no full-page HTML reload
 st_autorefresh_counter = st.experimental_memo.clear if False else None  # placeholder to keep linter calm
 st_autorefresh = None
 try:
@@ -456,28 +476,60 @@ try:
 except Exception:
     st_autorefresh = None
 
-# Use built-in Streamlit autorefresh if helper isn't available
 if st_autorefresh is not None:
     st_autorefresh(interval=20000, key="auto_refresh_interval")
-else:
-    # Pure-Streamlit fallback via a zero-size component that injects a timer-based reload
-    try:
-        import streamlit.components.v1 as components
-        components.html("""
-            <script>
-                setTimeout(function(){
-                    if (window && window.parent) {
-                        window.parent.location.reload();
-                    } else {
-                        window.location.reload();
-                    }
-                }, 20000);
-            </script>
-        """, height=0, width=0)
-    except Exception:
-        # As a last resort, do nothing; data will still update when user interacts
-        pass
 
+
+# =============== Live Props JSON server (polling by client) ===============
+
+PROPS_ENDPOINT_PORT = int(os.environ.get('PROPS_ENDPOINT_PORT', '8765'))
+
+_last_props_payload = {"mtime": 0, "by_sport": {}}
+_server_started = False
+
+class PropsRequestHandler(BaseHTTPRequestHandler):
+    def _send_json(self, data, code=200):
+        payload = json.dumps(data).encode('utf-8')
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(payload)))
+        self.send_header('Cache-Control', 'no-store')
+        # CORS for local browser use
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def do_OPTIONS(self):
+        self._send_json({}, 200)
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path == '/props.json':
+            global _last_props_payload
+            try:
+                # Serve latest cached payload
+                self._send_json(_last_props_payload, 200)
+            except Exception:
+                self._send_json({"error": "internal"}, 500)
+        else:
+            self._send_json({"error": "not found"}, 404)
+
+
+def _start_props_server():
+    global _server_started
+    if _server_started:
+        return
+    def _serve():
+        try:
+            httpd = ThreadingHTTPServer(('127.0.0.1', PROPS_ENDPOINT_PORT), PropsRequestHandler)
+            httpd.serve_forever()
+        except Exception:
+            pass
+    th = threading.Thread(target=_serve, daemon=True)
+    th.start()
+    _server_started = True
 
 # New tab names: add College Football and individual esports
 tab_names = [
@@ -592,6 +644,106 @@ if current_mtime != st.session_state.csv_last_mtime:
 
 csv_props = load_prizepicks_csv_cached(effective_csv_path)
 
+# Compute per-sport props HTML using agents (no ledger logging for live view)
+from sport_agents import (
+    BasketballAgent, FootballAgent, TennisAgent, BaseballAgent, HockeyAgent, SoccerAgent,
+    CollegeFootballAgent, CSGOAgent, LeagueOfLegendsAgent, Dota2Agent, VALORANTAgent, OverwatchAgent, RocketLeagueAgent
+)
+agent_classes = {
+    'basketball': BasketballAgent,
+    'football': FootballAgent,
+    'tennis': TennisAgent,
+    'baseball': BaseballAgent,
+    'hockey': HockeyAgent,
+    'soccer': SoccerAgent,
+    'college_football': CollegeFootballAgent,
+    'csgo': CSGOAgent,
+    'league_of_legends': LeagueOfLegendsAgent,
+    'dota2': Dota2Agent,
+    'valorant': VALORANTAgent,
+    'overwatch': OverwatchAgent,
+    'rocket_league': RocketLeagueAgent,
+}
+
+# Render to HTML cards for client-side reuse
+
+def render_prop_card_html(prop: dict, sport_emoji: str) -> str:
+    player_name = prop.get('player_name', prop.get('description', 'Unknown Player'))
+    stat_type = prop.get('stat_type', 'Unknown Stat')
+    line = prop.get('line', 'N/A')
+    bet_type = prop.get('bet_type', 'over')
+    confidence = prop.get('confidence', 0)
+    odds = prop.get('odds', -110)
+    odds_display = f"{abs(odds):,.0f}" if odds else "N/A"
+    edge = 0
+    if 'ml_prediction' in prop:
+        edge = prop['ml_prediction'].get('edge', 0)
+    game_info = prop.get('game', prop.get('matchup', 'TBD vs TBD'))
+    event_time = prop.get('event_start_time', 'TBD')
+    if confidence >= 80 or edge > 0.05:
+        card_class = "prop-card-high"; odds_class = "odds-high"
+    elif confidence >= 70 or edge > 0.02:
+        card_class = "prop-card-medium"; odds_class = "odds-medium"
+    else:
+        card_class = "prop-card-low"; odds_class = "odds-low"
+    return f"""
+    <div class=\"prop-card {card_class}\">
+        <div class=\"card-header\">
+            <div class=\"team-icon\"><div class=\"team-logo\">{sport_emoji}</div></div>
+            <div class=\"odds-badge {odds_class}\">🔥 {odds_display}</div>
+        </div>
+        <div class=\"player-info\">
+            <div class=\"team-name\">{game_info[:15]}...</div>
+            <div class=\"player-name\">{player_name}</div>
+            <div class=\"match-details\">vs {event_time}</div>
+        </div>
+        <div class=\"stat-line\">
+            <div class=\"stat-number\">{line}</div>
+            <div class=\"stat-type\">{stat_type.upper()} {bet_type.upper()}</div>
+        </div>
+        <div class=\"card-footer\">
+            <button class=\"less-btn\">↓ Less</button>
+            <div class=\"confidence-indicator\">
+                <span class=\"confidence-text\">{confidence}%</span>
+                {"<span class='edge-text'>+" + f"{edge:.1%}</span>" if edge > 0.01 else ""}
+            </div>
+            <button class=\"more-btn\">↑ More</button>
+        </div>
+    </div>
+    """
+
+# Build per-sport HTML blocks
+sport_emojis = {
+    'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
+    'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗'
+}
+
+by_sport_html = {}
+for key, cls in agent_classes.items():
+    props = csv_props.get(key, [])
+    if props:
+        agent = cls()
+        try:
+            picks = agent.make_picks(props_data=props, log_to_ledger=False)
+        except Exception:
+            picks = []
+    else:
+        picks = []
+    # Render top 12
+    cards = []
+    for i, p in enumerate(picks[:12]):
+        cards.append(render_prop_card_html(p, sport_emojis.get(key, '')))
+    by_sport_html[key] = "".join(cards)
+
+# Update in-memory payload for JSON server
+_last_props_payload = {
+    "mtime": int(current_mtime or 0),
+    "by_sport": by_sport_html
+}
+
+# Ensure JSON server is running
+_start_props_server()
+
 # Assign agents for all tabs
 from sport_agents import (
     BasketballAgent, FootballAgent, TennisAgent, BaseballAgent, HockeyAgent, SoccerAgent,
@@ -613,16 +765,43 @@ agents = [
     (RocketLeagueAgent(), 'rocket_league', '🚗')
 ]
 
-for i, (agent, key, emoji) in enumerate(agents):
-    with tabs[i]:
-        props = csv_props.get(key, [])
-        # Only use props from PrizePicks CSV, do not fallback to agent or external providers
-        if props:
-            props = agent.make_picks(props_data=props)
-        else:
-            st.warning(f"No prop lines available for {key.replace('_',' ').title()} in PrizePicks CSV at '{effective_csv_path}'.")
-            props = []
-        display_sport_picks(agent.__class__.__name__.replace('Agent',''), props, emoji)
+# Client-side live component that polls the JSON endpoint and replaces content only for props areas
+try:
+    import streamlit.components.v1 as components
+    base_url = f"http://127.0.0.1:{PROPS_ENDPOINT_PORT}/props.json"
+    for i, (agent, key, emoji) in enumerate(agents):
+        with tabs[i]:
+            st.markdown(f'<div class="section-title">{agent.__class__.__name__.replace("Agent","")}<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+            container_id = f"props-container-{key}"
+            st.markdown(f"<div id='{container_id}'></div>", unsafe_allow_html=True)
+            components.html(f"""
+                <div id="{container_id}-inner"></div>
+                <script>
+                  async function fetchProps() {{
+                    try {{
+                      const res = await fetch('{base_url}', {{ cache: 'no-store' }});
+                      const data = await res.json();
+                      const html = (data.by_sport && data.by_sport['{key}']) ? data.by_sport['{key}'] : '';
+                      document.getElementById('{container_id}-inner').innerHTML = html || '<div style=\"color:#999\">No props available.</div>';
+                    }} catch (e) {{
+                      document.getElementById('{container_id}-inner').innerHTML = '<div style=\"color:#999\">Loading...</div>';
+                    }}
+                  }}
+                  fetchProps();
+                  setInterval(fetchProps, 15000);
+                </script>
+            """, height=600)
+except Exception:
+    # Fallback to static render once if components fail
+    for i, (agent, key, emoji) in enumerate(agents):
+        with tabs[i]:
+            props = csv_props.get(key, [])
+            if props:
+                props = agent.make_picks(props_data=props)
+            else:
+                st.warning(f"No prop lines available for {key.replace('_',' ').title()} in PrizePicks CSV at '{effective_csv_path}'.")
+                props = []
+            display_sport_picks(agent.__class__.__name__.replace('Agent',''), props, emoji)
 
 # Footer
 st.markdown("---")
