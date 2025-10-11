@@ -765,43 +765,65 @@ agents = [
     (RocketLeagueAgent(), 'rocket_league', '🚗')
 ]
 
-# Client-side live component that polls the JSON endpoint and replaces content only for props areas
-try:
-    import streamlit.components.v1 as components
-    base_url = f"http://127.0.0.1:{PROPS_ENDPOINT_PORT}/props.json"
-    for i, (agent, key, emoji) in enumerate(agents):
-        with tabs[i]:
-            st.markdown(f'<div class="section-title">{agent.__class__.__name__.replace("Agent","")}<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
-            container_id = f"props-container-{key}"
-            st.markdown(f"<div id='{container_id}'></div>", unsafe_allow_html=True)
+# Render tabs with both static content and live updates
+for i, (agent, key, emoji) in enumerate(agents):
+    with tabs[i]:
+        st.markdown(f'<div class="section-title">{agent.__class__.__name__.replace("Agent","")}<span class="time">Live & Upcoming</span></div>', unsafe_allow_html=True)
+        
+        # Get initial props for immediate display
+        props = csv_props.get(key, [])
+        if props:
+            try:
+                picks = agent.make_picks(props_data=props, log_to_ledger=False)
+            except Exception:
+                picks = []
+        else:
+            picks = []
+        
+        # Display initial static content
+        if picks:
+            display_sport_picks(agent.__class__.__name__.replace('Agent',''), picks, emoji)
+        else:
+            st.info(f"{emoji} Loading {key.replace('_',' ').title()} props...")
+        
+        # Add live update component that will replace the content above
+        try:
+            import streamlit.components.v1 as components
+            base_url = f"http://127.0.0.1:{PROPS_ENDPOINT_PORT}/props.json"
+            container_id = f"live-props-{key}"
+            
             components.html(f"""
-                <div id="{container_id}-inner"></div>
                 <script>
-                  async function fetchProps() {{
+                  async function updateProps_{key}() {{
                     try {{
                       const res = await fetch('{base_url}', {{ cache: 'no-store' }});
                       const data = await res.json();
                       const html = (data.by_sport && data.by_sport['{key}']) ? data.by_sport['{key}'] : '';
-                      document.getElementById('{container_id}-inner').innerHTML = html || '<div style=\"color:#999\">No props available.</div>';
+                      
+                      // Find the parent streamlit container and update it
+                      const containers = document.querySelectorAll('[data-testid="stMarkdownContainer"]');
+                      for (let container of containers) {{
+                        if (container.innerHTML.includes('props-grid-{key}')) {{
+                          if (html) {{
+                            container.innerHTML = '<div class="props-grid-{key}">' + html + '</div>';
+                          }}
+                          break;
+                        }}
+                      }}
                     }} catch (e) {{
-                      document.getElementById('{container_id}-inner').innerHTML = '<div style=\"color:#999\">Loading...</div>';
+                      console.log('Props update failed:', e);
                     }}
                   }}
-                  fetchProps();
-                  setInterval(fetchProps, 15000);
+                  
+                  // Start polling after initial load
+                  setTimeout(function() {{
+                    updateProps_{key}();
+                    setInterval(updateProps_{key}, 15000);
+                  }}, 2000);
                 </script>
-            """, height=600)
-except Exception:
-    # Fallback to static render once if components fail
-    for i, (agent, key, emoji) in enumerate(agents):
-        with tabs[i]:
-            props = csv_props.get(key, [])
-            if props:
-                props = agent.make_picks(props_data=props)
-            else:
-                st.warning(f"No prop lines available for {key.replace('_',' ').title()} in PrizePicks CSV at '{effective_csv_path}'.")
-                props = []
-            display_sport_picks(agent.__class__.__name__.replace('Agent',''), props, emoji)
+            """, height=0)
+        except Exception:
+            pass
 
 # Footer
 st.markdown("---")
