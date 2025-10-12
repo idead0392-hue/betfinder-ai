@@ -6,9 +6,9 @@
     "over_under_preference": 0.15,
     "recency_factor": 0.1
   },
-  "version": "1.0",
-  "last_training_time": "2025-10-12T20:08:15.095609",
-  "training_sample_size": 2,
+  "version": "automl_2.0",
+  "last_training_time": "2025-10-12T22:44:49.536908",
+  "training_sample_size": 0,
   "feature_importance": {},
   "accuracy": 0.0
 }

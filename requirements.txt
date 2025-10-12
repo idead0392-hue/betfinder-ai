@@ -11,3 +11,9 @@ numpy>=1.24.0
 plotly>=5.17.0
 nbastatpy>=0.1.0
 cs2api>=0.3.0
+leaguepedia_parser_thomasbarrepitous
+flashscore-scraper
+scikit-learn
+PyYAML
+auto-machine-learning
+mem0ai

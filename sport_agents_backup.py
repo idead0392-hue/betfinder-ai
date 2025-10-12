@@ -35,37 +35,27 @@ from picks_ledger import picks_ledger
 
 
 class PropValueMLModel:
-    """AutoML-powered model for predicting prop value/edge/ROI using historical data"""
-
+    """
+    Machine Learning model for predicting prop value/edge/ROI using historical data
+    
     def __init__(self):
-        # Import AutoML engine
-        try:
-            from automl_engine import AutoMLEngine
-            self.automl = AutoMLEngine("global")
-            self.use_automl = True
-        except Exception as e:
-            print(f"⚠️ AutoML unavailable, using fallback: {e}")
-            self.automl = None
-            self.use_automl = False
-        
-        # Fallback weights for when AutoML is unavailable
         self.weights = {
             'confidence_factor': 0.25,
             'historical_performance': 0.30,
             'stat_type_success': 0.20,
             'over_under_preference': 0.15,
-            'recency_factor': 0.10,
+        return factors
+            'recency_factor': 0.10
         }
-        self.model_version = "automl_2.0" if self.use_automl else "weights_1.0"
-        self.last_training_time: Optional[str] = None
-        self.training_sample_size: int = 0
-        self.feature_importance: Dict[str, float] = {}
-        self.model_accuracy: float = 0.0
-
+        self.model_version = "1.0"
+        self.last_training_time = None
+        self.training_sample_size = 0
+        self.feature_importance = {}
+        self.model_accuracy = 0.0
+        
         # Load existing model if available
-        if not self.use_automl:
-            self.load_model()
-
+        self.load_model()
+    
     def load_model(self) -> None:
         """Load pre-trained model weights and parameters"""
         try:
@@ -82,7 +72,7 @@ class PropValueMLModel:
                     print(f"✅ Loaded ML model v{self.model_version} (accuracy: {self.model_accuracy:.1%})")
         except Exception as e:
             print(f"⚠️ Error loading ML model: {e}")
-
+    
     def save_model(self) -> None:
         """Save trained model weights and parameters"""
         try:
@@ -92,41 +82,31 @@ class PropValueMLModel:
                 'last_training_time': datetime.now().isoformat(),
                 'training_sample_size': self.training_sample_size,
                 'feature_importance': self.feature_importance,
-                'accuracy': self.model_accuracy,
+                'accuracy': self.model_accuracy
             }
-
+            
             with open("prop_value_model.json", 'w') as f:
                 json.dump(model_data, f, indent=2)
-
+            
             print(f"💾 Saved ML model v{self.model_version}")
         except Exception as e:
             print(f"⚠️ Error saving ML model: {e}")
-
-    def train_model(self, historical_picks: List[Dict]) -> None:
-        """Train/update the model using historical pick outcomes"""
-        if self.use_automl and self.automl:
-            # Use AutoML training
-            success = self.automl.train_model(historical_picks)
-            if success:
-                self.training_sample_size = self.automl.training_sample_size
-                self.model_accuracy = self.automl.model_accuracy
-                self.last_training_time = self.automl.last_training_time
-                print(f"🤖 AutoML training complete: {self.training_sample_size} picks, {self.model_accuracy:.1%} accuracy")
-                return
-            else:
-                print("⚠️ AutoML training failed, falling back to weights-based approach")
-                self.use_automl = False
+    
+        """
+        Train/update the model using historical pick outcomes
         
-        # Fallback to original weights-based training
+        Args:
+            historical_picks: List of historical picks with outcomes
+        """
         # Cold-start tolerant training
         is_cold_start = False
         if len(historical_picks) < 10:
-            print(f"ℹ️ ML cold-start: sparse historical data ({len(historical_picks)} picks). Using heuristics + incremental learning.")
+            print("ℹ️ ML cold-start: sparse historical data (" + str(len(historical_picks)) + " picks). Using heuristics + incremental learning.")
             is_cold_start = True
-
+        
         # Filter for completed picks only
         completed_picks = [p for p in historical_picks if p.get('outcome') in ['won', 'lost']]
-
+        
         if len(completed_picks) < 5:
             # Proceed in heuristic-only mode; keep existing weights, compute default metrics
             print("ℹ️ ML cold-start: insufficient completed picks; retaining baseline weights.")
@@ -136,123 +116,84 @@ class PropValueMLModel:
             # Save current model state for consistency
             self.save_model()
             return
-
+        
         self.training_sample_size = len(completed_picks)
-
+        
         # Extract features and outcomes
-        features: List[List[float]] = []
-        outcomes: List[int] = []
-
+        features = []
+        outcomes = []
+        
         for pick in completed_picks:
-            feature_vector_dict = self._extract_features(pick)
-            # Keep feature order aligned with self.weights keys
-            feature_vector = [feature_vector_dict.get(k, 0.5) for k in self.weights.keys()]
+            feature_vector = self._extract_features(pick)
             outcome = 1 if pick['outcome'] == 'won' else 0
-
+            
             features.append(feature_vector)
             outcomes.append(outcome)
-
+        
         # Simple logistic regression-style weight updates
         features_array = np.array(features)
         outcomes_array = np.array(outcomes)
-
+        
         # Calculate feature importance
         self.feature_importance = self._calculate_feature_importance(features_array, outcomes_array)
-
+        
         # Update weights based on correlation with success
         self._update_weights(features_array, outcomes_array)
-
+        
         # Calculate model accuracy
         self.model_accuracy = self._calculate_accuracy(features_array, outcomes_array)
-
+        
         # Save updated model
         self.save_model()
-
+        
         # Report training status
         status = "(cold-start) " if is_cold_start else ""
         print(f"🤖 ML model {status}trained on {self.training_sample_size} picks (accuracy: {self.model_accuracy:.1%})")
-
+    
     def predict_value(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
         """
         Predict value/edge/ROI for a given prop
-
+        
         Args:
             prop: Prop data dictionary
             agent_context: Additional context from the sport agent
-
+            
         Returns:
             Dict with predicted_value, confidence, edge, expected_roi
         """
         try:
-            if self.use_automl and self.automl:
-                # Use AutoML prediction
-                features = {
-                    'confidence': prop.get('confidence', 50),
-                    'line': prop.get('line', 0),
-                    'odds': prop.get('odds', -110),
-                    'stat_type': prop.get('stat_type', ''),
-                    'over_under': prop.get('over_under', ''),
-                    'sport': prop.get('sport', ''),
-                }
-                
-                automl_result = self.automl.predict(features)
-                probability = automl_result.get('predicted_probability', 0.5)
-                
-                # Calculate edge and ROI
-                odds = prop.get('odds', -110)
-                implied_probability = self._american_odds_to_probability(odds)
-                edge = probability - implied_probability
-                
-                if edge > 0:
-                    expected_roi = edge * 100
-                else:
-                    expected_roi = edge * 50
-                
-                return {
-                    'predicted_value': round(probability, 3),
-                    'confidence': round(probability * 100, 1),
-                    'edge': round(edge, 3),
-                    'expected_roi': round(expected_roi, 2),
-                    'model_version': self.model_version,
-                    'model_type': automl_result.get('model_type', 'automl'),
-                    'features_used': automl_result.get('features_used', 0),
-                    'prediction_time': datetime.now().isoformat(),
-                }
-            
-            # Fallback to weights-based prediction
             # Extract features for prediction
             features = self._extract_features_for_prediction(prop, agent_context)
-
+            
             # Calculate weighted score
             predicted_value = sum(
-                features.get(feature, 0.5) * weight
+                features.get(feature, 0.5) * weight 
                 for feature, weight in self.weights.items()
             )
-
+            
             # Convert to probability
             probability = self._sigmoid(predicted_value)
-
+            
             # Calculate edge (value over market)
             odds = prop.get('odds', -110)
             implied_probability = self._american_odds_to_probability(odds)
             edge = probability - implied_probability
-
+            
             # Calculate expected ROI
             if edge > 0:
                 expected_roi = edge * 100  # Simple ROI calculation
             else:
                 expected_roi = edge * 50   # Penalty for negative edge
-
+            
             return {
                 'predicted_value': round(predicted_value, 3),
                 'confidence': round(probability * 100, 1),
                 'edge': round(edge, 3),
                 'expected_roi': round(expected_roi, 2),
                 'model_version': self.model_version,
-                'model_type': 'weights',
-                'prediction_time': datetime.now().isoformat(),
+                'prediction_time': datetime.now().isoformat()
             }
-
+            
         except Exception as e:
             print(f"⚠️ Error in ML prediction: {e}")
             return {
@@ -262,105 +203,103 @@ class PropValueMLModel:
                 'expected_roi': 0.0,
                 'model_version': self.model_version,
                 'prediction_time': datetime.now().isoformat(),
-                'error': str(e),
+                'error': str(e)
             }
-
+    
     def _extract_features(self, pick: Dict) -> Dict[str, float]:
         """Extract numerical features from a historical pick"""
         return {
-            'confidence_factor': float(pick.get('confidence', 50)) / 100.0,
+            'confidence_factor': pick.get('confidence', 50) / 100,
             'historical_performance': 0.6,  # Will be enhanced with more data
-            'stat_type_success': 0.5,       # Will be enhanced with stat-specific data
+            'stat_type_success': 0.5,      # Will be enhanced with stat-specific data
             'over_under_preference': 0.5,   # Will be enhanced with O/U analysis
-            'recency_factor': 0.8,          # Recent picks weighted more
+            'recency_factor': 0.8           # Recent picks weighted more
         }
-
+    
     def _extract_features_for_prediction(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
         """Extract features for making predictions on new props"""
         confidence = agent_context.get('confidence', 50) if agent_context else 50
-
+        
         # Get historical performance for this stat type
         stat_type_performance = 0.5
         over_under_performance = 0.5
-
+        
         if agent_context and agent_context.get('learning_insights'):
             insights = agent_context['learning_insights']
-
+            
             # Stat type performance
             best_stats = insights.get('best_stat_types', [])
             for stat_info in best_stats:
                 if stat_info.get('stat_type') == prop.get('stat_type'):
-                    stat_type_performance = float(stat_info.get('win_rate', 50)) / 100.0
+                    stat_type_performance = stat_info.get('win_rate', 50) / 100
                     break
-
+            
             # Over/under preference
             over_under_pref = insights.get('best_over_under_preference')
             if over_under_pref:
-                over_under_performance = float(over_under_pref.get('win_rate', 50)) / 100.0
-
+                over_under_performance = over_under_pref.get('win_rate', 50) / 100
+        
         return {
-            'confidence_factor': float(confidence) / 100.0,
-            'historical_performance': float(agent_context.get('overall_win_rate', 50)) / 100.0 if agent_context else 0.5,
+            'confidence_factor': confidence / 100,
+            'historical_performance': agent_context.get('overall_win_rate', 50) / 100 if agent_context else 0.5,
             'stat_type_success': stat_type_performance,
             'over_under_preference': over_under_performance,
-            'recency_factor': 0.8,  # Default high recency factor
+            'recency_factor': 0.8  # Default high recency factor
         }
-
+    
     def _calculate_feature_importance(self, features: np.ndarray, outcomes: np.ndarray) -> Dict[str, float]:
         """Calculate feature importance using correlation with outcomes"""
-        importance: Dict[str, float] = {}
-        if features.size == 0 or outcomes.size == 0:
-            return importance
-        # Ensure shapes are aligned
-        if features.ndim != 2:
-            return importance
-        for i, feature_name in enumerate(self.weights.keys()):
+        importance = {}
+        feature_names = list(self.weights.keys())
+        
+        for i, feature_name in enumerate(feature_names):
             if features.shape[1] > i:
-                try:
-                    correlation = np.corrcoef(features[:, i], outcomes)[0, 1]
-                    importance[feature_name] = abs(correlation) if not np.isnan(correlation) else 0.0
-                except Exception:
-                    importance[feature_name] = 0.0
+                correlation = np.corrcoef(features[:, i], outcomes)[0, 1]
+                importance[feature_name] = abs(correlation) if not np.isnan(correlation) else 0.0
+        
         return importance
-
+    
     def _update_weights(self, features: np.ndarray, outcomes: np.ndarray) -> None:
         """Update model weights based on feature importance"""
-        if not self.feature_importance:
-            return
-        for feature_name in self.weights.keys():
-            importance = self.feature_importance.get(feature_name, 0.0)
-            # Adjust weights based on importance (learning rate = 0.1)
-            self.weights[feature_name] = 0.9 * self.weights[feature_name] + 0.1 * importance
-
+        feature_names = list(self.weights.keys())
+        
+        for i, feature_name in enumerate(feature_names):
+            if features.shape[1] > i:
+                importance = self.feature_importance.get(feature_name, 0.0)
+                # Adjust weights based on importance (learning rate = 0.1)
+                self.weights[feature_name] = 0.9 * self.weights[feature_name] + 0.1 * importance
+        
         # Normalize weights to sum to 1
         total_weight = sum(self.weights.values())
         if total_weight > 0:
             self.weights = {k: v / total_weight for k, v in self.weights.items()}
-
+    
     def _calculate_accuracy(self, features: np.ndarray, outcomes: np.ndarray) -> float:
         """Calculate model accuracy on training data"""
-        if features.size == 0 or outcomes.size == 0:
-            return 0.0
-        predictions: List[int] = []
-        for row in features:
-            # Reconstruct dict to align with weight keys
-            feature_dict = dict(zip(self.weights.keys(), row))
-            predicted_value = sum(feature_dict.get(feature, 0.5) * weight for feature, weight in self.weights.items())
+        predictions = []
+        
+        for feature_vector in features:
+            feature_dict = dict(zip(self.weights.keys(), feature_vector))
+            predicted_value = sum(
+                feature_dict.get(feature, 0.5) * weight 
+                for feature, weight in self.weights.items()
+            )
             probability = self._sigmoid(predicted_value)
             predictions.append(1 if probability > 0.5 else 0)
-        correct = int(sum(p == o for p, o in zip(predictions, outcomes)))
-        return float(correct) / float(len(outcomes)) if len(outcomes) else 0.0
-
+        
+        correct = sum(p == o for p, o in zip(predictions, outcomes))
+        return correct / len(outcomes) if outcomes else 0.0
+    
     def _sigmoid(self, x: float) -> float:
         """Sigmoid activation function"""
-        return float(1 / (1 + np.exp(-np.clip(x, -500, 500))))
-
+        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+    
     def _american_odds_to_probability(self, odds: int) -> float:
         """Convert American odds to implied probability"""
         if odds > 0:
-            return 100.0 / (float(odds) + 100.0)
+            return 100 / (odds + 100)
         else:
-            return float(abs(odds)) / (float(abs(odds)) + 100.0)
+            return abs(odds) / (abs(odds) + 100)
 
 
 # Global ML model instance shared across all agents
@@ -386,15 +325,6 @@ class SportAgent(ABC):
         self.picks = []
         self.learning_insights = {}
         self.performance_metrics = {}
-        
-        # Initialize memory manager for personalization and learning
-        try:
-            from memory_manager import global_memory
-            self.memory = global_memory.get_agent_memory(self.agent_type)
-            print(f"[Memory] Initialized for {self.agent_type}")
-        except Exception as e:
-            print(f"[Memory] Failed to initialize for {self.agent_type}: {e}")
-            self.memory = None
         
         # Load historical insights and train ML model on initialization
         self.learn_from_history()
@@ -776,118 +706,6 @@ class SportAgent(ABC):
         }
         
         return pick
-    
-    def store_pick_result(self, user_id: str, prop: Dict[str, Any], outcome: str, 
-                         confidence: float, reasoning: str = "") -> bool:
-        """Store pick result in memory for learning and personalization"""
-        if self.memory:
-            return self.memory.add_pick_result(user_id, prop, outcome, confidence, reasoning)
-        return False
-    
-    def store_user_feedback(self, user_id: str, feedback_type: str, 
-                           feedback_value: str, context: str = "") -> bool:
-        """Store user feedback or preference"""
-        if self.memory:
-            return self.memory.add_user_preference(user_id, feedback_type, feedback_value, context)
-        return False
-    
-    def get_personalized_insights(self, user_id: str, prop: Dict[str, Any]) -> Dict[str, Any]:
-        """Get personalized insights based on user's memory"""
-        if not self.memory:
-            return {"personalization": "unavailable"}
-        
-        try:
-            # Check user's history with this prop type
-            stat_type = prop.get("stat_type", "unknown")
-            sport = prop.get("sport", self.sport_name)
-            
-            pattern = self.memory.check_user_pattern(user_id, f"{sport} {stat_type}")
-            preferences = self.memory.get_user_preferences(user_id)
-            recent_picks = self.memory.get_user_pick_history(user_id, sport, days_back=14)
-            
-            insights = {
-                "stat_pattern": pattern,
-                "preference_count": len(preferences),
-                "recent_activity": len(recent_picks),
-                "recommendations": []
-            }
-            
-            # Generate personalized recommendations
-            if pattern.get("pattern") == "negative" and pattern.get("sample_size", 0) >= 3:
-                insights["recommendations"].append(f"Caution: User has {pattern['win_rate']:.1%} success rate with {stat_type} props")
-            elif pattern.get("pattern") == "strong_positive":
-                insights["recommendations"].append(f"Favorable: User has {pattern['win_rate']:.1%} success rate with {stat_type} props")
-            
-            # Check for recent losing streaks
-            if recent_picks:
-                recent_outcomes = [p.get("metadata", {}).get("outcome") for p in recent_picks[-5:]]
-                recent_losses = recent_outcomes.count("lost")
-                if recent_losses >= 3:
-                    insights["recommendations"].append("Consider lower confidence due to recent losses")
-            
-            return insights
-            
-        except Exception as e:
-            print(f"[Memory] Error getting personalized insights: {e}")
-            return {"personalization": "error", "error": str(e)}
-    
-    def enhance_pick_with_memory(self, user_id: str, pick: Dict[str, Any]) -> Dict[str, Any]:
-        """Enhance pick recommendation with memory-based personalization"""
-        if not self.memory:
-            return pick
-        
-        try:
-            insights = self.get_personalized_insights(user_id, pick)
-            
-            # Adjust confidence based on user patterns
-            original_confidence = pick.get("confidence", 50)
-            adjusted_confidence = original_confidence
-            
-            pattern = insights.get("stat_pattern", {})
-            if pattern.get("pattern") == "negative" and pattern.get("sample_size", 0) >= 3:
-                # Reduce confidence for stat types user typically loses on
-                adjusted_confidence = max(30, original_confidence * 0.8)
-                pick["memory_adjustment"] = f"Reduced confidence due to user's {pattern['win_rate']:.1%} success rate"
-            elif pattern.get("pattern") == "strong_positive":
-                # Increase confidence for stat types user typically wins on
-                adjusted_confidence = min(95, original_confidence * 1.1)
-                pick["memory_adjustment"] = f"Increased confidence due to user's {pattern['win_rate']:.1%} success rate"
-            
-            pick["original_confidence"] = original_confidence
-            pick["confidence"] = round(adjusted_confidence, 1)
-            pick["personalization_insights"] = insights
-            
-            return pick
-            
-        except Exception as e:
-            print(f"[Memory] Error enhancing pick with memory: {e}")
-            return pick
-    
-    def learn_from_session(self, session_results: List[Dict[str, Any]]) -> bool:
-        """Store learnings from a betting session"""
-        if not self.memory:
-            return False
-        
-        try:
-            # Analyze session performance
-            total_picks = len(session_results)
-            wins = sum(1 for r in session_results if r.get("outcome") == "won")
-            win_rate = wins / total_picks if total_picks > 0 else 0
-            
-            # Store session-level insight
-            insight = f"Session completed: {wins}/{total_picks} ({win_rate:.1%}) win rate"
-            context = {
-                "type": "session_summary",
-                "total_picks": total_picks,
-                "win_rate": win_rate,
-                "sports": list(set(r.get("sport", "unknown") for r in session_results))
-            }
-            
-            return self.memory.add_agent_learning(insight, context)
-            
-        except Exception as e:
-            print(f"[Memory] Error learning from session: {e}")
-            return False
     
     def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
         """
@@ -2391,7 +2209,7 @@ class LeagueOfLegendsAgent(EsportsAgent):
         return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
-        """Analyze League of Legends specific factors, enriched by Leaguepedia when available."""
+        """Analyze League of Legends specific factors"""
         role = prop.get('role', 'unknown')
         champion_pool = prop.get('champion_pool', 'meta')
         patch_adaptation = prop.get('patch_adaptation', 0.8)
@@ -2419,40 +2237,6 @@ class LeagueOfLegendsAgent(EsportsAgent):
             score += 0.5
         elif avg_game_time < 28 and stat_type in ['kills', 'deaths']:
             score += 0.5
-
-        # Leaguepedia-based enrichment (best-effort)
-        player_name = prop.get('player_name') or prop.get('player')
-        lol_enrichment = {}
-        try:
-            from . import lol_data as lol
-        except Exception:
-            try:
-                import lol_data as lol  # fallback for flat workspace
-            except Exception:
-                lol = None
-        try:
-            if player_name and lol is not None:
-                summary = lol.summarize_player_recent_form(player_name, limit=8)
-                if summary:
-                    lol_enrichment = summary
-                    # Nudge score based on recent form
-                    if isinstance(summary.get('avg_kda'), (int, float)):
-                        kda = float(summary['avg_kda'])
-                        if kda >= 4:
-                            score += 0.7
-                        elif kda >= 3:
-                            score += 0.4
-                        elif kda < 2:
-                            score -= 0.3
-                    if isinstance(summary.get('avg_kill_participation'), (int, float)):
-                        kp = float(summary['avg_kill_participation'])
-                        if kp >= 0.65:
-                            score += 0.3
-                        elif kp < 0.45:
-                            score -= 0.2
-        except Exception:
-            # Silent best-effort; keep base score
-            pass
         
         return {
             'role': role,
@@ -2460,7 +2244,6 @@ class LeagueOfLegendsAgent(EsportsAgent):
             'patch_adaptation': patch_adaptation,
             'team_playstyle': team_style,
             'game_time_factor': avg_game_time,
-            'leaguepedia_recent_form': lol_enrichment,
             'score': max(1, min(10, score)),
             'reasoning': f"Role: {role}, Pool: {champion_pool}, Style: {team_style}, Avg time: {avg_game_time}min"
         }

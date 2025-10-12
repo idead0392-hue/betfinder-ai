@@ -1,0 +1,18 @@
+# Example filters for Flashscore scraping
+# You can create multiple sections and choose with section name.
+
+default:
+  sport: football
+  league: Premier League
+  season: "2023/2024"
+  country: England
+  odds: true
+  batch_size: 100
+
+nba:
+  sport: basketball
+  league: NBA
+  season: "2024/2025"
+  country: USA
+  odds: true
+  batch_size: 200

@@ -91,7 +91,8 @@ def _normalize_league_to_sport(value: str) -> str:
         'dota 2': 'dota2', 'dota2': 'dota2',
         'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
         'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
-        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
+        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
+        'apex': 'apex', 'apex legends': 'apex'
     }
     return aliases.get(s, s)
 
@@ -220,13 +221,35 @@ def _map_to_sport(p: dict) -> str:
     baseball_terms = ["hits", "home runs", "rbis", "strikeouts", "total bases", "stolen bases"]
     tennis_terms = ["aces", "double faults", "games won", "sets won"]
     soccer_terms = ["goals", "assists", "shots on goal", "shots on target", "goal + assist", "fouls", "cards", "clean sheets", "saves", "goalie saves"]
+    
+    # Esports-specific terms
+    csgo_terms = ["map kills", "map deaths", "map assists", "rounds won", "headshots", "adr", "rating", "maps won"]
+    lol_terms = ["creep score", "cs", "vision score", "gold earned", "damage dealt", "towers destroyed", "dragons killed", "barons killed"]
+    dota_terms = ["last hits", "denies", "gpm", "xpm", "networth", "tower damage", "healing done", "roshan kills"]
 
     football_teams = ["patriots", "saints", "packers", "cowboys", "giants", "jets", "bears", "steelers", "eagles", "chiefs", "49ers", "ravens", "bengals", "bills", "dolphins", "broncos", "lions", "jaguars", "panthers", "raiders", "chargers", "seahawks", "buccaneers", "cardinals", "commanders", "colts", "vikings", "texans", "falcons", "rams", "titans"]
     basketball_teams = ["lakers", "knicks", "warriors", "celtics", "bulls", "nets", "suns", "mavericks", "clippers", "spurs", "heat", "bucks", "76ers", "nuggets", "hawks", "pelicans", "grizzlies", "timberwolves", "magic", "wizards", "pacers", "pistons", "hornets", "jazz", "thunder", "raptors", "rockets", "kings", "trail blazers"]
 
     football_kickers = ["jason myers", "chris boswell", "cam little", "michael badgley", "justin tucker", "harrison butker", "younghoe koo", "daniel carlson", "greg joseph", "matt gay", "brandon mcmanus", "evan mcpherson", "eddie pineiro", "riley patterson", "brett maher", "nick folk", "cairo santos", "dustin hopkins", "jake elliott", "graham gano", "chase mclaughlin", "andrew mevis", "joey slye", "chris naggar", "sam ficken"]
 
-    # 1. Stat label check (most robust)
+    # 1. Check league/sport mapping first for esports (more reliable than stats)
+    aliases = {
+        'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
+        'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
+        'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
+        'league of legends': 'league_of_legends', 'lol': 'league_of_legends', 'league_of_legends': 'league_of_legends',
+        'valorant': 'valorant', 'valo': 'valorant',
+        'dota 2': 'dota2', 'dota2': 'dota2',
+        'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
+        'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
+        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
+        'apex': 'apex', 'apex legends': 'apex'
+    }
+    mapped = aliases.get(orig_sport.lower())
+    if mapped:
+        return mapped
+
+    # 2. Stat label check (most robust for traditional sports)
     if stat in football_terms:
         return "football"
     if stat in basketball_terms:
@@ -239,8 +262,22 @@ def _map_to_sport(p: dict) -> str:
         return "tennis"
     if stat in soccer_terms:
         return "soccer"
+    
+    # Esports stat detection - only if league mapping didn't work
+    if any(cs in stat for cs in csgo_terms):
+        return "csgo"
+    elif "kills" in stat and ("map" in stat or "round" in stat):
+        return "csgo"
+    elif any(ls in stat for ls in lol_terms):
+        return "league_of_legends"
+    elif "cs" in stat and "creep" in stat:
+        return "league_of_legends"
+    elif any(ds in stat for ds in dota_terms):
+        return "dota2"
+    elif "gpm" in stat or "xpm" in stat:
+        return "dota2"
 
-    # 2. Team name check (matchup, team, or player)
+    # 3. Team name check (matchup, team, or player)
     if any(t in team for t in football_teams) or any(t in matchup for t in football_teams):
         return "football"
     if any(t in team for t in basketball_teams) or any(t in matchup for t in basketball_teams):
@@ -250,21 +287,9 @@ def _map_to_sport(p: dict) -> str:
     if stat == "kicking points" and (any(k in player for k in football_kickers) or any(k in team for k in football_teams)):
         return "football"
 
-    # 4. Fallback to original sport mapping (aliases)
-    aliases = {
-        'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-        'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
-        'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
-        'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
-        'valorant': 'valorant', 'valo': 'valorant',
-        'dota 2': 'dota2', 'dota2': 'dota2',
-        'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
-        'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
-        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
-    }
-    mapped = aliases.get(orig_sport)
-    if mapped:
-        return mapped
+    # 4. Football kicker check
+    if stat == "kicking points" and (any(k in player for k in football_kickers) or any(k in team for k in football_teams)):
+        return "football"
 
     # 5. Legacy player/stat heuristics (for esports, hockey, etc.)
     # ...existing code...
@@ -361,6 +386,7 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
     game_date_col = cols.get('game_date')
     game_time_col = cols.get('game_time')
     last_updated_col = cols.get('last_updated')
+    allow_under_col = cols.get('allow_under')
 
     for _, row in df.iterrows():
         player_name = row.get(name_col, '') if name_col else ''
@@ -384,7 +410,7 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
         home_team_val = str(row.get(home_team_col, '')).strip() if home_team_col else ''
         away_team_val = str(row.get(away_team_col, '')).strip() if away_team_col else ''
 
-        # Compute event_start_time ISO if Game_Date/Game_Time present
+    # Compute event_start_time ISO if Game_Date/Game_Time present
         event_start_iso = ''
         try:
             gd = (str(row.get(game_date_col)) if game_date_col else '').strip()
@@ -440,11 +466,25 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
         
         # Validate prop consistency before adding
         if _validate_prop_consistency(prop):
+            allow_under_val = True
+            try:
+                raw = row.get(allow_under_col) if allow_under_col else ''
+                if isinstance(raw, str):
+                    allow_under_val = str(raw).strip().lower() not in ('false', '0', 'no')
+                elif isinstance(raw, (int, float)):
+                    allow_under_val = bool(raw)
+                elif isinstance(raw, bool):
+                    allow_under_val = raw
+            except Exception:
+                allow_under_val = True
+
+            # Attach flag and append
+            prop['allow_under'] = allow_under_val
             props.append(prop)
 
     grouped = {k: [] for k in [
         'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
-        'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'rocket_league']}
+        'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'rocket_league', 'apex']}
 
     for p in props:
         key = _map_to_sport(p)
@@ -454,7 +494,6 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
                 grouped[key].append(p)
 
     return grouped
-
 
 def _validate_sport_category_match(prop: dict, assigned_sport: str) -> bool:
     """
@@ -508,6 +547,54 @@ def _validate_sport_category_match(prop: dict, assigned_sport: str) -> bool:
     elif assigned_sport == 'soccer':
         soccer_leagues = ['soccer']
         if 'soccer' not in league:
+            return False
+    
+    # CS:GO/esports validation
+    elif assigned_sport == 'csgo':
+        csgo_leagues = ['cs2', 'csgo', 'cs:go', 'counter-strike', 'counter strike']
+        csgo_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'headshots', 'kd ratio', 'adr', 'rating']
+        
+        has_csgo_league = any(cl in league.lower() for cl in csgo_leagues)
+        has_csgo_stat = any(cs in stat_type.lower() for cs in csgo_stats)
+        
+        if not (has_csgo_league or has_csgo_stat):
+            return False
+    
+    # League of Legends validation
+    elif assigned_sport == 'league_of_legends':
+        lol_leagues = ['lol', 'league of legends', 'lcs', 'lec', 'lck', 'lpl', 'worlds', 'msi']
+        lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score',
+                    'kda', 'towers', 'dragons', 'barons', 'inhibitors', 'games', 'maps']
+        
+        has_lol_league = any(ll in league.lower() for ll in lol_leagues)
+        has_lol_stat = any(ls in stat_type.lower() for ls in lol_stats)
+        
+        if not (has_lol_league or has_lol_stat):
+            return False
+    
+    # Dota 2 validation
+    elif assigned_sport == 'dota2':
+        dota_leagues = ['dota2', 'dota 2', 'dota', 'ti', 'the international', 'dpc', 'major']
+        dota_stats = ['kills', 'deaths', 'assists', 'last hits', 'denies', 'gpm', 'xpm', 'networth',
+                     'damage', 'healing', 'tower damage', 'roshan', 'games', 'maps', 'duration']
+        
+        has_dota_league = any(dl in league.lower() for dl in dota_leagues)
+        has_dota_stat = any(ds in stat_type.lower() for ds in dota_stats)
+        
+        if not (has_dota_league or has_dota_stat):
+            return False
+    
+    # Other esports validation
+    elif assigned_sport in ['valorant', 'overwatch', 'rocket_league', 'apex']:
+        # For other esports, be permissive - if it's not traditional sports, allow it
+        esports_leagues = ['lol', 'league of legends', 'dota2', 'dota 2', 'valorant', 'overwatch', 'rocket league', 'apex', 'apex legends']
+        
+        # Block if it's clearly traditional sports
+        is_traditional_sport = any(indicator in f"{stat_type} {league}".lower() for indicator in [
+            'nfl', 'nba', 'mlb', 'nhl', 'passing', 'rushing', 'rebounds', 'home run'
+        ])
+        
+        if is_traditional_sport:
             return False
     
     return True
@@ -759,6 +846,61 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
         if not (has_tennis_league or has_tennis_stat):
             return False
     
+    elif target_sport == 'csgo':
+        # Allow CS:GO/CS2 esports content
+        csgo_leagues = ['cs2', 'csgo', 'cs:go', 'counter-strike', 'counter strike']
+        csgo_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'headshots', 'kd ratio', 'adr', 'rating']
+        
+        has_csgo_league = any(cl in league.lower() for cl in csgo_leagues)
+        has_csgo_stat = any(cs in stat_type.lower() for cs in csgo_stats)
+        
+        if not (has_csgo_league or has_csgo_stat):
+            return False
+    
+    elif target_sport == 'league_of_legends':
+        # Allow League of Legends content
+        lol_leagues = ['lol', 'league of legends', 'lcs', 'lec', 'lck', 'lpl', 'worlds', 'msi']
+        lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score', 
+                    'kda', 'towers', 'dragons', 'barons', 'inhibitors', 'games', 'maps']
+        
+        has_lol_league = any(ll in league.lower() for ll in lol_leagues)
+        has_lol_stat = any(ls in stat_type.lower() for ls in lol_stats)
+        
+        if not (has_lol_league or has_lol_stat):
+            return False
+    
+    elif target_sport == 'dota2':
+        # Allow Dota 2 content
+        dota_leagues = ['dota2', 'dota 2', 'dota', 'ti', 'the international', 'dpc', 'major']
+        dota_stats = ['kills', 'deaths', 'assists', 'last hits', 'denies', 'gpm', 'xpm', 'networth',
+                     'damage', 'healing', 'tower damage', 'roshan', 'games', 'maps', 'duration']
+        
+        has_dota_league = any(dl in league.lower() for dl in dota_leagues)
+        has_dota_stat = any(ds in stat_type.lower() for ds in dota_stats)
+        
+        if not (has_dota_league or has_dota_stat):
+            return False
+    
+    elif target_sport in ['valorant', 'overwatch', 'rocket_league', 'apex']:
+        # Allow other esports content - less strict validation for now
+        esports_leagues = ['lol', 'league of legends', 'dota2', 'dota 2', 'valorant', 'overwatch', 'rocket league', 'apex', 'apex legends']
+        esports_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'damage', 'objectives', 'cs', 'gold', 'saves', 'goals', 'shots']
+        
+        has_esports_league = any(el in league.lower() for el in esports_leagues)
+        has_esports_stat = any(es in stat_type.lower() for es in esports_stats)
+        
+        # For esports, be more permissive - if it doesn't match traditional sports, allow it
+        is_traditional_sport = any(indicator in f"{player_name} {team} {matchup} {stat_type} {league}".lower() for indicator in [
+            'nfl', 'nba', 'mlb', 'nhl', 'patriots', 'lakers', 'yankees', 'bruins',
+            'passing', 'rushing', 'rebounds', 'assists', 'home run', 'penalty'
+        ])
+        
+        if is_traditional_sport:
+            return False
+        
+        # Allow if it has esports indicators OR doesn't match traditional sports
+        return has_esports_league or has_esports_stat or not is_traditional_sport
+    
     else:
         # Unknown sport - reject
         return False
@@ -802,7 +944,7 @@ def load_prizepicks_csv_grouped(csv_path: str) -> Dict[str, List[dict]]:
 
 sport_emojis = {
     'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
-    'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗'
+    'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗', 'apex': '⚡'
 }
 
 

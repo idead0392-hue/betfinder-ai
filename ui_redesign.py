@@ -281,6 +281,11 @@ def render_pick_card(pick, sport_emoji="🏈"):
                 st.markdown(f"<span style='background: #7c2d12; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>👺 GOBLIN</span>", unsafe_allow_html=True)
             else:
                 st.markdown(f"<span style='background: #6b7280; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>🎯 PICK</span>", unsafe_allow_html=True)
+
+            # Over-only badge for demon/forbidden under props
+            allow_under = pick.get('allow_under', True)
+            if allow_under is False:
+                st.markdown("<div style='margin-top: 6px;'><span style='background: #b45309; color: white; padding: 3px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;'>OVER-ONLY</span></div>", unsafe_allow_html=True)
         
         # Bet details with event time
         # Convert ISO UTC to user timezone string if available, else show ET strings
