@@ -5,9 +5,6 @@ Derrick Henry + Puka Nacua,1.5,Rush+Rec TDs (Combo),NFL,BAL/LA
 Tyler Loop + Joshua Karty,0.5,FG Made (Combo),NFL1Q,BAL/LA
 Dillon Gabriel,19.0,Pass Completions,NFL,CLE
 Chris Boswell + Andre Szmyt,0.5,FG Made (Combo),NFL1Q,PIT/CLE
-Cam Little + Jason Myers,0.5,FG Made (Combo),NFL1Q,JAC/SEA
-Bryce Young,208.5,Pass Yards,NFL,CAR
-Ryan Fitzgerald + Brandon Aubrey,0.5,FG Made (Combo),NFL1Q,CAR/DAL
 Andy Borregales + Blake Grupe,0.5,FG Made (Combo),NFL1Q,NE/NO
 Derrick Henry,18.5,Rush Yards in First 5 Attempts,NFL,BAL
 Kyren Williams,20.5,Rush Yards in First 5 Attempts,NFL,LA
@@ -53,93 +50,6 @@ Quinshon Judkins,6.5,Fantasy Score,NFL1H,CLE
 Dillon Gabriel,60.5,Passing Yards in First 10 Attempts,NFL,CLE
 Dillon Gabriel,6.5,Completions in First 10 Pass Attempts,NFL,CLE
 Dillon Gabriel,6.5,Yards on First Pass Completion,NFL,CLE
-Zach Charbonnet,4.0,Fantasy Score,NFL1H,SEA
-Trevor Lawrence,6.5,Yards on First Pass Completion,NFL,JAC
-Trevor Lawrence,6.5,Completions in First 10 Pass Attempts,NFL,JAC
-Trevor Lawrence,63.5,Passing Yards in First 10 Attempts,NFL,JAC
-Travis Etienne,5.5,Yards on First Reception,NFL,JAC
-Travis Etienne,11.5,Receiving Yards in First 2 Receptions,NFL,JAC
-Travis Etienne,19.5,Rush Yards in First 5 Attempts,NFL,JAC
-Travis Etienne,13.0,Fantasy Score,NFL,JAC
-Jaxon Smith-Njigba,18.0,Fantasy Score,NFL,SEA
-Jaxon Smith-Njigba,9.5,Yards on First Reception,NFL,SEA
-Jaxon Smith-Njigba,21.5,Receiving Yards in First 2 Receptions,NFL,SEA
-Jaxon Smith-Njigba,8.0,Fantasy Score,NFL1H,SEA
-Travis Etienne,2.0,Fantasy Score,NFL1Q,JAC
-Travis Etienne,6.5,Fantasy Score,NFL1H,JAC
-Zach Charbonnet,9.0,Fantasy Score,NFL,SEA
-Zach Charbonnet,4.5,Yards on First Reception,NFL,SEA
-Brian Thomas,13.0,Fantasy Score,NFL,JAC
-Brian Thomas,9.5,Yards on First Reception,NFL,JAC
-Brian Thomas,21.5,Receiving Yards in First 2 Receptions,NFL,JAC
-Brian Thomas,6.5,Fantasy Score,NFL1H,JAC
-Zach Charbonnet,0.5,Fantasy Score,NFL1Q,SEA
-Kenneth Walker III,5.5,Yards on First Reception,NFL,SEA
-Kenneth Walker III,11.0,Fantasy Score,NFL,SEA
-Kenneth Walker III,19.5,Rush Yards in First 5 Attempts,NFL,SEA
-Kenneth Walker III,5.5,Fantasy Score,NFL1H,SEA
-AJ Barner,6.5,Fantasy Score,NFL,SEA
-Kenneth Walker III,2.0,Fantasy Score,NFL1Q,SEA
-Parker Washington,3.5,Fantasy Score,NFL,JAC
-Parker Washington,1.5,Fantasy Score,NFL1H,JAC
-Dyami Brown,7.5,Fantasy Score,NFL,JAC
-Travis Hunter,9.5,Fantasy Score,NFL,JAC
-Travis Hunter,8.5,Yards on First Reception,NFL,JAC
-Travis Hunter,17.5,Receiving Yards in First 2 Receptions,NFL,JAC
-Cooper Kupp,10.0,Fantasy Score,NFL,SEA
-Cooper Kupp,8.5,Yards on First Reception,NFL,SEA
-Cooper Kupp,19.5,Receiving Yards in First 2 Receptions,NFL,SEA
-Sam Darnold,7.5,Yards on First Pass Completion,NFL,SEA
-Sam Darnold,7.5,Completions in First 10 Pass Attempts,NFL,SEA
-Sam Darnold,69.5,Passing Yards in First 10 Attempts,NFL,SEA
-Tory Horton,5.5,Fantasy Score,NFL,SEA
-Tory Horton,8.5,Yards on First Reception,NFL,SEA
-Travis Hunter,4.0,Fantasy Score,NFL1H,JAC
-Parker Washington,0.5,Fantasy Score,NFL1Q,JAC
-Dyami Brown,0.5,Fantasy Score,NFL1Q,JAC
-Cooper Kupp,4.5,Fantasy Score,NFL1H,SEA
-AJ Barner,3.0,Fantasy Score,NFL1H,SEA
-Dyami Brown,3.5,Fantasy Score,NFL1H,JAC
-Tory Horton,2.5,Fantasy Score,NFL1H,SEA
-Elijah Arroyo,0.5,Fantasy Score,NFL1Q,SEA
-Hunter Long,0.5,Fantasy Score,NFL1Q,JAC
-Jalen Tolbert,3.5,Fantasy Score,NFL1H,DAL
-Jake Ferguson,6.5,Yards on First Reception,NFL,DAL
-Jake Ferguson,16.5,Receiving Yards in First 2 Receptions,NFL,DAL
-Jake Ferguson,14.0,Fantasy Score,NFL,DAL
-Jake Ferguson,6.5,Fantasy Score,NFL1H,DAL
-Bryce Young,65.5,Passing Yards in First 10 Attempts,NFL,CAR
-Bryce Young,6.5,Yards on First Pass Completion,NFL,CAR
-Bryce Young,6.5,Completions in First 10 Pass Attempts,NFL,CAR
-Dak Prescott,65.5,Passing Yards in First 10 Attempts,NFL,DAL
-Dak Prescott,6.5,Yards on First Pass Completion,NFL,DAL
-Dak Prescott,7.5,Completions in First 10 Pass Attempts,NFL,DAL
-Jalen Tolbert,7.0,Fantasy Score,NFL,DAL
-Jalen Tolbert,9.5,Yards on First Reception,NFL,DAL
-Xavier Legette,7.5,Fantasy Score,NFL,CAR
-Xavier Legette,9.5,Yards on First Reception,NFL,CAR
-Jalen Tolbert,0.5,Fantasy Score,NFL1Q,DAL
-Xavier Legette,4.0,Fantasy Score,NFL1H,CAR
-Ryan Flournoy,8.0,Fantasy Score,NFL,DAL
-Ryan Flournoy,8.5,Yards on First Reception,NFL,DAL
-Ryan Flournoy,17.5,Receiving Yards in First 2 Receptions,NFL,DAL
-Xavier Legette,0.5,Fantasy Score,NFL1Q,CAR
-George Pickens,14.5,Fantasy Score,NFL,DAL
-George Pickens,10.5,Yards on First Reception,NFL,DAL
-George Pickens,23.5,Receiving Yards in First 2 Receptions,NFL,DAL
-Javonte Williams,19.5,Rush Yards in First 5 Attempts,NFL,DAL
-Javonte Williams,17.5,Fantasy Score,NFL,DAL
-Javonte Williams,5.5,Yards on First Reception,NFL,DAL
-Tetairoa McMillan,10.5,Yards on First Reception,NFL,CAR
-Tetairoa McMillan,23.5,Receiving Yards in First 2 Receptions,NFL,CAR
-Tetairoa McMillan,15.0,Fantasy Score,NFL,CAR
-George Pickens,7.5,Fantasy Score,NFL1H,DAL
-Javonte Williams,1.5,Fantasy Score,NFL1Q,DAL
-George Pickens,2.5,Fantasy Score,NFL1Q,DAL
-Tetairoa McMillan,7.0,Fantasy Score,NFL1H,CAR
-Javonte Williams,8.0,Fantasy Score,NFL1H,DAL
-Ryan Flournoy,0.5,Fantasy Score,NFL1Q,DAL
-Ryan Flournoy,4.0,Fantasy Score,NFL1H,DAL
 Juwan Johnson,7.5,Yards on First Reception,NFL,NO
 Juwan Johnson,17.5,Receiving Yards in First 2 Receptions,NFL,NO
 Juwan Johnson,9.0,Fantasy Score,NFL,NO
@@ -182,20 +92,10 @@ Brandin Cooks,4.0,Fantasy Score,NFL,NO
 TreVeyon Henderson,4.5,Fantasy Score,NFL1H,NE
 Stefon Diggs,6.5,Fantasy Score,NFL1H,NE
 Brandin Cooks,2.0,Fantasy Score,NFL1H,NO
-Petra,14.5,MAP 3 Kills,VAL,G2 Gozen
-mimi,14.0,MAP 3 Kills,VAL,G2 Gozen
-amy,15.5,MAP 3 Kills,VAL,G2 Gozen
-Vania,15.5,MAP 3 Kills,VAL,G2 Gozen
-Akita,18.0,MAP 3 Kills,VAL,G2 Gozen
-Glance,14.0,MAP 3 Kills,VAL,Karmine Corp GC
 Hakis,3.0,MAPS 1-2 Kills,APEX,Alliance
-alkyia,16.5,MAP 3 Kills,VAL,Karmine Corp GC
 Effect,4.0,MAPS 1-2 Kills,APEX,Alliance
-Jiex,14.0,MAP 3 Kills,VAL,Karmine Corp GC
 unlucky,3.0,MAPS 1-2 Kills,APEX,Alliance
-anesilia,14.5,MAP 3 Kills,VAL,Karmine Corp GC
 Sinetic,2.0,MAPS 1-2 Kills,APEX,FaZe Clan
-safiaa,17.5,MAP 3 Kills,VAL,Karmine Corp GC
 Zaine,3.0,MAPS 1-2 Kills,APEX,FaZe Clan
 Naghz,2.0,MAPS 1-2 Kills,APEX,FaZe Clan
 KIND4,2.5,MAPS 1-2 Kills,APEX,GoNext Esports
@@ -233,13 +133,13 @@ Derrick Henry,20.5,Rush Attempts,NFL,BAL
 Derrick Henry,59.5,Rush Yards,NFL,BAL
 Derrick Henry,89.5,Rush Yards,NFL,BAL
 Derrick Henry,109.5,Rush Yards,NFL,BAL
-Derrick Henry,4.5,Longest Reception,NFL,BAL
+Derrick Henry,5.5,Longest Reception,NFL,BAL
 Derrick Henry,4.5,Receiving Yards,NFL,BAL
 Derrick Henry,24.5,Receiving Yards,NFL,BAL
 Derrick Henry,39.5,Receiving Yards,NFL,BAL
 Derrick Henry,1.5,Receptions,NFL,BAL
 Derrick Henry,0.5,Receptions,NFL,BAL
-Derrick Henry,78.5,Rush+Rec Yds,NFL,BAL
+Derrick Henry,75.5,Rush+Rec Yds,NFL,BAL
 Derrick Henry,24.5,Longest Rush,NFL,BAL
 Derrick Henry,29.5,Longest Rush,NFL,BAL
 Derrick Henry,12.0,Fantasy Score,NFL,BAL
@@ -336,7 +236,7 @@ Derrick Henry,14.5,1st Drive Rush Yards,NFL1H,BAL
 Derrick Henry,9.5,1st Drive Rush Yards,NFL1H,BAL
 Derrick Henry,19.5,1st Drive Rush Yards,NFL1H,BAL
 Derrick Henry,4.5,1st Drive Rush Yards,NFL1H,BAL
-Mark Andrews,11.5,Receiving Yards,NFL1H,BAL
+Mark Andrews,10.5,Receiving Yards,NFL1H,BAL
 Mark Andrews,0.5,Rush+Rec TDs,NFL1H,BAL
 Mark Andrews,0.5,1st Drive Receptions,NFL1H,BAL
 Mark Andrews,3.0,Fantasy Score,NFL1H,BAL
@@ -346,12 +246,12 @@ Mark Andrews,19.5,Receiving Yards,NFL1H,BAL
 Mark Andrews,4.5,1st Drive Receiving Yards,NFL1H,BAL
 Mark Andrews,9.5,1st Drive Receiving Yards,NFL1H,BAL
 Isaiah Likely,0.5,Rush+Rec TDs,NFL,BAL
-Isaiah Likely,10.5,Longest Reception,NFL,BAL
+Isaiah Likely,11.5,Longest Reception,NFL,BAL
 Isaiah Likely,24.5,Receiving Yards,NFL,BAL
 Isaiah Likely,29.5,Receiving Yards,NFL,BAL
 Isaiah Likely,39.5,Receiving Yards,NFL,BAL
 Isaiah Likely,9.5,Receiving Yards,NFL,BAL
-Isaiah Likely,17.5,Receiving Yards,NFL,BAL
+Isaiah Likely,16.5,Receiving Yards,NFL,BAL
 Isaiah Likely,3.5,Receptions,NFL,BAL
 Isaiah Likely,2.5,Receptions,NFL,BAL
 Isaiah Likely,4.5,Receptions,NFL,BAL
@@ -396,7 +296,7 @@ Derrick Henry,24.5,Rush Yards,NFL1Q,BAL
 Derrick Henry,29.5,Rush Yards,NFL1Q,BAL
 Derrick Henry,39.5,Rush Yards,NFL1Q,BAL
 Derrick Henry,14.5,Rush Yards,NFL1Q,BAL
-Derrick Henry,15.5,Rush Yards,NFL1Q,BAL
+Derrick Henry,16.5,Rush Yards,NFL1Q,BAL
 Derrick Henry,0.5,Rush+Rec TDs,NFL1Q,BAL
 Derrick Henry,4.5,Receiving Yards,NFL1Q,BAL
 Derrick Henry,20.5,Rush+Rec Yds,NFL1Q,BAL
@@ -433,7 +333,7 @@ Jordan Whittington,7.5,Receiving Yards,NFL1H,LA
 Jordan Whittington,0.5,Rush+Rec TDs,NFL1H,LA
 Jordan Whittington,0.5,1st Drive Receptions,NFL1H,LA
 Kyren Williams,6.5,Receiving Yards,NFL1H,LA
-Kyren Williams,32.5,Rush Yards,NFL1H,LA
+Kyren Williams,31.5,Rush Yards,NFL1H,LA
 Kyren Williams,0.5,Rush+Rec TDs,NFL1H,LA
 Kyren Williams,7.5,Fantasy Score,NFL1H,LA
 Kyren Williams,24.5,Rush Yards,NFL1H,LA
@@ -481,7 +381,7 @@ Matthew Stafford,49.5,1st Drive Pass Yards,NFL1H,LA
 Matthew Stafford,29.5,1st Drive Pass Yards,NFL1H,LA
 Matthew Stafford,9.5,1st Drive Pass Yards,NFL1H,LA
 Matthew Stafford,19.5,1st Drive Pass Yards,NFL1H,LA
-Puka Nacua,48.5,Receiving Yards,NFL1H,LA
+Puka Nacua,49.5,Receiving Yards,NFL1H,LA
 Puka Nacua,0.5,Rush+Rec TDs,NFL1H,LA
 Puka Nacua,10.5,Fantasy Score,NFL1H,LA
 Puka Nacua,74.5,Receiving Yards,NFL1H,LA
@@ -505,11 +405,11 @@ Kyle Van Noy,0.25,Sacks,NFL,BAL
 Kyren Williams,0.5,Rush+Rec TDs,NFL,LA
 Kyren Williams,1.5,Rush+Rec TDs,NFL,LA
 Kyren Williams,14.5,Longest Rush,NFL,LA
-Kyren Williams,71.5,Rush Yards,NFL,LA
+Kyren Williams,69.5,Rush Yards,NFL,LA
 Kyren Williams,49.5,Rush Yards,NFL,LA
 Kyren Williams,99.5,Rush Yards,NFL,LA
 Kyren Williams,79.5,Rush Yards,NFL,LA
-Kyren Williams,8.5,Longest Reception,NFL,LA
+Kyren Williams,9.5,Longest Reception,NFL,LA
 Kyren Williams,24.5,Receiving Yards,NFL,LA
 Kyren Williams,39.5,Receiving Yards,NFL,LA
 Kyren Williams,49.5,Receiving Yards,NFL,LA
@@ -522,7 +422,7 @@ Kyren Williams,89.5,Rush Yards,NFL,LA
 Kyren Williams,109.5,Rush Yards,NFL,LA
 Kyren Williams,59.5,Rush Yards,NFL,LA
 Kyren Williams,124.5,Rush+Rec Yds,NFL,LA
-Kyren Williams,89.5,Rush+Rec Yds,NFL,LA
+Kyren Williams,90.5,Rush+Rec Yds,NFL,LA
 Kyren Williams,74.5,Rush+Rec Yds,NFL,LA
 Kyren Williams,99.5,Rush+Rec Yds,NFL,LA
 Kyren Williams,1.5,Receptions,NFL,LA
@@ -546,7 +446,6 @@ DeAndre Hopkins,9.5,Longest Reception,NFL,BAL
 DeAndre Hopkins,24.5,Receiving Yards,NFL,BAL
 DeAndre Hopkins,39.5,Receiving Yards,NFL,BAL
 DeAndre Hopkins,49.5,Receiving Yards,NFL,BAL
-DeAndre Hopkins,64.5,Receiving Yards,NFL,BAL
 DeAndre Hopkins,12.5,Receiving Yards,NFL,BAL
 DeAndre Hopkins,19.5,Longest Reception,NFL,BAL
 DeAndre Hopkins,14.5,Longest Reception,NFL,BAL
@@ -571,11 +470,11 @@ Blake Corum,0.5,Receptions,NFL,LA
 Blake Corum,2.5,Longest Reception,NFL,LA
 Blake Corum,1.5,Receiving Yards,NFL,LA
 Blake Corum,24.5,Receiving Yards,NFL,LA
-Blake Corum,32.5,Rush+Rec Yds,NFL,LA
+Blake Corum,31.5,Rush+Rec Yds,NFL,LA
 Blake Corum,19.5,Longest Rush,NFL,LA
 Davante Adams,0.5,Rush+Rec TDs,NFL,LA
 Davante Adams,1.5,Rush+Rec TDs,NFL,LA
-Davante Adams,24.5,Longest Reception,NFL,LA
+Davante Adams,23.5,Longest Reception,NFL,LA
 Davante Adams,66.5,Receiving Yards,NFL,LA
 Davante Adams,49.5,Receiving Yards,NFL,LA
 Davante Adams,39.5,Receiving Yards,NFL,LA
@@ -608,7 +507,7 @@ Jordan Whittington,9.5,Longest Reception,NFL,LA
 Jordan Whittington,2.5,Receptions,NFL,LA
 Puka Nacua,1.5,Rush+Rec TDs,NFL,LA
 Puka Nacua,25.5,Longest Reception,NFL,LA
-Puka Nacua,91.5,Receiving Yards,NFL,LA
+Puka Nacua,93.5,Receiving Yards,NFL,LA
 Puka Nacua,79.5,Receiving Yards,NFL,LA
 Puka Nacua,69.5,Receiving Yards,NFL,LA
 Puka Nacua,89.5,Receiving Yards,NFL,LA
@@ -629,7 +528,7 @@ Puka Nacua,29.5,Longest Reception,NFL,LA
 Puka Nacua,34.5,Longest Reception,NFL,LA
 Puka Nacua,11.5,Rec Targets,NFL,LA
 Puka Nacua,4.5,Rush Yards,NFL,LA
-Puka Nacua,101.5,Rush+Rec Yds,NFL,LA
+Puka Nacua,103.5,Rush+Rec Yds,NFL,LA
 Puka Nacua,3.5,Rush Yards,NFL,LA
 Puka Nacua,129.5,Rush+Rec Yds,NFL,LA
 Puka Nacua,119.5,Rush+Rec Yds,NFL,LA
@@ -643,7 +542,7 @@ Puka Nacua,9.5,Rush Yards,NFL,LA
 Terrance Ferguson,0.5,Rush+Rec TDs,NFL,LA
 Tyler Higbee,0.5,Rush+Rec TDs,NFL,LA
 Tyler Higbee,11.5,Longest Reception,NFL,LA
-Tyler Higbee,16.5,Receiving Yards,NFL,LA
+Tyler Higbee,17.5,Receiving Yards,NFL,LA
 Tyler Higbee,24.5,Receiving Yards,NFL,LA
 Tyler Higbee,39.5,Receiving Yards,NFL,LA
 Tyler Higbee,49.5,Receiving Yards,NFL,LA
@@ -661,7 +560,7 @@ Tyler Higbee,4.5,Receiving Yards,NFL,LA
 Matthew Stafford,1.5,Pass TDs,NFL,LA
 Matthew Stafford,2.5,Pass TDs,NFL,LA
 Matthew Stafford,37.5,Longest Completion,NFL,LA
-Matthew Stafford,252.5,Pass Yards,NFL,LA
+Matthew Stafford,254.5,Pass Yards,NFL,LA
 Matthew Stafford,224.5,Pass Yards,NFL,LA
 Matthew Stafford,299.5,Pass Yards,NFL,LA
 Matthew Stafford,324.5,Pass Yards,NFL,LA
@@ -671,7 +570,7 @@ Matthew Stafford,229.5,Pass Yards,NFL,LA
 Matthew Stafford,219.5,Pass Yards,NFL,LA
 Matthew Stafford,309.5,Pass Yards,NFL,LA
 Matthew Stafford,33.5,Pass Attempts,NFL,LA
-Matthew Stafford,254.5,Pass+Rush Yds,NFL,LA
+Matthew Stafford,256.5,Pass+Rush Yds,NFL,LA
 Matthew Stafford,23.0,Pass Completions,NFL,LA
 Matthew Stafford,29.5,Pass Attempts,NFL,LA
 Matthew Stafford,39.5,Pass Attempts,NFL,LA
@@ -702,7 +601,7 @@ Tyler Loop,2.5,FG Made,NFL,BAL
 Tyler Loop,0.5,FG Made,NFL,BAL
 Tyler Loop,2.5,PAT Made,NFL,BAL
 Tyler Loop,1.5,FG Made,NFL,BAL
-Davante Adams,32.5,Receiving Yards,NFL1H,LA
+Davante Adams,31.5,Receiving Yards,NFL1H,LA
 Davante Adams,6.5,Fantasy Score,NFL1H,LA
 Davante Adams,24.5,Receiving Yards,NFL1H,LA
 Davante Adams,49.5,Receiving Yards,NFL1H,LA
@@ -720,7 +619,7 @@ Davante Adams,19.5,Receiving Yards,NFL1Q,LA
 Davante Adams,24.5,Receiving Yards,NFL1Q,LA
 Davante Adams,14.5,Receiving Yards,NFL1Q,LA
 Davante Adams,29.5,Receiving Yards,NFL1Q,LA
-Davante Adams,11.5,Receiving Yards,NFL1Q,LA
+Davante Adams,10.5,Receiving Yards,NFL1Q,LA
 Davante Adams,0.5,Rush+Rec TDs,NFL1Q,LA
 Puka Nacua,9.5,Receiving Yards,NFL1Q,LA
 Puka Nacua,4.5,Receiving Yards,NFL1Q,LA
@@ -752,7 +651,6 @@ Justice Hill,0.5,Receiving Yards,NFL1Q,BAL
 Justice Hill,0.5,Rush Yards,NFL1Q,BAL
 Justice Hill,4.5,Rush Yards,NFL1Q,BAL
 Nate Landman,0.5,Sacks,NFL,LA
-Nate Landman,7.5,Tackles+Ast,NFL,LA
 Mike Green,0.5,Sacks,NFL,BAL
 Mike Green,0.25,Sacks,NFL,BAL
 Ethan Evans,3.0,Punts,NFL,LA
@@ -773,7 +671,7 @@ Davis Allen,0.5,Rush+Rec TDs,NFL,LA
 Marlon Humphrey,4.5,Tackles+Ast,NFL,BAL
 Blake Corum,9.5,Rush Yards,NFL1Q,LA
 Blake Corum,14.5,Rush Yards,NFL1Q,LA
-Blake Corum,3.5,Rush Yards,NFL1Q,LA
+Blake Corum,4.5,Rush Yards,NFL1Q,LA
 Blake Corum,0.5,Receiving Yards,NFL1Q,LA
 Blake Corum,4.5,Receiving Yards,NFL1Q,LA
 Blake Corum,19.5,Rush Yards,NFL1Q,LA
@@ -781,7 +679,6 @@ Jordan Whittington,4.5,Receiving Yards,NFL1Q,LA
 Jordan Whittington,9.5,Receiving Yards,NFL1Q,LA
 Jordan Whittington,14.5,Receiving Yards,NFL1Q,LA
 Jordan Whittington,0.5,Receiving Yards,NFL1Q,LA
-Tavius Robinson,0.5,Sacks,NFL,BAL
 Tavius Robinson,0.25,Sacks,NFL,BAL
 Teddye Buchanan,0.5,Sacks,NFL,BAL
 Teddye Buchanan,8.5,Tackles+Ast,NFL,BAL
@@ -827,7 +724,7 @@ Cooper Rush,39.5,Pass Yards,NFL1Q,BAL
 Cooper Rush,69.5,Pass Yards,NFL1Q,BAL
 Cooper Rush,29.5,Pass Yards,NFL1Q,BAL
 Cooper Rush,19.5,Pass Yards,NFL1Q,BAL
-Cooper Rush,84.5,Pass Yards,NFL1H,BAL
+Cooper Rush,85.5,Pass Yards,NFL1H,BAL
 Cooper Rush,74.5,Pass Yards,NFL1H,BAL
 Cooper Rush,99.5,Pass Yards,NFL1H,BAL
 Cooper Rush,124.5,Pass Yards,NFL1H,BAL
@@ -842,7 +739,7 @@ Tyler Loop + Joshua Karty,3.5,FG Made (Combo),NFL,BAL/LA
 Tyler Loop + Joshua Karty,50.5,Longest FG Made Yds (Combo),NFL,BAL/LA
 Tyler Loop + Joshua Karty,27.5,Shortest FG Made Yds (Combo),NFL,BAL/LA
 Tyler Loop + Joshua Karty,138.5,Field Goal Yards (Combo),NFL,BAL/LA
-Derrick Henry + Kyren Williams,142.5,Rush Yards (Combo),NFL,BAL/LA
+Derrick Henry + Kyren Williams,141.5,Rush Yards (Combo),NFL,BAL/LA
 Derrick Henry + Puka Nacua,178.5,Rush+Rec Yds (Combo),NFL,BAL/LA
 Tyler Loop + Joshua Karty,2.0,FG Made (Combo),NFL1H,BAL/LA
 Trenton Simpson,2.5,Assists,NFL,BAL
@@ -869,7 +766,7 @@ Jaylen Warren,19.5,Receiving Yards,NFL1H,PIT
 Jaylen Warren,4.5,Receiving Yards,NFL1H,PIT
 Jaylen Warren,0.5,1st Drive Receptions,NFL1H,PIT
 Darnell Washington,9.5,Longest Reception,NFL,PIT
-Darnell Washington,11.5,Receiving Yards,NFL,PIT
+Darnell Washington,12.5,Receiving Yards,NFL,PIT
 Darnell Washington,24.5,Receiving Yards,NFL,PIT
 Darnell Washington,39.5,Receiving Yards,NFL,PIT
 Darnell Washington,49.5,Receiving Yards,NFL,PIT
@@ -1164,7 +1061,7 @@ Aaron Rodgers,249.5,Pass Yards,NFL,PIT
 Aaron Rodgers,224.5,Pass Yards,NFL,PIT
 Aaron Rodgers,274.5,Pass Yards,NFL,PIT
 Aaron Rodgers,35.5,Longest Completion,NFL,PIT
-Aaron Rodgers,211.5,Pass Yards,NFL,PIT
+Aaron Rodgers,210.5,Pass Yards,NFL,PIT
 Aaron Rodgers,199.5,Pass Yards,NFL,PIT
 Aaron Rodgers,239.5,Pass Yards,NFL,PIT
 Aaron Rodgers,179.5,Pass Yards,NFL,PIT
@@ -1225,7 +1122,7 @@ Kenneth Gainwell,64.5,Receiving Yards,NFL,PIT
 Kenneth Gainwell,1.5,Receptions,NFL,PIT
 Kenneth Gainwell,3.5,Receptions,NFL,PIT
 Kenneth Gainwell,11.5,Rush Attempts,NFL,PIT
-Kenneth Gainwell,45.5,Rush+Rec Yds,NFL,PIT
+Kenneth Gainwell,47.5,Rush+Rec Yds,NFL,PIT
 Kenneth Gainwell,14.5,Longest Reception,NFL,PIT
 Kenneth Gainwell,19.5,Longest Reception,NFL,PIT
 Kenneth Gainwell,9.5,Receiving Yards,NFL,PIT
@@ -1507,6 +1404,959 @@ Ben Skowronek,0.5,Receiving Yards,NFL1H,PIT
 Ben Skowronek,4.5,Receiving Yards,NFL1Q,PIT
 Ben Skowronek,9.5,Receiving Yards,NFL1Q,PIT
 Tyson Campbell,1.5,Assists,NFL,CLE
+Dak Prescott,0.5,Rush Yards,NFL1Q,DAL
+Juwan Johnson,0.5,Rush+Rec TDs,NFL,NO
+Juwan Johnson,16.5,Longest Reception,NFL,NO
+Juwan Johnson,49.5,Receiving Yards,NFL,NO
+Juwan Johnson,64.5,Receiving Yards,NFL,NO
+Juwan Johnson,37.5,Receiving Yards,NFL,NO
+Juwan Johnson,24.5,Receiving Yards,NFL,NO
+Juwan Johnson,24.5,Longest Reception,NFL,NO
+Juwan Johnson,19.5,Longest Reception,NFL,NO
+Juwan Johnson,9.5,Longest Reception,NFL,NO
+Juwan Johnson,74.5,Receiving Yards,NFL,NO
+Juwan Johnson,5.5,Receptions,NFL,NO
+Juwan Johnson,29.5,Receiving Yards,NFL,NO
+Juwan Johnson,6.5,Receptions,NFL,NO
+Juwan Johnson,4.5,Receptions,NFL,NO
+Juwan Johnson,2.5,Receptions,NFL,NO
+Juwan Johnson,14.5,Longest Reception,NFL,NO
+Juwan Johnson,19.5,Receiving Yards,NFL,NO
+Juwan Johnson,5.5,Rec Targets,NFL,NO
+Juwan Johnson,0.5,Rush+Rec TDs,NFL1H,NO
+Juwan Johnson,17.5,Receiving Yards,NFL1H,NO
+Juwan Johnson,9.5,Receiving Yards,NFL1H,NO
+Juwan Johnson,4.5,Receiving Yards,NFL1H,NO
+Juwan Johnson,29.5,Receiving Yards,NFL1H,NO
+Juwan Johnson,24.5,Receiving Yards,NFL1H,NO
+Juwan Johnson,4.5,1st Drive Receiving Yards,NFL1H,NO
+Juwan Johnson,9.5,1st Drive Receiving Yards,NFL1H,NO
+Juwan Johnson,14.5,1st Drive Receiving Yards,NFL1H,NO
+Juwan Johnson,0.5,1st Drive Receptions,NFL1H,NO
+Blake Grupe,6.5,Kicking Points,NFL,NO
+Blake Grupe,2.5,PAT Made,NFL,NO
+Blake Grupe,1.5,PAT Made,NFL,NO
+Blake Grupe,2.5,FG Made,NFL,NO
+Blake Grupe,3.5,FG Made,NFL,NO
+Blake Grupe,0.5,FG Made,NFL,NO
+Blake Grupe,1.5,FG Made,NFL,NO
+Rhamondre Stevenson,24.5,Rush Yards,NFL1H,NE
+Rhamondre Stevenson,5.5,Receiving Yards,NFL1H,NE
+Rhamondre Stevenson,20.5,Rush Yards,NFL1H,NE
+Rhamondre Stevenson,29.5,Rush Yards,NFL1H,NE
+Rhamondre Stevenson,14.5,Rush Yards,NFL1H,NE
+Rhamondre Stevenson,9.5,Rush Yards,NFL1H,NE
+Rhamondre Stevenson,9.5,Receiving Yards,NFL1H,NE
+Rhamondre Stevenson,14.5,Receiving Yards,NFL1H,NE
+Rhamondre Stevenson,0.5,1st Drive Receptions,NFL1H,NE
+Rhamondre Stevenson,4.5,Receiving Yards,NFL1H,NE
+Taysom Hill,0.5,Rush+Rec TDs,NFL1H,NO
+Taysom Hill,5.5,Rush Yards,NFL1H,NO
+Hunter Henry,0.5,Rush+Rec TDs,NFL,NE
+Hunter Henry,18.5,Longest Reception,NFL,NE
+Hunter Henry,24.5,Receiving Yards,NFL,NE
+Hunter Henry,49.5,Receiving Yards,NFL,NE
+Hunter Henry,64.5,Receiving Yards,NFL,NE
+Hunter Henry,79.5,Receiving Yards,NFL,NE
+Hunter Henry,40.5,Receiving Yards,NFL,NE
+Hunter Henry,29.5,Receiving Yards,NFL,NE
+Hunter Henry,19.5,Receiving Yards,NFL,NE
+Hunter Henry,59.5,Receiving Yards,NFL,NE
+Hunter Henry,4.5,Receptions,NFL,NE
+Hunter Henry,5.5,Receptions,NFL,NE
+Hunter Henry,2.5,Receptions,NFL,NE
+Hunter Henry,6.5,Receptions,NFL,NE
+Hunter Henry,14.5,Longest Reception,NFL,NE
+Hunter Henry,24.5,Longest Reception,NFL,NE
+Hunter Henry,29.5,Longest Reception,NFL,NE
+Hunter Henry,5.5,Rec Targets,NFL,NE
+Rhamondre Stevenson,1.5,Rush+Rec TDs,NFL,NE
+Rhamondre Stevenson,9.5,Longest Reception,NFL,NE
+Rhamondre Stevenson,12.5,Longest Rush,NFL,NE
+Rhamondre Stevenson,24.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,39.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,14.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,39.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,43.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,64.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,49.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,79.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,63.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,29.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,59.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,1.5,Receptions,NFL,NE
+Rhamondre Stevenson,2.5,Receptions,NFL,NE
+Rhamondre Stevenson,3.5,Receptions,NFL,NE
+Rhamondre Stevenson,9.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,19.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,11.5,Rush Attempts,NFL,NE
+Rhamondre Stevenson,14.5,Rush Attempts,NFL,NE
+Rhamondre Stevenson,9.5,Rush Attempts,NFL,NE
+Rhamondre Stevenson,74.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,49.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,14.5,Longest Rush,NFL,NE
+Rhamondre Stevenson,19.5,Longest Rush,NFL,NE
+Rhamondre Stevenson,9.5,Longest Rush,NFL,NE
+Rhamondre Stevenson,4.5,Receptions,NFL,NE
+Rhamondre Stevenson,16.5,Rush Attempts,NFL,NE
+Rhamondre Stevenson,79.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,89.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,44.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,34.5,Rush Yards,NFL,NE
+Rhamondre Stevenson,39.5,Rush+Rec Yds,NFL,NE
+Rhamondre Stevenson,4.5,Receiving Yards,NFL,NE
+Rhamondre Stevenson,14.5,Longest Reception,NFL,NE
+Rhamondre Stevenson,19.5,Longest Reception,NFL,NE
+Rhamondre Stevenson,0.5,Rush+Rec TDs,NFL,NE
+Rhamondre Stevenson,1.5,Halves with 25+ Rush Yards,NFL,NE
+Rhamondre Stevenson,3.5,Quarters with 5+ Rush Yards,NFL,NE
+Alvin Kamara,17.5,Receiving Yards,NFL,NO
+Alvin Kamara,1.5,Rush+Rec TDs,NFL,NO
+Alvin Kamara,0.5,Rush+Rec TDs,NFL,NO
+Alvin Kamara,10.5,Longest Reception,NFL,NO
+Alvin Kamara,12.5,Longest Rush,NFL,NO
+Alvin Kamara,17.5,Receiving Yards,NFL,NO
+Alvin Kamara,24.5,Receiving Yards,NFL,NO
+Alvin Kamara,39.5,Receiving Yards,NFL,NO
+Alvin Kamara,49.5,Receiving Yards,NFL,NO
+Alvin Kamara,64.5,Receiving Yards,NFL,NO
+Alvin Kamara,35.5,Rush Yards,NFL,NO
+Alvin Kamara,64.5,Rush Yards,NFL,NO
+Alvin Kamara,79.5,Rush Yards,NFL,NO
+Alvin Kamara,24.5,Rush Yards,NFL,NO
+Alvin Kamara,58.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,49.5,Rush Yards,NFL,NO
+Alvin Kamara,14.5,Longest Reception,NFL,NO
+Alvin Kamara,19.5,Longest Reception,NFL,NO
+Alvin Kamara,14.5,Longest Rush,NFL,NO
+Alvin Kamara,19.5,Longest Rush,NFL,NO
+Alvin Kamara,9.5,Longest Rush,NFL,NO
+Alvin Kamara,74.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,99.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,49.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,9.5,Receiving Yards,NFL,NO
+Alvin Kamara,14.5,Receiving Yards,NFL,NO
+Alvin Kamara,2.5,Receptions,NFL,NO
+Alvin Kamara,4.5,Receptions,NFL,NO
+Alvin Kamara,5.5,Receptions,NFL,NO
+Alvin Kamara,3.5,Receptions,NFL,NO
+Alvin Kamara,29.5,Rush Yards,NFL,NO
+Alvin Kamara,59.5,Rush Yards,NFL,NO
+Alvin Kamara,79.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,39.5,Rush+Rec Yds,NFL,NO
+Alvin Kamara,11.0,Fantasy Score,NFL,NO
+Alvin Kamara,9.5,Longest Reception,NFL,NO
+Alvin Kamara,10.5,Rush Attempts,NFL,NO
+Alvin Kamara,8.5,Rush Attempts,NFL,NO
+Alvin Kamara,11.5,Rush Attempts,NFL,NO
+Alvin Kamara,4.0,Rec Targets,NFL,NO
+Alvin Kamara,14.5,Rush Attempts,NFL,NO
+Alvin Kamara,1.5,Halves with 25+ Rush Yards,NFL,NO
+Alvin Kamara,3.5,Quarters with 5+ Rush Yards,NFL,NO
+Alvin Kamara,7.5,Rush Attempts,NFL,NO
+Rashid Shaheed,0.5,Rush+Rec TDs,NFL,NO
+Rashid Shaheed,19.5,Longest Reception,NFL,NO
+Rashid Shaheed,69.5,Receiving Yards,NFL,NO
+Rashid Shaheed,64.5,Receiving Yards,NFL,NO
+Rashid Shaheed,59.5,Receiving Yards,NFL,NO
+Rashid Shaheed,79.5,Receiving Yards,NFL,NO
+Rashid Shaheed,44.5,Receiving Yards,NFL,NO
+Rashid Shaheed,29.5,Receiving Yards,NFL,NO
+Rashid Shaheed,24.5,Receiving Yards,NFL,NO
+Rashid Shaheed,39.5,Receiving Yards,NFL,NO
+Rashid Shaheed,5.5,Receptions,NFL,NO
+Rashid Shaheed,4.5,Receptions,NFL,NO
+Rashid Shaheed,2.5,Receptions,NFL,NO
+Rashid Shaheed,24.5,Longest Reception,NFL,NO
+Rashid Shaheed,29.5,Longest Reception,NFL,NO
+Rashid Shaheed,14.5,Longest Reception,NFL,NO
+Rashid Shaheed,6.5,Receptions,NFL,NO
+Rashid Shaheed,6.0,Rec Targets,NFL,NO
+Rashid Shaheed,1.5,Halves with 25+ Receiving Yards,NFL,NO
+Chris Olave,0.5,Rush+Rec TDs,NFL,NO
+Chris Olave,39.5,Receiving Yards,NFL,NO
+Chris Olave,49.5,Receiving Yards,NFL,NO
+Chris Olave,79.5,Receiving Yards,NFL,NO
+Chris Olave,99.5,Receiving Yards,NFL,NO
+Chris Olave,55.5,Receiving Yards,NFL,NO
+Chris Olave,29.5,Receiving Yards,NFL,NO
+Chris Olave,89.5,Receiving Yards,NFL,NO
+Chris Olave,19.5,Longest Reception,NFL,NO
+Chris Olave,7.5,Receptions,NFL,NO
+Chris Olave,8.5,Receptions,NFL,NO
+Chris Olave,4.5,Receptions,NFL,NO
+Chris Olave,24.5,Longest Reception,NFL,NO
+Chris Olave,29.5,Longest Reception,NFL,NO
+Chris Olave,14.5,Longest Reception,NFL,NO
+Chris Olave,9.5,Rec Targets,NFL,NO
+Chris Olave,1.5,Halves with 25+ Receiving Yards,NFL,NO
+Chris Olave,3.5,Quarters with 5+ Receiving Yards,NFL,NO
+Chris Olave,3.5,Quarters with 1+ Reception,NFL,NO
+Chris Olave,5.5,Receptions,NFL,NO
+Chris Olave,6.0,Receptions,NFL,NO
+Rhamondre Stevenson,4.5,Receiving Yards,NFL1Q,NE
+Rhamondre Stevenson,9.5,Receiving Yards,NFL1Q,NE
+Rhamondre Stevenson,4.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,14.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,19.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,24.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,29.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,14.5,Receiving Yards,NFL1Q,NE
+Rhamondre Stevenson,0.5,Rush+Rec TDs,NFL1Q,NE
+Rhamondre Stevenson,9.5,Rush+Rec Yds,NFL1Q,NE
+Rhamondre Stevenson,0.5,Receiving Yards,NFL1Q,NE
+Rhamondre Stevenson,9.5,Rush Yards,NFL1Q,NE
+Rhamondre Stevenson,13.5,Rush+Rec Yds,NFL1Q,NE
+Demario Douglas,4.5,Receiving Yards,NFL1Q,NE
+Demario Douglas,9.5,Receiving Yards,NFL1Q,NE
+Demario Douglas,14.5,Receiving Yards,NFL1Q,NE
+Chris Olave,4.5,Receiving Yards,NFL1Q,NO
+Chris Olave,19.5,Receiving Yards,NFL1Q,NO
+Chris Olave,14.5,Receiving Yards,NFL1Q,NO
+Chris Olave,24.5,Receiving Yards,NFL1Q,NO
+Chris Olave,29.5,Receiving Yards,NFL1Q,NO
+Chris Olave,9.5,Receiving Yards,NFL1Q,NO
+Alvin Kamara,4.5,Receiving Yards,NFL1Q,NO
+Alvin Kamara,9.5,Receiving Yards,NFL1Q,NO
+Alvin Kamara,14.5,Receiving Yards,NFL1Q,NO
+Alvin Kamara,14.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,19.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,9.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,24.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,4.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,0.5,Rush+Rec TDs,NFL1Q,NO
+Alvin Kamara,0.5,Receiving Yards,NFL1Q,NO
+Alvin Kamara,8.5,Rush Yards,NFL1Q,NO
+Alvin Kamara,9.5,Rush+Rec Yds,NFL1Q,NO
+Alvin Kamara,12.5,Rush+Rec Yds,NFL1Q,NO
+Alvin Kamara,7.5,Receiving Yards,NFL1H,NO
+Alvin Kamara,19.5,Rush Yards,NFL1H,NO
+Alvin Kamara,6.0,Fantasy Score,NFL1H,NO
+Alvin Kamara,0.5,1st Drive Receptions,NFL1H,NO
+Alvin Kamara,4.5,Receiving Yards,NFL1H,NO
+Alvin Kamara,14.5,Receiving Yards,NFL1H,NO
+Alvin Kamara,19.5,Receiving Yards,NFL1H,NO
+Alvin Kamara,9.5,Rush Yards,NFL1H,NO
+Alvin Kamara,14.5,Rush Yards,NFL1H,NO
+Alvin Kamara,29.5,Rush Yards,NFL1H,NO
+Alvin Kamara,24.5,Rush Yards,NFL1H,NO
+Alvin Kamara,4.5,1st Drive Receiving Yards,NFL1H,NO
+Alvin Kamara,9.5,1st Drive Rush Yards,NFL1H,NO
+Alvin Kamara,4.5,1st Drive Rush Yards,NFL1H,NO
+Alvin Kamara,14.5,1st Drive Rush Yards,NFL1H,NO
+Alvin Kamara,0.5,1st Drive Rush Yards,NFL1H,NO
+Chris Olave,0.5,Rush+Rec TDs,NFL1H,NO
+Chris Olave,49.5,Receiving Yards,NFL1H,NO
+Chris Olave,23.5,Receiving Yards,NFL1H,NO
+Chris Olave,14.5,Receiving Yards,NFL1H,NO
+Chris Olave,19.5,Receiving Yards,NFL1H,NO
+Chris Olave,39.5,Receiving Yards,NFL1H,NO
+Chris Olave,9.5,1st Drive Receiving Yards,NFL1H,NO
+Chris Olave,4.5,1st Drive Receiving Yards,NFL1H,NO
+Chris Olave,14.5,1st Drive Receiving Yards,NFL1H,NO
+Chris Olave,1.5,1st Drive Receptions,NFL1H,NO
+Rashid Shaheed,24.5,Receiving Yards,NFL1H,NO
+Rashid Shaheed,49.5,Receiving Yards,NFL1H,NO
+Rashid Shaheed,0.5,Rush+Rec TDs,NFL1H,NO
+Rashid Shaheed,18.5,Receiving Yards,NFL1H,NO
+Rashid Shaheed,9.5,Receiving Yards,NFL1H,NO
+Rashid Shaheed,14.5,Receiving Yards,NFL1H,NO
+Rashid Shaheed,4.5,1st Drive Receiving Yards,NFL1H,NO
+Rashid Shaheed,9.5,1st Drive Receiving Yards,NFL1H,NO
+Rashid Shaheed,14.5,1st Drive Receiving Yards,NFL1H,NO
+Rashid Shaheed,0.5,1st Drive Receptions,NFL1H,NO
+Taysom Hill,0.5,Rush+Rec TDs,NFL,NO
+Taysom Hill,7.5,Longest Rush,NFL,NO
+Taysom Hill,5.5,Rush Attempts,NFL,NO
+Taysom Hill,24.5,Rush Yards,NFL,NO
+Taysom Hill,39.5,Rush Yards,NFL,NO
+Taysom Hill,16.5,Rush Yards,NFL,NO
+Taysom Hill,19.5,Rush Yards,NFL,NO
+Taysom Hill,9.5,Rush Yards,NFL,NO
+Taysom Hill,29.5,Rush Yards,NFL,NO
+Austin Hooper,0.5,Rush+Rec TDs,NFL,NE
+Austin Hooper,9.5,Receiving Yards,NFL,NE
+Austin Hooper,24.5,Receiving Yards,NFL,NE
+Austin Hooper,39.5,Receiving Yards,NFL,NE
+Austin Hooper,49.5,Receiving Yards,NFL,NE
+Austin Hooper,8.5,Longest Reception,NFL,NE
+Austin Hooper,1.5,Receptions,NFL,NE
+Austin Hooper,14.5,Longest Reception,NFL,NE
+Austin Hooper,19.5,Longest Reception,NFL,NE
+Foster Moreau,0.5,Rush+Rec TDs,NFL,NO
+Hunter Henry,24.5,Receiving Yards,NFL1H,NE
+Hunter Henry,0.5,Rush+Rec TDs,NFL1H,NE
+Hunter Henry,20.5,Receiving Yards,NFL1H,NE
+Hunter Henry,9.5,Receiving Yards,NFL1H,NE
+Hunter Henry,14.5,Receiving Yards,NFL1H,NE
+Hunter Henry,29.5,Receiving Yards,NFL1H,NE
+Hunter Henry,4.5,1st Drive Receiving Yards,NFL1H,NE
+Hunter Henry,9.5,1st Drive Receiving Yards,NFL1H,NE
+Hunter Henry,14.5,1st Drive Receiving Yards,NFL1H,NE
+Hunter Henry,0.5,1st Drive Receptions,NFL1H,NE
+DeMario Douglas,0.5,Rush+Rec TDs,NFL,NE
+DeMario Douglas,9.5,Longest Reception,NFL,NE
+DeMario Douglas,24.5,Receiving Yards,NFL,NE
+DeMario Douglas,39.5,Receiving Yards,NFL,NE
+DeMario Douglas,49.5,Receiving Yards,NFL,NE
+DeMario Douglas,64.5,Receiving Yards,NFL,NE
+DeMario Douglas,12.5,Receiving Yards,NFL,NE
+DeMario Douglas,14.5,Longest Reception,NFL,NE
+DeMario Douglas,19.5,Longest Reception,NFL,NE
+DeMario Douglas,3.5,Receptions,NFL,NE
+DeMario Douglas,2.5,Receptions,NFL,NE
+DeMario Douglas,9.5,Receiving Yards,NFL,NE
+Bryce Baringer,3.5,Punts,NFL,NE
+DeMario Douglas,1.5,Receiving Yards,NFL1H,NE
+Hunter Henry,14.5,Receiving Yards,NFL1Q,NE
+Hunter Henry,9.5,Receiving Yards,NFL1Q,NE
+Hunter Henry,19.5,Receiving Yards,NFL1Q,NE
+Hunter Henry,24.5,Receiving Yards,NFL1Q,NE
+Hunter Henry,6.5,Receiving Yards,NFL1Q,NE
+Rashid Shaheed,14.5,Receiving Yards,NFL1Q,NO
+Rashid Shaheed,9.5,Receiving Yards,NFL1Q,NO
+Rashid Shaheed,19.5,Receiving Yards,NFL1Q,NO
+Rashid Shaheed,24.5,Receiving Yards,NFL1Q,NO
+Rashid Shaheed,3.5,Receiving Yards,NFL1Q,NO
+Drake Maye,2.5,Pass TDs,NFL,Carolina Panthers
+Drake Maye,0.5,Rush+Rec TDs,NFL,Carolina Panthers
+Drake Maye,1.5,Pass TDs,NFL,Carolina Panthers
+Drake Maye,0.5,INT,NFL,Carolina Panthers
+Drake Maye,34.5,Longest Completion,NFL,Carolina Panthers
+Drake Maye,11.5,Longest Rush,NFL,Carolina Panthers
+Drake Maye,249.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,274.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,299.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,199.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,264.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,39.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,49.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,23.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,234.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,269.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,209.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,189.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,219.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,29.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,14.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,9.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,30.5,Pass Attempts,NFL,Carolina Panthers
+Drake Maye,21.5,Pass Completions,NFL,Carolina Panthers
+Drake Maye,3.5,Pass TDs,NFL,Carolina Panthers
+Drake Maye,34.5,Pass Attempts,NFL,Carolina Panthers
+Drake Maye,29.5,Pass Attempts,NFL,Carolina Panthers
+Drake Maye,24.5,Pass Completions,NFL,Carolina Panthers
+Drake Maye,19.5,Pass Completions,NFL,Carolina Panthers
+Drake Maye,299.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,274.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,324.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,224.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,249.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,44.5,Longest Completion,NFL,Carolina Panthers
+Drake Maye,39.5,Longest Completion,NFL,Carolina Panthers
+Drake Maye,29.5,Longest Completion,NFL,Carolina Panthers
+Drake Maye,27.5,Pass Attempts,NFL,Carolina Panthers
+Drake Maye,70.1,Completion Percentage,NFL,Carolina Panthers
+Drake Maye,1.5,INT,NFL,Carolina Panthers
+Drake Maye,229.5,Pass+Rush Yds,NFL,Carolina Panthers
+Drake Maye,14.5,Longest Rush,NFL,Carolina Panthers
+Drake Maye,19.5,Longest Rush,NFL,Carolina Panthers
+Drake Maye,9.5,Longest Rush,NFL,Carolina Panthers
+Drake Maye,19.5,Fantasy Score,NFL,Carolina Panthers
+Drake Maye,5.5,Rush Attempts,NFL,Carolina Panthers
+Drake Maye,8.5,Rush Attempts,NFL,Carolina Panthers
+Drake Maye,1.5,Halves with 100+ Pass Yards,NFL,Carolina Panthers
+Drake Maye,2.5,Sacks Taken,NFL,Carolina Panthers
+Drake Maye,3.5,Quarters with 25+ Pass Yards,NFL,Carolina Panthers
+Drake Maye,0.5,Rush+Rec TDs,NFL,Carolina Panthers
+Drake Maye,149.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,124.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,99.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,24.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,117.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,10.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,10.0,Fantasy Score,NFL,Carolina Panthers
+Drake Maye,94.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,9.5,1st Drive Pass Yards,NFL,Carolina Panthers
+Drake Maye,4.5,1st Drive Pass Yards,NFL,Carolina Panthers
+Drake Maye,39.5,1st Drive Pass Yards,NFL,Carolina Panthers
+Drake Maye,29.5,1st Drive Pass Yards,NFL,Carolina Panthers
+Drake Maye,49.5,1st Drive Pass Yards,NFL,Carolina Panthers
+Drake Maye,0.5,1st Drive Rush Yards,NFL,Carolina Panthers
+Drake Maye,4.5,1st Drive Rush Yards,NFL,Carolina Panthers
+Drake Maye,9.5,1st Drive Rush Yards,NFL,Carolina Panthers
+Drake Maye,19.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,4.5,Rush Yards,NFL,Carolina Panthers
+Spencer Rattler,1.5,Pass TDs,NFL,NO
+Spencer Rattler,2.5,Pass TDs,NFL,NO
+Spencer Rattler,0.5,Rush+Rec TDs,NFL,NO
+Spencer Rattler,0.5,Pass TDs,NFL,NO
+Spencer Rattler,0.5,INT,NFL,NO
+Spencer Rattler,32.5,Longest Completion,NFL,NO
+Spencer Rattler,10.5,Longest Rush,NFL,NO
+Spencer Rattler,39.5,Pass Attempts,NFL,NO
+Spencer Rattler,33.0,Pass Attempts,NFL,NO
+Spencer Rattler,29.5,Pass Attempts,NFL,NO
+Spencer Rattler,24.5,Pass Completions,NFL,NO
+Spencer Rattler,21.5,Pass Completions,NFL,NO
+Spencer Rattler,19.5,Pass Completions,NFL,NO
+Spencer Rattler,249.5,Pass Yards,NFL,NO
+Spencer Rattler,259.5,Pass Yards,NFL,NO
+Spencer Rattler,269.5,Pass Yards,NFL,NO
+Spencer Rattler,239.5,Pass Yards,NFL,NO
+Spencer Rattler,189.5,Pass Yards,NFL,NO
+Spencer Rattler,179.5,Pass Yards,NFL,NO
+Spencer Rattler,199.5,Pass Yards,NFL,NO
+Spencer Rattler,174.5,Pass Yards,NFL,NO
+Spencer Rattler,274.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,299.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,232.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,224.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,199.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,29.5,Rush Yards,NFL,NO
+Spencer Rattler,24.5,Rush Yards,NFL,NO
+Spencer Rattler,39.5,Rush Yards,NFL,NO
+Spencer Rattler,49.5,Rush Yards,NFL,NO
+Spencer Rattler,22.5,Rush Yards,NFL,NO
+Spencer Rattler,14.5,Rush Yards,NFL,NO
+Spencer Rattler,39.5,Longest Completion,NFL,NO
+Spencer Rattler,44.5,Longest Completion,NFL,NO
+Spencer Rattler,29.5,Longest Completion,NFL,NO
+Spencer Rattler,14.5,Longest Rush,NFL,NO
+Spencer Rattler,1.5,INT,NFL,NO
+Spencer Rattler,210.5,Pass Yards,NFL,NO
+Spencer Rattler,9.5,Rush Yards,NFL,NO
+Spencer Rattler,68.3,Completion Percentage,NFL,NO
+Spencer Rattler,269.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,209.5,Pass+Rush Yds,NFL,NO
+Spencer Rattler,19.5,Longest Rush,NFL,NO
+Spencer Rattler,24.5,Longest Completion,NFL,NO
+Spencer Rattler,15.0,Fantasy Score,NFL,NO
+Spencer Rattler,5.5,Rush Attempts,NFL,NO
+Spencer Rattler,1.5,Halves with 100+ Pass Yards,NFL,NO
+Spencer Rattler,2.5,Sacks Taken,NFL,NO
+Spencer Rattler,3.5,Quarters with 25+ Pass Yards,NFL,NO
+Spencer Rattler,124.5,Pass Yards,NFL1H,NO
+Spencer Rattler,149.5,Pass Yards,NFL1H,NO
+Spencer Rattler,74.5,Pass Yards,NFL1H,NO
+Spencer Rattler,100.5,Pass Yards,NFL1H,NO
+Spencer Rattler,7.5,Rush Yards,NFL1H,NO
+Spencer Rattler,7.5,Fantasy Score,NFL1H,NO
+Spencer Rattler,4.5,1st Drive Pass Yards,NFL1H,NO
+Spencer Rattler,9.5,1st Drive Pass Yards,NFL1H,NO
+Spencer Rattler,29.5,1st Drive Pass Yards,NFL1H,NO
+Spencer Rattler,39.5,1st Drive Pass Yards,NFL1H,NO
+Spencer Rattler,19.5,1st Drive Pass Yards,NFL1H,NO
+Drake Maye,69.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,59.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,79.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,89.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,29.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,39.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,4.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,9.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,14.5,Rush Yards,NFL,Carolina Panthers
+Drake Maye,49.5,Pass Yards,NFL,Carolina Panthers
+Drake Maye,1.5,Rush Yards,NFL,Carolina Panthers
+Spencer Rattler,59.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,69.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,49.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,79.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,4.5,Rush Yards,NFL1Q,NO
+Spencer Rattler,9.5,Rush Yards,NFL1Q,NO
+Spencer Rattler,14.5,Rush Yards,NFL1Q,NO
+Spencer Rattler,29.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,41.5,Pass Yards,NFL1Q,NO
+Spencer Rattler,1.5,Rush Yards,NFL1Q,NO
+Juwan Johnson,9.5,Receiving Yards,NFL1Q,NO
+Juwan Johnson,14.5,Receiving Yards,NFL1Q,NO
+Juwan Johnson,19.5,Receiving Yards,NFL1Q,NO
+Juwan Johnson,24.5,Receiving Yards,NFL1Q,NO
+Juwan Johnson,2.5,Receiving Yards,NFL1Q,NO
+Foster Moreau,0.5,Rush+Rec TDs,NFL1H,NO
+Kendre Miller,0.5,Rush+Rec TDs,NFL,NO
+Kendre Miller,30.5,Rush Yards,NFL,NO
+Kendre Miller,39.5,Rush Yards,NFL,NO
+Kendre Miller,64.5,Rush Yards,NFL,NO
+Kendre Miller,24.5,Rush Yards,NFL,NO
+Kendre Miller,49.5,Rush Yards,NFL,NO
+Kendre Miller,10.5,Longest Rush,NFL,NO
+Kendre Miller,14.5,Longest Rush,NFL,NO
+Kendre Miller,19.5,Longest Rush,NFL,NO
+Kendre Miller,9.5,Longest Rush,NFL,NO
+Kendre Miller,11.5,Rush Attempts,NFL,NO
+Kendre Miller,59.5,Rush Yards,NFL,NO
+Kendre Miller,19.5,Rush Yards,NFL,NO
+Kendre Miller,14.5,Rush Yards,NFL,NO
+Kendre Miller,1.5,Longest Reception,NFL,NO
+Kendre Miller,0.5,Receiving Yards,NFL,NO
+Kendre Miller,24.5,Receiving Yards,NFL,NO
+Kendre Miller,0.5,Receptions,NFL,NO
+Kendre Miller,1.5,Receptions,NFL,NO
+Kendre Miller,34.5,Rush+Rec Yds,NFL,NO
+Kendre Miller,7.5,Rush Attempts,NFL,NO
+Kendre Miller,1.5,Halves with 25+ Rush Yards,NFL,NO
+Kendre Miller,3.5,Quarters with 5+ Rush Yards,NFL,NO
+Kendre Miller,5.5,Rush Attempts,NFL,NO
+Kayshon Boutte,0.5,Rush+Rec TDs,NFL,NE
+Kayshon Boutte,17.5,Longest Reception,NFL,NE
+Kayshon Boutte,29.5,Receiving Yards,NFL,NE
+Kayshon Boutte,39.5,Receiving Yards,NFL,NE
+Kayshon Boutte,49.5,Receiving Yards,NFL,NE
+Kayshon Boutte,64.5,Receiving Yards,NFL,NE
+Kayshon Boutte,59.5,Receiving Yards,NFL,NE
+Kayshon Boutte,19.5,Receiving Yards,NFL,NE
+Kayshon Boutte,9.5,Receiving Yards,NFL,NE
+Kayshon Boutte,3.5,Receptions,NFL,NE
+Kayshon Boutte,2.5,Receptions,NFL,NE
+Kayshon Boutte,1.5,Receptions,NFL,NE
+Kayshon Boutte,24.5,Longest Reception,NFL,NE
+Kayshon Boutte,29.5,Longest Reception,NFL,NE
+Kayshon Boutte,9.5,Longest Reception,NFL,NE
+Kayshon Boutte,14.5,Longest Reception,NFL,NE
+Kayshon Boutte,24.5,Receiving Yards,NFL,NE
+Kayshon Boutte,4.5,Receptions,NFL,NE
+Kayshon Boutte,24.5,Receiving Yards,NFL1H,NE
+Kayshon Boutte,0.5,Rush+Rec TDs,NFL1H,NE
+Kayshon Boutte,10.5,Receiving Yards,NFL1H,NE
+Kayshon Boutte,4.5,1st Drive Receiving Yards,NFL1H,NE
+Kayshon Boutte,9.5,1st Drive Receiving Yards,NFL1H,NE
+Kayshon Boutte,14.5,1st Drive Receiving Yards,NFL1H,NE
+Kayshon Boutte,0.5,1st Drive Receptions,NFL1H,NE
+Kendre Miller,0.5,Rush+Rec TDs,NFL1H,NO
+Kendre Miller,12.5,Rush Yards,NFL1H,NO
+Kendre Miller,0.5,Receiving Yards,NFL1H,NO
+Kendre Miller,24.5,Rush Yards,NFL1H,NO
+Kendre Miller,9.5,Rush Yards,NFL1Q,NO
+Kendre Miller,14.5,Rush Yards,NFL1Q,NO
+Kendre Miller,19.5,Rush Yards,NFL1Q,NO
+Kendre Miller,4.5,Rush Yards,NFL1Q,NO
+Kendre Miller,0.5,Rush+Rec TDs,NFL1Q,NO
+Kendre Miller,24.5,Rush Yards,NFL1Q,NO
+Kendre Miller,5.5,Rush Yards,NFL1Q,NO
+Kendre Miller,4.5,Receiving Yards,NFL1Q,NO
+Kendre Miller,0.5,Receiving Yards,NFL1Q,NO
+Mack Hollins,0.5,Rush+Rec TDs,NFL,NE
+Mack Hollins,8.5,Longest Reception,NFL,NE
+Mack Hollins,24.5,Receiving Yards,NFL,NE
+Mack Hollins,39.5,Receiving Yards,NFL,NE
+Mack Hollins,49.5,Receiving Yards,NFL,NE
+Mack Hollins,8.5,Receiving Yards,NFL,NE
+Mack Hollins,1.5,Receptions,NFL,NE
+Mack Hollins,14.5,Longest Reception,NFL,NE
+Mack Hollins,19.5,Longest Reception,NFL,NE
+Mack Hollins,4.5,Receiving Yards,NFL,NE
+Mack Hollins,0.5,Receptions,NFL,NE
+Mack Hollins,2.5,Receptions,NFL,NE
+Stefon Diggs,0.5,Rush+Rec TDs,NFL,NE
+Stefon Diggs,22.5,Longest Reception,NFL,NE
+Stefon Diggs,79.5,Receiving Yards,NFL,NE
+Stefon Diggs,99.5,Receiving Yards,NFL,NE
+Stefon Diggs,39.5,Receiving Yards,NFL,NE
+Stefon Diggs,49.5,Receiving Yards,NFL,NE
+Stefon Diggs,63.5,Receiving Yards,NFL,NE
+Stefon Diggs,29.5,Receiving Yards,NFL,NE
+Stefon Diggs,89.5,Receiving Yards,NFL,NE
+Stefon Diggs,7.5,Receptions,NFL,NE
+Stefon Diggs,4.5,Receptions,NFL,NE
+Stefon Diggs,3.5,Receptions,NFL,NE
+Stefon Diggs,6.5,Receptions,NFL,NE
+Stefon Diggs,8.5,Receptions,NFL,NE
+Stefon Diggs,29.5,Longest Reception,NFL,NE
+Stefon Diggs,24.5,Longest Reception,NFL,NE
+Stefon Diggs,19.5,Longest Reception,NFL,NE
+Stefon Diggs,5.5,Receptions,NFL,NE
+Stefon Diggs,1.5,Halves with 25+ Receiving Yards,NFL,NE
+Stefon Diggs,3.5,Quarters with 5+ Receiving Yards,NFL,NE
+Stefon Diggs,3.5,Quarters with 1+ Reception,NFL,NE
+Stefon Diggs,8.0,Rec Targets,NFL,NE
+TreVeyon Henderson,0.5,Rush+Rec TDs,NFL,NE
+TreVeyon Henderson,10.5,Longest Reception,NFL,NE
+TreVeyon Henderson,24.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,29.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,19.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,39.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,17.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,9.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,3.5,Receptions,NFL,NE
+TreVeyon Henderson,1.5,Receptions,NFL,NE
+TreVeyon Henderson,9.5,Rush Attempts,NFL,NE
+TreVeyon Henderson,49.5,Rush Yards,NFL,NE
+TreVeyon Henderson,59.5,Rush Yards,NFL,NE
+TreVeyon Henderson,64.5,Rush Yards,NFL,NE
+TreVeyon Henderson,39.5,Rush Yards,NFL,NE
+TreVeyon Henderson,35.5,Rush Yards,NFL,NE
+TreVeyon Henderson,24.5,Rush Yards,NFL,NE
+TreVeyon Henderson,29.5,Rush Yards,NFL,NE
+TreVeyon Henderson,74.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,55.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,49.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,14.5,Longest Rush,NFL,NE
+TreVeyon Henderson,19.5,Longest Rush,NFL,NE
+TreVeyon Henderson,9.5,Longest Rush,NFL,NE
+TreVeyon Henderson,19.5,Rush Yards,NFL,NE
+TreVeyon Henderson,11.5,Rush Attempts,NFL,NE
+TreVeyon Henderson,14.5,Rush Attempts,NFL,NE
+TreVeyon Henderson,8.5,Rush Attempts,NFL,NE
+TreVeyon Henderson,10.5,Longest Rush,NFL,NE
+TreVeyon Henderson,99.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,7.5,Rush Attempts,NFL,NE
+TreVeyon Henderson,69.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,39.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,4.5,Receptions,NFL,NE
+TreVeyon Henderson,5.5,Receptions,NFL,NE
+TreVeyon Henderson,14.5,Longest Reception,NFL,NE
+TreVeyon Henderson,19.5,Longest Reception,NFL,NE
+TreVeyon Henderson,44.5,Rush+Rec Yds,NFL,NE
+TreVeyon Henderson,3.5,Rec Targets,NFL,NE
+TreVeyon Henderson,4.5,Receiving Yards,NFL,NE
+TreVeyon Henderson,1.5,Halves with 25+ Rush Yards,NFL,NE
+TreVeyon Henderson,3.5,Quarters with 5+ Rush Yards,NFL,NE
+Brandin Cooks,0.5,Rush+Rec TDs,NFL,NO
+Brandin Cooks,10.5,Longest Reception,NFL,NO
+Brandin Cooks,24.5,Receiving Yards,NFL,NO
+Brandin Cooks,29.5,Receiving Yards,NFL,NO
+Brandin Cooks,39.5,Receiving Yards,NFL,NO
+Brandin Cooks,16.5,Receiving Yards,NFL,NO
+Brandin Cooks,9.5,Receiving Yards,NFL,NO
+Brandin Cooks,2.5,Receptions,NFL,NO
+Brandin Cooks,3.5,Receptions,NFL,NO
+Brandin Cooks,14.5,Longest Reception,NFL,NO
+Brandin Cooks,19.5,Longest Reception,NFL,NO
+Brandin Cooks,9.5,Longest Reception,NFL,NO
+Brandin Cooks,1.5,Receptions,NFL,NO
+Brandin Cooks,4.5,Receptions,NFL,NO
+TreVeyon Henderson,24.5,Rush Yards,NFL1H,NE
+TreVeyon Henderson,0.5,Rush+Rec TDs,NFL1H,NE
+TreVeyon Henderson,7.5,Receiving Yards,NFL1H,NE
+TreVeyon Henderson,15.5,Rush Yards,NFL1H,NE
+TreVeyon Henderson,29.5,Rush Yards,NFL1H,NE
+TreVeyon Henderson,9.5,Rush Yards,NFL1H,NE
+TreVeyon Henderson,14.5,Receiving Yards,NFL1H,NE
+TreVeyon Henderson,9.5,Receiving Yards,NFL1H,NE
+TreVeyon Henderson,4.5,Receiving Yards,NFL1H,NE
+TreVeyon Henderson,0.5,1st Drive Receptions,NFL1H,NE
+TreVeyon Henderson,14.5,Rush Yards,NFL1H,NE
+Stefon Diggs,19.5,Receiving Yards,NFL1Q,NE
+Stefon Diggs,14.5,Receiving Yards,NFL1Q,NE
+Stefon Diggs,24.5,Receiving Yards,NFL1Q,NE
+Stefon Diggs,29.5,Receiving Yards,NFL1Q,NE
+Stefon Diggs,4.5,Receiving Yards,NFL1Q,NE
+Stefon Diggs,8.5,Receiving Yards,NFL1Q,NE
+TreVeyon Henderson,4.5,Receiving Yards,NFL1Q,NE
+TreVeyon Henderson,9.5,Receiving Yards,NFL1Q,NE
+TreVeyon Henderson,14.5,Receiving Yards,NFL1Q,NE
+TreVeyon Henderson,14.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,9.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,19.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,24.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,0.5,Rush+Rec TDs,NFL1Q,NE
+TreVeyon Henderson,4.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,0.5,Receiving Yards,NFL1Q,NE
+TreVeyon Henderson,6.5,Rush Yards,NFL1Q,NE
+TreVeyon Henderson,4.5,Rush+Rec Yds,NFL1Q,NE
+TreVeyon Henderson,11.5,Rush+Rec Yds,NFL1Q,NE
+Carl Granderson,0.5,Sacks,NFL,NO
+Carl Granderson,0.25,Sacks,NFL,NO
+Christian Barmore,0.25,Sacks,NFL,NE
+Christian Barmore,0.5,Sacks,NFL,NE
+Harold Landry,0.5,Sacks,NFL,NE
+Harold Landry,0.25,Sacks,NFL,NE
+K'Lavon Chaisson,0.5,Sacks,NFL,NE
+K'Lavon Chaisson,0.25,Sacks,NFL,NE
+Milton Williams,0.5,Sacks,NFL,NE
+Milton Williams,0.25,Sacks,NFL,NE
+Robert Spillane,0.5,Sacks,NFL,NE
+Robert Spillane,8.5,Tackles+Ast,NFL,NE
+Robert Spillane,0.25,Sacks,NFL,NE
+Bryan Bresee,0.25,Sacks,NFL,NO
+Cameron Jordan,0.5,Sacks,NFL,NO
+Cameron Jordan,0.25,Sacks,NFL,NO
+Demario Davis,0.5,Sacks,NFL,NO
+Demario Davis,0.25,Sacks,NFL,NO
+Pete Werner,0.5,Sacks,NFL,NO
+Pete Werner,7.5,Tackles+Ast,NFL,NO
+Pete Werner,0.25,Sacks,NFL,NO
+Alontae Taylor,0.5,Sacks,NFL,NO
+Alontae Taylor,0.25,Sacks,NFL,NO
+Brandin Cooks,9.5,Receiving Yards,NFL1Q,NO
+Brandin Cooks,14.5,Receiving Yards,NFL1Q,NO
+Brandin Cooks,4.5,Receiving Yards,NFL1Q,NO
+Brandin Cooks,0.5,Receiving Yards,NFL1Q,NO
+Devaughn Vele,0.5,Rush+Rec TDs,NFL,NO
+Devaughn Vele,5.5,Longest Reception,NFL,NO
+Devaughn Vele,6.5,Receiving Yards,NFL,NO
+Devaughn Vele,24.5,Receiving Yards,NFL,NO
+Devaughn Vele,39.5,Receiving Yards,NFL,NO
+Devaughn Vele,1.5,Receptions,NFL,NO
+Devaughn Vele,0.5,Receptions,NFL,NO
+Devaughn Vele,49.5,Receiving Yards,NFL,NO
+Stefon Diggs,0.5,Rush+Rec TDs,NFL1H,NE
+Stefon Diggs,49.5,Receiving Yards,NFL1H,NE
+Stefon Diggs,24.5,Receiving Yards,NFL1H,NE
+Stefon Diggs,30.5,Receiving Yards,NFL1H,NE
+Stefon Diggs,19.5,Receiving Yards,NFL1H,NE
+Stefon Diggs,44.5,Receiving Yards,NFL1H,NE
+Stefon Diggs,9.5,1st Drive Receiving Yards,NFL1H,NE
+Stefon Diggs,4.5,1st Drive Receiving Yards,NFL1H,NE
+Stefon Diggs,14.5,1st Drive Receiving Yards,NFL1H,NE
+Stefon Diggs,1.5,1st Drive Receptions,NFL1H,NE
+Kai Kroeger,4.0,Punts,NFL,NO
+Andy Borregales,1.5,FG Made,NFL,NE
+Andy Borregales,7.5,Kicking Points,NFL,NE
+Austin Hooper,4.5,Receiving Yards,NFL1Q,NE
+Austin Hooper,9.5,Receiving Yards,NFL1Q,NE
+Austin Hooper,14.5,Receiving Yards,NFL1Q,NE
+Austin Hooper,0.5,Receiving Yards,NFL1Q,NE
+Kayshon Boutte,9.5,Receiving Yards,NFL1Q,NE
+Kayshon Boutte,4.5,Receiving Yards,NFL1Q,NE
+Kayshon Boutte,14.5,Receiving Yards,NFL1Q,NE
+Kayshon Boutte,19.5,Receiving Yards,NFL1Q,NE
+Mack Hollins,4.5,Receiving Yards,NFL1Q,NE
+Mack Hollins,9.5,Receiving Yards,NFL1Q,NE
+Mack Hollins,14.5,Receiving Yards,NFL1Q,NE
+Brandin Cooks,3.5,Receiving Yards,NFL1H,NO
+Brandin Cooks,24.5,Receiving Yards,NFL1H,NO
+Brandin Cooks,14.5,Receiving Yards,NFL1H,NO
+Brandin Cooks,4.5,1st Drive Receiving Yards,NFL1H,NO
+Brandin Cooks,0.5,1st Drive Receptions,NFL1H,NO
+Brandin Cooks,9.5,1st Drive Receiving Yards,NFL1H,NO
+Craig Woodson,5.5,Tackles+Ast,NFL,NE
+Jonas Sanker,1.5,Assists,NFL,NO
+Mack Hollins,0.5,Receiving Yards,NFL1H,NE
+Mack Hollins,0.5,1st Drive Receptions,NFL1H,NE
+Austin Hooper,0.5,Receiving Yards,NFL1H,NE
+Taysom Hill,4.5,Rush Yards,NFL1Q,NO
+Taysom Hill,9.5,Rush Yards,NFL1Q,NO
+Taysom Hill,0.5,Rush Yards,NFL1Q,NO
+Andy Borregales + Blake Grupe,3.5,FG Made (Combo),NFL,NE/NO
+Andy Borregales + Blake Grupe,52.5,Longest FG Made Yds (Combo),NFL,NE/NO
+Andy Borregales + Blake Grupe,27.5,Shortest FG Made Yds (Combo),NFL,NE/NO
+Andy Borregales + Blake Grupe,132.5,Field Goal Yards (Combo),NFL,NE/NO
+Drake Maye + Spencer Rattler,446.5,Pass Yards (Combo),NFL,NE/NO
+Stefon Diggs + Chris Olave,116.5,Receiving Yards (Combo),NFL,NE/NO
+Andy Borregales + Blake Grupe,2.0,FG Made (Combo),NFL1H,NE/NO
+Jack Stoll,0.5,Rush+Rec TDs,NFL,NO
+Devaughn Vele,0.5,Receiving Yards,NFL1H,NO
+Devaughn Vele,0.5,Receiving Yards,NFL1Q,NO
+Devaughn Vele,4.5,Receiving Yards,NFL1Q,NO
+Devaughn Vele,9.5,Receiving Yards,NFL1Q,NO
+Kyle Dugger,5.5,Tackles+Ast,NFL,NE
+De'Von Achane,1.5,1st Drive Receptions,NFL1H,MIA
+Will Dissly,1.5,Receptions,NFL,LAC
+K.J. Britt,7.5,Tackles+Ast,NFL,MIA
+Michael Pittman Jr.,0.5,Rush+Rec TDs,NFL1H,IND
+Greg Dortch,24.5,Receiving Yards,NFL,ARI
+Greg Dortch,39.5,Receiving Yards,NFL,ARI
+Greg Dortch,49.5,Receiving Yards,NFL,ARI
+Greg Dortch,1.5,Receptions,NFL,ARI
+Greg Dortch,0.5,Receiving Yards,NFL1H,ARI
+Elijah Higgins,6.5,Longest Reception,NFL,ARI
+Elijah Higgins,24.5,Receiving Yards,NFL,ARI
+Elijah Higgins,39.5,Receiving Yards,NFL,ARI
+Elijah Higgins,49.5,Receiving Yards,NFL,ARI
+Elijah Higgins,1.5,Receptions,NFL,ARI
+Zay Jones,24.5,Receiving Yards,NFL,ARI
+Zay Jones,39.5,Receiving Yards,NFL,ARI
+Zay Jones,49.5,Receiving Yards,NFL,ARI
+Emari Demercado,6.5,Longest Reception,NFL,ARI
+Emari Demercado,5.5,Longest Rush,NFL,ARI
+Daniel Jones,3.5,Rush Attempts,NFL,IND
+Zay Jones,4.5,Receiving Yards,NFL1Q,ARI
+Zay Jones,9.5,Receiving Yards,NFL1Q,ARI
+Greg Dortch,4.5,Receiving Yards,NFL1Q,ARI
+Greg Dortch,9.5,Receiving Yards,NFL1Q,ARI
+Zay Jones,0.5,Receiving Yards,NFL1H,ARI
+Jacoby Brissett,3.5,Rush Attempts,NFL,ARI
+Elijah Higgins,0.5,Receiving Yards,NFL1H,ARI
+Elijah Higgins,4.5,Receiving Yards,NFL1Q,ARI
+Elijah Higgins,9.5,Receiving Yards,NFL1Q,ARI
+Trent Forrest,13.5,Points,SACB,Baskonia
+Markus Howard,14.5,Points,SACB,Baskonia
+Timothé Luwawu-Cabarrot,14.5,Points,SACB,Baskonia
+Tadas Sedekerskis,8.5,Points,SACB,Baskonia
+Sergio Llull,6.5,Points,SACB,Real Madrid
+Walter Tavares,8.5,Points,SACB,Real Madrid
+Andres Feliz,8.5,Points,SACB,Real Madrid
+Facundo Campazzo,9.5,Points,SACB,Real Madrid
+cej0t,29.0,MAPS 1-2 Kills,CS2,9INE
+Dasha Plekhanova,20.5,Total Games,TENNIS,Dasha Plekhanova
+Dasha Plekhanova,2.5,Total Sets,TENNIS,Dasha Plekhanova
+Katrina Scott,20.5,Total Games,TENNIS,Katrina Scott
+Katrina Scott,2.5,Total Sets,TENNIS,Katrina Scott
+faveN,31.0,MAPS 1-2 Kills,CS2,9INE
+raalz,26.5,MAPS 1-2 Kills,CS2,9INE
+kraghen,30.5,MAPS 1-2 Kills,CS2,9INE
+MoDo,30.5,MAPS 1-2 Kills,CS2,9INE
+SHOCK,28.5,MAPS 1-2 Kills,CS2,SINNERS
+kisserek,29.5,MAPS 1-2 Kills,CS2,SINNERS
+Pepo,26.5,MAPS 1-2 Kills,CS2,SINNERS
+beastik,27.5,MAPS 1-2 Kills,CS2,SINNERS
+stressarN,31.5,MAPS 1-2 Kills,CS2,SINNERS
+cej0t,15.5,MAPS 1-2 Headshots,CS2,9INE
+faveN,19.0,MAPS 1-2 Headshots,CS2,9INE
+raalz,15.5,MAPS 1-2 Headshots,CS2,9INE
+kraghen,16.5,MAPS 1-2 Headshots,CS2,9INE
+MoDo,11.0,MAPS 1-2 Headshots,CS2,9INE
+SHOCK,15.5,MAPS 1-2 Headshots,CS2,SINNERS
+kisserek,16.0,MAPS 1-2 Headshots,CS2,SINNERS
+Pepo,8.5,MAPS 1-2 Headshots,CS2,SINNERS
+beastik,15.0,MAPS 1-2 Headshots,CS2,SINNERS
+stressarN,17.0,MAPS 1-2 Headshots,CS2,SINNERS
+Sam Darnold,1.5,Pass TDs,NFL,SEA
+Cam Little + Jason Myers,0.5,FG Made (Combo),NFL1Q,JAC/SEA
+Bryce Young,208.5,Pass Yards,NFL,CAR
+Ryan Fitzgerald + Brandon Aubrey,0.5,FG Made (Combo),NFL1Q,CAR/DAL
+Riley Patterson + Cameron Dicker,0.5,FG Made (Combo),NFL1Q,MIA/LAC
+Tyler Warren + Trey McBride,0.5,Rush+Rec TDs (Combo),NFL,IND/ARI
+Tyler Warren + Trey McBride,1.5,Rush+Rec TDs (Combo),NFL,IND/ARI
+Tyler Warren + Marvin Harrison,0.5,Rush+Rec TDs (Combo),NFL,IND/ARI
+Jonathan Taylor + Marvin Harrison,1.5,Rush+Rec TDs (Combo),NFL,IND/ARI
+Zach Charbonnet,4.0,Fantasy Score,NFL1H,SEA
+Trevor Lawrence,6.5,Yards on First Pass Completion,NFL,JAC
+Trevor Lawrence,6.5,Completions in First 10 Pass Attempts,NFL,JAC
+Trevor Lawrence,63.5,Passing Yards in First 10 Attempts,NFL,JAC
+Travis Etienne,5.5,Yards on First Reception,NFL,JAC
+Travis Etienne,11.5,Receiving Yards in First 2 Receptions,NFL,JAC
+Travis Etienne,19.5,Rush Yards in First 5 Attempts,NFL,JAC
+Travis Etienne,13.0,Fantasy Score,NFL,JAC
+Jaxon Smith-Njigba,18.0,Fantasy Score,NFL,SEA
+Jaxon Smith-Njigba,9.5,Yards on First Reception,NFL,SEA
+Jaxon Smith-Njigba,21.5,Receiving Yards in First 2 Receptions,NFL,SEA
+Jaxon Smith-Njigba,8.0,Fantasy Score,NFL1H,SEA
+Travis Etienne,2.0,Fantasy Score,NFL1Q,JAC
+Travis Etienne,6.5,Fantasy Score,NFL1H,JAC
+Zach Charbonnet,9.0,Fantasy Score,NFL,SEA
+Zach Charbonnet,4.5,Yards on First Reception,NFL,SEA
+Brian Thomas,13.0,Fantasy Score,NFL,JAC
+Brian Thomas,9.5,Yards on First Reception,NFL,JAC
+Brian Thomas,21.5,Receiving Yards in First 2 Receptions,NFL,JAC
+Brian Thomas,6.5,Fantasy Score,NFL1H,JAC
+Zach Charbonnet,0.5,Fantasy Score,NFL1Q,SEA
+Kenneth Walker III,5.5,Yards on First Reception,NFL,SEA
+Kenneth Walker III,11.0,Fantasy Score,NFL,SEA
+Kenneth Walker III,19.5,Rush Yards in First 5 Attempts,NFL,SEA
+Kenneth Walker III,5.5,Fantasy Score,NFL1H,SEA
+AJ Barner,6.5,Fantasy Score,NFL,SEA
+Kenneth Walker III,2.0,Fantasy Score,NFL1Q,SEA
+Parker Washington,3.5,Fantasy Score,NFL,JAC
+Parker Washington,1.5,Fantasy Score,NFL1H,JAC
+Dyami Brown,7.5,Fantasy Score,NFL,JAC
+Travis Hunter,9.5,Fantasy Score,NFL,JAC
+Travis Hunter,8.5,Yards on First Reception,NFL,JAC
+Travis Hunter,17.5,Receiving Yards in First 2 Receptions,NFL,JAC
+Cooper Kupp,10.0,Fantasy Score,NFL,SEA
+Cooper Kupp,8.5,Yards on First Reception,NFL,SEA
+Cooper Kupp,19.5,Receiving Yards in First 2 Receptions,NFL,SEA
+Sam Darnold,7.5,Yards on First Pass Completion,NFL,SEA
+Sam Darnold,7.5,Completions in First 10 Pass Attempts,NFL,SEA
+Sam Darnold,69.5,Passing Yards in First 10 Attempts,NFL,SEA
+Tory Horton,5.5,Fantasy Score,NFL,SEA
+Tory Horton,8.5,Yards on First Reception,NFL,SEA
+Travis Hunter,4.0,Fantasy Score,NFL1H,JAC
+Parker Washington,0.5,Fantasy Score,NFL1Q,JAC
+Dyami Brown,0.5,Fantasy Score,NFL1Q,JAC
+Cooper Kupp,4.5,Fantasy Score,NFL1H,SEA
+AJ Barner,3.0,Fantasy Score,NFL1H,SEA
+Dyami Brown,3.5,Fantasy Score,NFL1H,JAC
+Tory Horton,2.5,Fantasy Score,NFL1H,SEA
+Elijah Arroyo,0.5,Fantasy Score,NFL1Q,SEA
+Hunter Long,0.5,Fantasy Score,NFL1Q,JAC
+Jalen Tolbert,3.5,Fantasy Score,NFL1H,DAL
+Jake Ferguson,6.5,Yards on First Reception,NFL,DAL
+Jake Ferguson,16.5,Receiving Yards in First 2 Receptions,NFL,DAL
+Jake Ferguson,14.0,Fantasy Score,NFL,DAL
+Jake Ferguson,6.5,Fantasy Score,NFL1H,DAL
+Bryce Young,65.5,Passing Yards in First 10 Attempts,NFL,CAR
+Bryce Young,6.5,Yards on First Pass Completion,NFL,CAR
+Bryce Young,6.5,Completions in First 10 Pass Attempts,NFL,CAR
+Dak Prescott,65.5,Passing Yards in First 10 Attempts,NFL,DAL
+Dak Prescott,6.5,Yards on First Pass Completion,NFL,DAL
+Dak Prescott,7.5,Completions in First 10 Pass Attempts,NFL,DAL
+Jalen Tolbert,7.0,Fantasy Score,NFL,DAL
+Jalen Tolbert,9.5,Yards on First Reception,NFL,DAL
+Xavier Legette,7.5,Fantasy Score,NFL,CAR
+Xavier Legette,9.5,Yards on First Reception,NFL,CAR
+Jalen Tolbert,0.5,Fantasy Score,NFL1Q,DAL
+Xavier Legette,4.0,Fantasy Score,NFL1H,CAR
+Ryan Flournoy,8.0,Fantasy Score,NFL,DAL
+Ryan Flournoy,8.5,Yards on First Reception,NFL,DAL
+Ryan Flournoy,17.5,Receiving Yards in First 2 Receptions,NFL,DAL
+Xavier Legette,0.5,Fantasy Score,NFL1Q,CAR
+George Pickens,14.5,Fantasy Score,NFL,DAL
+George Pickens,10.5,Yards on First Reception,NFL,DAL
+George Pickens,23.5,Receiving Yards in First 2 Receptions,NFL,DAL
+Javonte Williams,19.5,Rush Yards in First 5 Attempts,NFL,DAL
+Javonte Williams,17.5,Fantasy Score,NFL,DAL
+Javonte Williams,5.5,Yards on First Reception,NFL,DAL
+Tetairoa McMillan,10.5,Yards on First Reception,NFL,CAR
+Tetairoa McMillan,23.5,Receiving Yards in First 2 Receptions,NFL,CAR
+Tetairoa McMillan,15.0,Fantasy Score,NFL,CAR
+George Pickens,7.5,Fantasy Score,NFL1H,DAL
+Javonte Williams,1.5,Fantasy Score,NFL1Q,DAL
+George Pickens,2.5,Fantasy Score,NFL1Q,DAL
+Tetairoa McMillan,7.0,Fantasy Score,NFL1H,CAR
+Javonte Williams,8.0,Fantasy Score,NFL1H,DAL
+Ryan Flournoy,0.5,Fantasy Score,NFL1Q,DAL
+Ryan Flournoy,4.0,Fantasy Score,NFL1H,DAL
+De'Von Achane,8.0,Fantasy Score,NFL1H,MIA
+Tua Tagovailoa,60.5,Passing Yards in First 10 Attempts,NFL,MIA
+Tua Tagovailoa,7.5,Completions in First 10 Pass Attempts,NFL,MIA
+Tua Tagovailoa,6.5,Yards on First Pass Completion,NFL,MIA
+Justin Herbert,70.5,Passing Yards in First 10 Attempts,NFL,LAC
+Justin Herbert,7.5,Completions in First 10 Pass Attempts,NFL,LAC
+Justin Herbert,7.5,Yards on First Pass Completion,NFL,LAC
+Jaylen Waddle,14.5,Fantasy Score,NFL,MIA
+Jaylen Waddle,9.5,Yards on First Reception,NFL,MIA
+Jaylen Waddle,19.5,Receiving Yards in First 2 Receptions,NFL,MIA
+De'Von Achane,20.5,Rush Yards in First 5 Attempts,NFL,MIA
+De'Von Achane,17.0,Fantasy Score,NFL,MIA
+De'Von Achane,6.5,Yards on First Reception,NFL,MIA
+De'Von Achane,11.5,Receiving Yards in First 2 Receptions,NFL,MIA
+Ladd McConkey,14.5,Fantasy Score,NFL,LAC
+Ladd McConkey,9.5,Yards on First Reception,NFL,LAC
+Ladd McConkey,19.5,Receiving Yards in First 2 Receptions,NFL,LAC
+Ladd McConkey,6.5,Fantasy Score,NFL1H,LAC
+Jaylen Waddle,6.5,Fantasy Score,NFL1H,MIA
+Malik Washington,6.5,Fantasy Score,NFL,MIA
+Hassan Haskins,18.5,Rush Yards in First 5 Attempts,NFL,LAC
+Malik Washington,3.0,Fantasy Score,NFL1H,MIA
+Oronde Gadsden,5.5,Fantasy Score,NFL,LAC
+Oronde Gadsden,7.5,Yards on First Reception,NFL,LAC
+Darren Waller,9.5,Fantasy Score,NFL,MIA
+Darren Waller,8.5,Yards on First Reception,NFL,MIA
+Darren Waller,17.5,Receiving Yards in First 2 Receptions,NFL,MIA
+Keenan Allen,14.0,Fantasy Score,NFL,LAC
+Keenan Allen,8.5,Yards on First Reception,NFL,LAC
+Keenan Allen,19.5,Receiving Yards in First 2 Receptions,NFL,LAC
+Keenan Allen,6.5,Fantasy Score,NFL1H,LAC
+Darren Waller,4.5,Fantasy Score,NFL1H,MIA
+Oronde Gadsden,2.0,Fantasy Score,NFL1H,LAC
+Alec Pierce,6.5,Fantasy Score,NFL,IND
+Josh Downs,9.0,Fantasy Score,NFL,IND
+Josh Downs,4.5,Fantasy Score,NFL1H,IND
+Alec Pierce,3.0,Fantasy Score,NFL1H,IND
+Jonathan Taylor,21.5,Rush Yards in First 5 Attempts,NFL,IND
+Michael Wilson,5.5,Fantasy Score,NFL,ARI
+Marvin Harrison,5.5,Fantasy Score,NFL1H,ARI
+Trey McBride,14.0,Fantasy Score,NFL,ARI
+Michael Wilson,2.5,Fantasy Score,NFL1H,ARI
+Trey McBride,6.5,Fantasy Score,NFL1H,ARI
+Jonathan Taylor,2.5,Fantasy Score,NFL1Q,IND
+Marvin Harrison,1.5,Fantasy Score,NFL1Q,ARI
+Marvin Harrison,11.0,Fantasy Score,NFL,ARI
+Michael Pittman,2.5,Fantasy Score,NFL1Q,IND
+Trey McBride,2.5,Fantasy Score,NFL1Q,ARI
+Josh Downs,1.5,Fantasy Score,NFL1Q,IND
+Michael Carter,18.5,Rush Yards in First 5 Attempts,NFL,ARI
+Daniel Jones,69.5,Passing Yards in First 10 Attempts,NFL,IND
+Daniel Jones,8.5,Yards on First Pass Completion,NFL,IND
+Daniel Jones,7.5,Completions in First 10 Pass Attempts,NFL,IND
+Michael Wilson,0.5,Fantasy Score,NFL1Q,ARI
+Tyler Warren,1.5,Fantasy Score,NFL1Q,IND
+Alec Pierce,0.5,Fantasy Score,NFL1Q,IND
+Tyler Warren,5.5,Fantasy Score,NFL1H,IND
+Michael Carter,1.5,Fantasy Score,NFL1Q,ARI
 Josh AlIen,0.5,Sacks,NFL,JAC
 Josh AlIen,1.5,Sacks,NFL,JAC
 Josh AlIen,0.25,Sacks,NFL,JAC
@@ -1572,7 +2422,7 @@ Trevor Lawrence,1.5,Sacks Taken,NFL,JAC
 Trevor Lawrence,3.5,Rush Attempts,NFL,JAC
 Trevor Lawrence,21.5,Pass Completions,NFL,JAC
 Travis Etienne,60.5,Rush Yards,NFL,JAC
-Travis Etienne,14.5,Receiving Yards,NFL,JAC
+Travis Etienne,13.5,Receiving Yards,NFL,JAC
 Travis Etienne,1.5,Rush+Rec TDs,NFL,JAC
 Travis Etienne,9.5,Longest Reception,NFL,JAC
 Travis Etienne,13.5,Longest Rush,NFL,JAC
@@ -1608,7 +2458,7 @@ Travis Etienne,11.5,Rush Attempts,NFL,JAC
 Travis Etienne,16.5,Rush Attempts,NFL,JAC
 Travis Etienne,19.5,Rush Attempts,NFL,JAC
 Travis Etienne,13.5,Rush Attempts,NFL,JAC
-Travis Etienne,14.5,Receiving Yards,NFL,JAC
+Travis Etienne,13.5,Receiving Yards,NFL,JAC
 Travis Etienne,3.5,Quarters with 5+ Rush Yards,NFL,JAC
 Travis Etienne,1.5,Halves with 25+ Rush Yards,NFL,JAC
 Cam Little,2.5,PAT Made,NFL,JAC
@@ -1677,7 +2527,7 @@ Trevor Lawrence,0.5,Rush+Rec TDs,NFL1H,JAC
 Trevor Lawrence,99.5,Pass Yards,NFL1H,JAC
 Trevor Lawrence,149.5,Pass Yards,NFL1H,JAC
 Trevor Lawrence,124.5,Pass Yards,NFL1H,JAC
-Trevor Lawrence,115.5,Pass Yards,NFL1H,JAC
+Trevor Lawrence,117.5,Pass Yards,NFL1H,JAC
 Trevor Lawrence,7.5,Rush Yards,NFL1H,JAC
 Trevor Lawrence,8.0,Fantasy Score,NFL1H,JAC
 Trevor Lawrence,89.5,Pass Yards,NFL1H,JAC
@@ -1718,13 +2568,13 @@ Zach Charbonnet,49.5,Rush Yards,NFL,SEA
 Zach Charbonnet,59.5,Rush Yards,NFL,SEA
 Zach Charbonnet,64.5,Rush Yards,NFL,SEA
 Zach Charbonnet,69.5,Rush Yards,NFL,SEA
-Zach Charbonnet,37.5,Rush Yards,NFL,SEA
+Zach Charbonnet,36.5,Rush Yards,NFL,SEA
 Zach Charbonnet,24.5,Rush Yards,NFL,SEA
 Zach Charbonnet,19.5,Rush Yards,NFL,SEA
 Zach Charbonnet,29.5,Rush Yards,NFL,SEA
 Zach Charbonnet,74.5,Rush+Rec Yds,NFL,SEA
 Zach Charbonnet,99.5,Rush+Rec Yds,NFL,SEA
-Zach Charbonnet,49.5,Rush+Rec Yds,NFL,SEA
+Zach Charbonnet,52.5,Rush+Rec Yds,NFL,SEA
 Zach Charbonnet,1.5,Receptions,NFL,SEA
 Zach Charbonnet,9.5,Longest Rush,NFL,SEA
 Zach Charbonnet,14.5,Longest Rush,NFL,SEA
@@ -1860,7 +2710,7 @@ AJ Barner,39.5,Receiving Yards,NFL,SEA
 AJ Barner,49.5,Receiving Yards,NFL,SEA
 AJ Barner,29.5,Receiving Yards,NFL,SEA
 AJ Barner,59.5,Receiving Yards,NFL,SEA
-AJ Barner,25.5,Receiving Yards,NFL,SEA
+AJ Barner,24.5,Receiving Yards,NFL,SEA
 AJ Barner,14.5,Receiving Yards,NFL,SEA
 AJ Barner,19.5,Receiving Yards,NFL,SEA
 AJ Barner,9.5,Receiving Yards,NFL,SEA
@@ -1905,7 +2755,7 @@ Parker Washington,0.5,Rush+Rec TDs,NFL1H,JAC
 Parker Washington,0.5,1st Drive Receptions,NFL1H,JAC
 Parker Washington,4.5,Receiving Yards,NFL1H,JAC
 Bhayshul Tuten,0.5,Rush+Rec TDs,NFL,JAC
-Bhayshul Tuten,8.5,Longest Rush,NFL,JAC
+Bhayshul Tuten,7.5,Longest Rush,NFL,JAC
 Bhayshul Tuten,29.5,Rush Yards,NFL,JAC
 Bhayshul Tuten,24.5,Rush Yards,NFL,JAC
 Bhayshul Tuten,39.5,Rush Yards,NFL,JAC
@@ -1956,7 +2806,7 @@ Johnny Mundt,39.5,Receiving Yards,NFL,JAC
 Johnny Mundt,0.5,Receptions,NFL,JAC
 Johnny Mundt,1.5,Receptions,NFL,JAC
 Travis Hunter,0.5,Rush+Rec TDs,NFL,JAC
-Travis Hunter,18.5,Longest Reception,NFL,JAC
+Travis Hunter,19.5,Longest Reception,NFL,JAC
 Travis Hunter,43.5,Receiving Yards,NFL,JAC
 Travis Hunter,24.5,Receiving Yards,NFL,JAC
 Travis Hunter,49.5,Receiving Yards,NFL,JAC
@@ -2130,7 +2980,6 @@ AJ Barner,9.5,Receiving Yards,NFL1Q,SEA
 AJ Barner,14.5,Receiving Yards,NFL1Q,SEA
 AJ Barner,4.5,Receiving Yards,NFL1Q,SEA
 AJ Barner,19.5,Receiving Yards,NFL1Q,SEA
-AJ Barner,0.5,Receiving Yards,NFL1Q,SEA
 Foyesade Oluokun,8.5,Tackles+Ast,NFL,JAC
 Tory Horton,4.5,Receiving Yards,NFL1Q,SEA
 Tory Horton,9.5,Receiving Yards,NFL1Q,SEA
@@ -2216,7 +3065,7 @@ Hunter Long,9.5,Receiving Yards,NFL1Q,JAC
 Hunter Long,4.5,Receiving Yards,NFL1Q,JAC
 Hunter Long,14.5,Receiving Yards,NFL1Q,JAC
 Hunter Long,19.5,Receiving Yards,NFL1Q,JAC
-Hunter Long,2.5,Receiving Yards,NFL1Q,JAC
+Hunter Long,1.5,Receiving Yards,NFL1Q,JAC
 Cam Little + Jason Myers,3.5,FG Made (Combo),NFL,JAC/SEA
 Cam Little + Jason Myers,50.5,Longest FG Made Yds (Combo),NFL,JAC/SEA
 Cam Little + Jason Myers,27.5,Shortest FG Made Yds (Combo),NFL,JAC/SEA
@@ -2232,8 +3081,6 @@ Hunter Long,19.5,Receiving Yards,NFL1H,JAC
 Hunter Long,4.5,Receiving Yards,NFL1H,JAC
 Hunter Long,9.5,Receiving Yards,NFL1H,JAC
 Hunter Long,0.5,1st Drive Receptions,NFL1H,JAC
-Hunter Long,4.5,1st Drive Receiving Yards,NFL1H,JAC
-Hunter Long,9.5,1st Drive Receiving Yards,NFL1H,JAC
 Ty Okada,5.5,Tackles+Ast,NFL,SEA
 Ty Okada,1.5,Assists,NFL,SEA
 Uchenna Nwosu,0.5,Sacks,NFL,SEA
@@ -2266,7 +3113,7 @@ Jake Ferguson,5.5,Receptions,NFL,DAL
 Jake Ferguson,49.5,Receiving Yards,NFL,DAL
 Jake Ferguson,69.5,Receiving Yards,NFL,DAL
 Jake Ferguson,29.5,Receiving Yards,NFL,DAL
-Jake Ferguson,6.5,Receptions,NFL,DAL
+Jake Ferguson,7.5,Receptions,NFL,DAL
 Jake Ferguson,4.5,Receptions,NFL,DAL
 Jake Ferguson,6.0,Receptions,NFL,DAL
 Jake Ferguson,8.5,Rec Targets,NFL,DAL
@@ -2280,7 +3127,7 @@ Jake Ferguson,9.5,1st Drive Receiving Yards,NFL1H,DAL
 Jake Ferguson,4.5,1st Drive Receiving Yards,NFL1H,DAL
 Jake Ferguson,14.5,1st Drive Receiving Yards,NFL1H,DAL
 Bryce Young,0.5,Pass TDs,NFL,CAR
-Bryce Young,1.5,Pass TDs,NFL,CAR
+Bryce Young,2.5,Pass TDs,NFL,CAR
 Bryce Young,2.5,Pass TDs,NFL,CAR
 Bryce Young,0.5,Rush+Rec TDs,NFL,CAR
 Bryce Young,0.5,INT,NFL,CAR
@@ -2309,7 +3156,7 @@ Bryce Young,24.5,Pass Completions,NFL,CAR
 Bryce Young,19.5,Pass Completions,NFL,CAR
 Bryce Young,27.5,Pass Attempts,NFL,CAR
 Bryce Young,3.5,Rush Attempts,NFL,CAR
-Bryce Young,5.5,Rush Attempts,NFL,CAR
+Bryce Young,4.5,Rush Attempts,NFL,CAR
 Bryce Young,17.5,Pass Completions,NFL,CAR
 Bryce Young,64.2,Completion Percentage,NFL,CAR
 Bryce Young,9.5,Longest Rush,NFL,CAR
@@ -2329,7 +3176,6 @@ Bryce Young,3.5,Quarters with 25+ Pass Yards,NFL,CAR
 Dak Prescott,1.5,Pass TDs,NFL,DAL
 Dak Prescott,2.5,Pass TDs,NFL,DAL
 Dak Prescott,0.5,Rush+Rec TDs,NFL,DAL
-Dak Prescott,0.5,INT,NFL,DAL
 Dak Prescott,35.5,Longest Completion,NFL,DAL
 Dak Prescott,5.5,Longest Rush,NFL,DAL
 Dak Prescott,33.5,Pass Attempts,NFL,DAL
@@ -2360,7 +3206,6 @@ Dak Prescott,9.5,Longest Rush,NFL,DAL
 Dak Prescott,14.5,Longest Rush,NFL,DAL
 Dak Prescott,14.5,Rush Yards,NFL,DAL
 Dak Prescott,19.5,Rush Yards,NFL,DAL
-Dak Prescott,34.5,Longest Completion,NFL,DAL
 Dak Prescott,224.5,Pass+Rush Yds,NFL,DAL
 Dak Prescott,299.5,Pass+Rush Yds,NFL,DAL
 Dak Prescott,274.5,Pass+Rush Yds,NFL,DAL
@@ -2384,7 +3229,7 @@ Jalen Tolbert,24.5,Receiving Yards,NFL,DAL
 Jalen Tolbert,39.5,Receiving Yards,NFL,DAL
 Jalen Tolbert,49.5,Receiving Yards,NFL,DAL
 Jalen Tolbert,64.5,Receiving Yards,NFL,DAL
-Jalen Tolbert,31.5,Receiving Yards,NFL,DAL
+Jalen Tolbert,29.5,Receiving Yards,NFL,DAL
 Jalen Tolbert,24.5,Longest Reception,NFL,DAL
 Jalen Tolbert,19.5,Longest Reception,NFL,DAL
 Jalen Tolbert,9.5,Longest Reception,NFL,DAL
@@ -2403,7 +3248,7 @@ Bryce Young,79.5,Pass Yards,NFL1Q,CAR
 Bryce Young,29.5,Pass Yards,NFL1Q,CAR
 Bryce Young,4.5,Rush Yards,NFL1Q,CAR
 Bryce Young,9.5,Rush Yards,NFL1Q,CAR
-Bryce Young,41.5,Pass Yards,NFL1Q,CAR
+Bryce Young,40.5,Pass Yards,NFL1Q,CAR
 Bryce Young,0.5,Rush Yards,NFL1Q,CAR
 Dak Prescott,39.5,Pass Yards,NFL1Q,DAL
 Dak Prescott,29.5,Pass Yards,NFL1Q,DAL
@@ -2413,11 +3258,11 @@ Dak Prescott,59.5,Pass Yards,NFL1Q,DAL
 Dak Prescott,89.5,Pass Yards,NFL1Q,DAL
 Dak Prescott,4.5,Rush Yards,NFL1Q,DAL
 Dak Prescott,9.5,Rush Yards,NFL1Q,DAL
-Dak Prescott,51.5,Pass Yards,NFL1Q,DAL
+Dak Prescott,53.5,Pass Yards,NFL1Q,DAL
 Bryce Young,74.5,Pass Yards,NFL1H,CAR
 Bryce Young,124.5,Pass Yards,NFL1H,CAR
 Bryce Young,149.5,Pass Yards,NFL1H,CAR
-Bryce Young,99.5,Pass Yards,NFL1H,CAR
+Bryce Young,100.5,Pass Yards,NFL1H,CAR
 Bryce Young,2.5,Rush Yards,NFL1H,CAR
 Bryce Young,0.5,Rush+Rec TDs,NFL1H,CAR
 Bryce Young,7.0,Fantasy Score,NFL1H,CAR
@@ -2430,7 +3275,6 @@ Dak Prescott,99.5,Pass Yards,NFL1H,DAL
 Dak Prescott,149.5,Pass Yards,NFL1H,DAL
 Dak Prescott,174.5,Pass Yards,NFL1H,DAL
 Dak Prescott,124.5,Pass Yards,NFL1H,DAL
-Dak Prescott,0.5,Rush Yards,NFL1H,DAL
 Dak Prescott,9.5,Fantasy Score,NFL1H,DAL
 Dak Prescott,104.5,Pass Yards,NFL1H,DAL
 Dak Prescott,9.5,1st Drive Pass Yards,NFL1H,DAL
@@ -2453,7 +3297,6 @@ Xavier Legette,4.5,Receptions,NFL,CAR
 Xavier Legette,1.5,Receptions,NFL,CAR
 Xavier Legette,4.5,Rec Targets,NFL,CAR
 Xavier Legette,19.5,Receiving Yards,NFL,CAR
-Luke Schoonmaker,0.5,Rush+Rec TDs,NFL,DAL
 Luke Schoonmaker,7.5,Longest Reception,NFL,DAL
 Luke Schoonmaker,9.5,Receiving Yards,NFL,DAL
 Luke Schoonmaker,14.5,Longest Reception,NFL,DAL
@@ -2466,7 +3309,6 @@ Tommy Tremble,24.5,Receiving Yards,NFL,CAR
 Tommy Tremble,39.5,Receiving Yards,NFL,CAR
 Tommy Tremble,49.5,Receiving Yards,NFL,CAR
 Tommy Tremble,14.5,Longest Reception,NFL,CAR
-Tommy Tremble,2.5,Receptions,NFL,CAR
 Tommy Tremble,3.5,Receptions,NFL,CAR
 Tommy Tremble,64.5,Receiving Yards,NFL,CAR
 Tommy Tremble,14.5,Receiving Yards,NFL,CAR
@@ -2526,11 +3368,11 @@ George Pickens,3.5,Receptions,NFL,DAL
 George Pickens,29.5,Longest Reception,NFL,DAL
 George Pickens,34.5,Longest Reception,NFL,DAL
 George Pickens,19.5,Longest Reception,NFL,DAL
-George Pickens,68.5,Receiving Yards,NFL,DAL
+George Pickens,69.5,Receiving Yards,NFL,DAL
 George Pickens,39.5,Receiving Yards,NFL,DAL
 George Pickens,89.5,Receiving Yards,NFL,DAL
 George Pickens,109.5,Receiving Yards,NFL,DAL
-George Pickens,6.5,Receptions,NFL,DAL
+George Pickens,5.5,Receptions,NFL,DAL
 George Pickens,8.5,Rec Targets,NFL,DAL
 George Pickens,1.5,Halves with 50+ Receiving Yards,NFL,DAL
 George Pickens,3.5,Quarters with 5+ Receiving Yards,NFL,DAL
@@ -2547,7 +3389,7 @@ Javonte Williams,24.5,Receiving Yards,NFL,DAL
 Javonte Williams,39.5,Receiving Yards,NFL,DAL
 Javonte Williams,49.5,Receiving Yards,NFL,DAL
 Javonte Williams,64.5,Receiving Yards,NFL,DAL
-Javonte Williams,94.5,Rush+Rec Yds,NFL,DAL
+Javonte Williams,96.5,Rush+Rec Yds,NFL,DAL
 Javonte Williams,75.5,Rush Yards,NFL,DAL
 Javonte Williams,64.5,Rush Yards,NFL,DAL
 Javonte Williams,2.5,Receptions,NFL,DAL
@@ -2560,7 +3402,7 @@ Javonte Williams,89.5,Rush Yards,NFL,DAL
 Javonte Williams,109.5,Rush Yards,NFL,DAL
 Javonte Williams,59.5,Rush Yards,NFL,DAL
 Javonte Williams,17.5,Rush Attempts,NFL,DAL
-Javonte Williams,21.5,Rush Attempts,NFL,DAL
+Javonte Williams,20.5,Rush Attempts,NFL,DAL
 Javonte Williams,13.5,Rush Attempts,NFL,DAL
 Javonte Williams,15.5,Rush Attempts,NFL,DAL
 Javonte Williams,74.5,Rush+Rec Yds,NFL,DAL
@@ -2569,7 +3411,7 @@ Javonte Williams,9.5,Receiving Yards,NFL,DAL
 Javonte Williams,124.5,Rush+Rec Yds,NFL,DAL
 Javonte Williams,149.5,Rush+Rec Yds,NFL,DAL
 Javonte Williams,79.5,Rush+Rec Yds,NFL,DAL
-Javonte Williams,4.5,Receptions,NFL,DAL
+Javonte Williams,3.5,Receptions,NFL,DAL
 Javonte Williams,109.5,Rush+Rec Yds,NFL,DAL
 Javonte Williams,1.5,Receptions,NFL,DAL
 Javonte Williams,14.5,Receiving Yards,NFL,DAL
@@ -2581,14 +3423,13 @@ Jaydon Blue,39.5,Rush Yards,NFL,DAL
 Jaydon Blue,16.5,Rush Yards,NFL,DAL
 Jaydon Blue,9.5,Rush Yards,NFL,DAL
 Jaydon Blue,29.5,Rush Yards,NFL,DAL
-Jaydon Blue,0.5,Longest Reception,NFL,DAL
 Jaydon Blue,0.5,Receptions,NFL,DAL
 Jaydon Blue,24.5,Receiving Yards,NFL,DAL
 Jaydon Blue,1.5,Receptions,NFL,DAL
 Jaydon Blue,5.5,Rush Attempts,NFL,DAL
 Jaydon Blue,9.5,Longest Rush,NFL,DAL
 Jaydon Blue,14.5,Longest Rush,NFL,DAL
-Miles Sanders,0.5,Rush+Rec TDs,NFL,DAL
+Jaydon Blue,4.5,Rush Attempts,NFL,DAL
 Rico Dowdle,0.5,Rush+Rec TDs,NFL,CAR
 Rico Dowdle,1.5,Rush+Rec TDs,NFL,CAR
 Rico Dowdle,9.5,Longest Reception,NFL,CAR
@@ -2602,14 +3443,14 @@ Rico Dowdle,5.5,Receptions,NFL,CAR
 Rico Dowdle,99.5,Rush Yards,NFL,CAR
 Rico Dowdle,75.5,Rush Yards,NFL,CAR
 Rico Dowdle,64.5,Rush Yards,NFL,CAR
-Rico Dowdle,93.5,Rush+Rec Yds,NFL,CAR
+Rico Dowdle,95.5,Rush+Rec Yds,NFL,CAR
 Rico Dowdle,19.5,Longest Rush,NFL,CAR
 Rico Dowdle,24.5,Longest Rush,NFL,CAR
 Rico Dowdle,16.0,Fantasy Score,NFL,CAR
 Rico Dowdle,14.5,Longest Reception,NFL,CAR
 Rico Dowdle,19.5,Longest Reception,NFL,CAR
 Rico Dowdle,14.5,Rush Attempts,NFL,CAR
-Rico Dowdle,20.5,Rush Attempts,NFL,CAR
+Rico Dowdle,21.5,Rush Attempts,NFL,CAR
 Rico Dowdle,124.5,Rush Yards,NFL,CAR
 Rico Dowdle,18.0,Rush Attempts,NFL,CAR
 Rico Dowdle,49.5,Rush Yards,NFL,CAR
@@ -2637,7 +3478,7 @@ Trevor Etienne,24.5,Receiving Yards,NFL,CAR
 Trevor Etienne,0.5,Receptions,NFL,CAR
 Trevor Etienne,1.5,Receptions,NFL,CAR
 Trevor Etienne,5.5,Rush Attempts,NFL,CAR
-Trevor Etienne,13.5,Rush Yards,NFL,CAR
+Trevor Etienne,14.5,Rush Yards,NFL,CAR
 Trevor Etienne,24.5,Rush Yards,NFL,CAR
 Trevor Etienne,39.5,Rush Yards,NFL,CAR
 Trevor Etienne,20.5,Rush+Rec Yds,NFL,CAR
@@ -2666,16 +3507,15 @@ Tetairoa McMillan,29.5,Longest Reception,NFL,CAR
 Tetairoa McMillan,34.5,Longest Reception,NFL,CAR
 Tetairoa McMillan,19.5,Longest Reception,NFL,CAR
 Tetairoa McMillan,4.5,Receptions,NFL,CAR
-Tetairoa McMillan,70.5,Receiving Yards,NFL,CAR
+Tetairoa McMillan,69.5,Receiving Yards,NFL,CAR
 Tetairoa McMillan,6.5,Receptions,NFL,CAR
 Tetairoa McMillan,5.0,Receptions,NFL,CAR
 Tetairoa McMillan,8.5,Rec Targets,NFL,CAR
 Tetairoa McMillan,3.5,Quarters with 5+ Receiving Yards,NFL,CAR
 Tetairoa McMillan,1.5,Halves with 25+ Receiving Yards,NFL,CAR
 Tetairoa McMillan,3.5,Quarters with 1+ Reception,NFL,CAR
-Mitchell Evans,0.5,Rush+Rec TDs,NFL,CAR
 Hunter Renfrow,0.5,Rush+Rec TDs,NFL,CAR
-Hunter Renfrow,11.5,Longest Reception,NFL,CAR
+Hunter Renfrow,10.5,Longest Reception,NFL,CAR
 Hunter Renfrow,15.5,Receiving Yards,NFL,CAR
 Hunter Renfrow,24.5,Receiving Yards,NFL,CAR
 Hunter Renfrow,39.5,Receiving Yards,NFL,CAR
@@ -2705,7 +3545,7 @@ Javonte Williams,9.5,Receiving Yards,NFL1Q,DAL
 Javonte Williams,14.5,Receiving Yards,NFL1Q,DAL
 Javonte Williams,29.5,Rush Yards,NFL1Q,DAL
 Javonte Williams,39.5,Rush Yards,NFL1Q,DAL
-Javonte Williams,18.5,Rush Yards,NFL1Q,DAL
+Javonte Williams,15.5,Rush Yards,NFL1Q,DAL
 Javonte Williams,0.5,Receiving Yards,NFL1Q,DAL
 Javonte Williams,14.5,Rush Yards,NFL1Q,DAL
 Javonte Williams,22.5,Rush+Rec Yds,NFL1Q,DAL
@@ -2738,7 +3578,7 @@ Tetairoa McMillan,24.5,Receiving Yards,NFL1Q,CAR
 Tetairoa McMillan,14.5,Receiving Yards,NFL1Q,CAR
 Tetairoa McMillan,29.5,Receiving Yards,NFL1Q,CAR
 Tetairoa McMillan,4.5,Receiving Yards,NFL1Q,CAR
-Tetairoa McMillan,10.5,Receiving Yards,NFL1Q,CAR
+Tetairoa McMillan,12.5,Receiving Yards,NFL1Q,CAR
 Tetairoa McMillan,0.5,Rush+Rec TDs,NFL1Q,CAR
 Kenneth Murray,0.25,Sacks,NFL,DAL
 Kenneth Murray,0.5,Sacks,NFL,DAL
@@ -2760,7 +3600,7 @@ Rico Dowdle,21.5,Rush+Rec Yds,NFL1Q,CAR
 Dante Fowler,0.25,Sacks,NFL,DAL
 Dante Fowler,0.5,Sacks,NFL,DAL
 D.J. Wonnum,0.5,Sacks,NFL,CAR
-D.J. Wonnum,0.25,Sacks,NFL,CAR
+D.J. Wonnum,0.5,Sacks,NFL,CAR
 Javonte Williams,0.5,Rush+Rec TDs,NFL1H,DAL
 Javonte Williams,6.5,Receiving Yards,NFL1H,DAL
 Javonte Williams,34.5,Rush Yards,NFL1H,DAL
@@ -2789,7 +3629,7 @@ Jaydon Blue,9.5,Rush Yards,NFL1Q,DAL
 Jaydon Blue,1.5,Rush Yards,NFL1Q,DAL
 Jaydon Blue,0.5,Receiving Yards,NFL1Q,DAL
 Jaydon Blue,4.5,Receiving Yards,NFL1Q,DAL
-Sam Williams,0.25,Sacks,NFL,DAL
+Sam Williams,0.5,Sacks,NFL,DAL
 Sam Williams,0.5,Sacks,NFL,DAL
 Luke Schoonmaker,4.5,Receiving Yards,NFL1Q,DAL
 Luke Schoonmaker,9.5,Receiving Yards,NFL1Q,DAL
@@ -2826,18 +3666,15 @@ Jaydon Blue,0.5,Rush+Rec TDs,NFL1H,DAL
 Jaydon Blue,0.5,1st Drive Receptions,NFL1H,DAL
 Jaydon Blue,5.5,Rush Yards,NFL1H,DAL
 Jaydon Blue,0.5,Receiving Yards,NFL1H,DAL
-Miles Sanders,0.5,Rush+Rec TDs,NFL1H,DAL
 A'Shawn Robinson,0.25,Sacks,NFL,CAR
 A'Shawn Robinson,0.5,Sacks,NFL,CAR
 Christian Rozeboom,0.5,Sacks,NFL,CAR
 Christian Rozeboom,8.0,Tackles+Ast,NFL,CAR
-Brycen Tremayne,0.5,Rush+Rec TDs,NFL,CAR
-Brycen Tremayne,4.5,Longest Reception,NFL,CAR
+Brycen Tremayne,5.5,Longest Reception,NFL,CAR
 Brycen Tremayne,1.5,Receptions,NFL,CAR
 Brycen Tremayne,5.5,Receiving Yards,NFL,CAR
 Brycen Tremayne,24.5,Receiving Yards,NFL,CAR
 Brycen Tremayne,39.5,Receiving Yards,NFL,CAR
-Brycen Tremayne,49.5,Receiving Yards,NFL,CAR
 Brycen Tremayne,0.5,Receptions,NFL,CAR
 Donovan Ezeiruaku,0.25,Sacks,NFL,DAL
 Tommy Tremble,0.5,Rush+Rec TDs,NFL1H,CAR
@@ -2878,7 +3715,7 @@ Ryan Fitzgerald + Brandon Aubrey,27.5,Shortest FG Made Yds (Combo),NFL,CAR/DAL
 Ryan Fitzgerald + Brandon Aubrey,134.5,Field Goal Yards (Combo),NFL,CAR/DAL
 Bryce Young + Dak Prescott,453.5,Pass Yards (Combo),NFL,CAR/DAL
 Rico Dowdle + Javonte Williams,149.5,Rush Yards (Combo),NFL,CAR/DAL
-Tetairoa McMillan + George Pickens,141.5,Receiving Yards (Combo),NFL,CAR/DAL
+Tetairoa McMillan + George Pickens,140.5,Receiving Yards (Combo),NFL,CAR/DAL
 Ryan Fitzgerald + Brandon Aubrey,2.0,FG Made (Combo),NFL1H,CAR/DAL
 Shemar James,0.5,Sacks,NFL,DAL
 Shemar James,8.5,Tackles+Ast,NFL,DAL
@@ -2893,862 +3730,6 @@ James Mitchell,1.5,Receptions,NFL,CAR
 James Mitchell,0.5,Receiving Yards,NFL1H,CAR
 James Mitchell,0.5,Receiving Yards,NFL1Q,CAR
 James Mitchell,4.5,Receiving Yards,NFL1Q,CAR
-Juwan Johnson,0.5,Rush+Rec TDs,NFL,NO
-Juwan Johnson,16.5,Longest Reception,NFL,NO
-Juwan Johnson,49.5,Receiving Yards,NFL,NO
-Juwan Johnson,64.5,Receiving Yards,NFL,NO
-Juwan Johnson,37.5,Receiving Yards,NFL,NO
-Juwan Johnson,24.5,Receiving Yards,NFL,NO
-Juwan Johnson,24.5,Longest Reception,NFL,NO
-Juwan Johnson,19.5,Longest Reception,NFL,NO
-Juwan Johnson,9.5,Longest Reception,NFL,NO
-Juwan Johnson,74.5,Receiving Yards,NFL,NO
-Juwan Johnson,5.5,Receptions,NFL,NO
-Juwan Johnson,29.5,Receiving Yards,NFL,NO
-Juwan Johnson,6.5,Receptions,NFL,NO
-Juwan Johnson,4.5,Receptions,NFL,NO
-Juwan Johnson,2.5,Receptions,NFL,NO
-Juwan Johnson,14.5,Longest Reception,NFL,NO
-Juwan Johnson,19.5,Receiving Yards,NFL,NO
-Juwan Johnson,5.5,Rec Targets,NFL,NO
-Juwan Johnson,0.5,Rush+Rec TDs,NFL1H,NO
-Juwan Johnson,17.5,Receiving Yards,NFL1H,NO
-Juwan Johnson,9.5,Receiving Yards,NFL1H,NO
-Juwan Johnson,4.5,Receiving Yards,NFL1H,NO
-Juwan Johnson,29.5,Receiving Yards,NFL1H,NO
-Juwan Johnson,24.5,Receiving Yards,NFL1H,NO
-Juwan Johnson,4.5,1st Drive Receiving Yards,NFL1H,NO
-Juwan Johnson,9.5,1st Drive Receiving Yards,NFL1H,NO
-Juwan Johnson,14.5,1st Drive Receiving Yards,NFL1H,NO
-Juwan Johnson,0.5,1st Drive Receptions,NFL1H,NO
-Blake Grupe,6.5,Kicking Points,NFL,NO
-Blake Grupe,2.5,PAT Made,NFL,NO
-Blake Grupe,1.5,PAT Made,NFL,NO
-Blake Grupe,2.5,FG Made,NFL,NO
-Blake Grupe,3.5,FG Made,NFL,NO
-Blake Grupe,0.5,FG Made,NFL,NO
-Blake Grupe,1.5,FG Made,NFL,NO
-Rhamondre Stevenson,24.5,Rush Yards,NFL1H,NE
-Rhamondre Stevenson,5.5,Receiving Yards,NFL1H,NE
-Rhamondre Stevenson,20.5,Rush Yards,NFL1H,NE
-Rhamondre Stevenson,29.5,Rush Yards,NFL1H,NE
-Rhamondre Stevenson,14.5,Rush Yards,NFL1H,NE
-Rhamondre Stevenson,9.5,Rush Yards,NFL1H,NE
-Rhamondre Stevenson,9.5,Receiving Yards,NFL1H,NE
-Rhamondre Stevenson,14.5,Receiving Yards,NFL1H,NE
-Rhamondre Stevenson,0.5,1st Drive Receptions,NFL1H,NE
-Rhamondre Stevenson,4.5,Receiving Yards,NFL1H,NE
-Taysom Hill,0.5,Rush+Rec TDs,NFL1H,NO
-Taysom Hill,5.5,Rush Yards,NFL1H,NO
-Hunter Henry,0.5,Rush+Rec TDs,NFL,NE
-Hunter Henry,18.5,Longest Reception,NFL,NE
-Hunter Henry,24.5,Receiving Yards,NFL,NE
-Hunter Henry,49.5,Receiving Yards,NFL,NE
-Hunter Henry,64.5,Receiving Yards,NFL,NE
-Hunter Henry,79.5,Receiving Yards,NFL,NE
-Hunter Henry,42.5,Receiving Yards,NFL,NE
-Hunter Henry,29.5,Receiving Yards,NFL,NE
-Hunter Henry,19.5,Receiving Yards,NFL,NE
-Hunter Henry,59.5,Receiving Yards,NFL,NE
-Hunter Henry,4.5,Receptions,NFL,NE
-Hunter Henry,5.5,Receptions,NFL,NE
-Hunter Henry,2.5,Receptions,NFL,NE
-Hunter Henry,6.5,Receptions,NFL,NE
-Hunter Henry,14.5,Longest Reception,NFL,NE
-Hunter Henry,24.5,Longest Reception,NFL,NE
-Hunter Henry,29.5,Longest Reception,NFL,NE
-Hunter Henry,5.5,Rec Targets,NFL,NE
-Rhamondre Stevenson,1.5,Rush+Rec TDs,NFL,NE
-Rhamondre Stevenson,9.5,Longest Reception,NFL,NE
-Rhamondre Stevenson,12.5,Longest Rush,NFL,NE
-Rhamondre Stevenson,24.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,39.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,14.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,39.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,43.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,64.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,49.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,79.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,61.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,29.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,59.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,1.5,Receptions,NFL,NE
-Rhamondre Stevenson,2.5,Receptions,NFL,NE
-Rhamondre Stevenson,3.5,Receptions,NFL,NE
-Rhamondre Stevenson,9.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,19.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,11.5,Rush Attempts,NFL,NE
-Rhamondre Stevenson,14.5,Rush Attempts,NFL,NE
-Rhamondre Stevenson,9.5,Rush Attempts,NFL,NE
-Rhamondre Stevenson,74.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,49.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,14.5,Longest Rush,NFL,NE
-Rhamondre Stevenson,19.5,Longest Rush,NFL,NE
-Rhamondre Stevenson,9.5,Longest Rush,NFL,NE
-Rhamondre Stevenson,4.5,Receptions,NFL,NE
-Rhamondre Stevenson,16.5,Rush Attempts,NFL,NE
-Rhamondre Stevenson,79.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,89.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,44.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,34.5,Rush Yards,NFL,NE
-Rhamondre Stevenson,39.5,Rush+Rec Yds,NFL,NE
-Rhamondre Stevenson,4.5,Receiving Yards,NFL,NE
-Rhamondre Stevenson,14.5,Longest Reception,NFL,NE
-Rhamondre Stevenson,19.5,Longest Reception,NFL,NE
-Rhamondre Stevenson,0.5,Rush+Rec TDs,NFL,NE
-Rhamondre Stevenson,1.5,Halves with 25+ Rush Yards,NFL,NE
-Rhamondre Stevenson,3.5,Quarters with 5+ Rush Yards,NFL,NE
-Alvin Kamara,17.5,Receiving Yards,NFL,NO
-Alvin Kamara,1.5,Rush+Rec TDs,NFL,NO
-Alvin Kamara,0.5,Rush+Rec TDs,NFL,NO
-Alvin Kamara,10.5,Longest Reception,NFL,NO
-Alvin Kamara,12.5,Longest Rush,NFL,NO
-Alvin Kamara,17.5,Receiving Yards,NFL,NO
-Alvin Kamara,24.5,Receiving Yards,NFL,NO
-Alvin Kamara,39.5,Receiving Yards,NFL,NO
-Alvin Kamara,49.5,Receiving Yards,NFL,NO
-Alvin Kamara,64.5,Receiving Yards,NFL,NO
-Alvin Kamara,35.5,Rush Yards,NFL,NO
-Alvin Kamara,64.5,Rush Yards,NFL,NO
-Alvin Kamara,79.5,Rush Yards,NFL,NO
-Alvin Kamara,24.5,Rush Yards,NFL,NO
-Alvin Kamara,58.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,49.5,Rush Yards,NFL,NO
-Alvin Kamara,14.5,Longest Reception,NFL,NO
-Alvin Kamara,19.5,Longest Reception,NFL,NO
-Alvin Kamara,14.5,Longest Rush,NFL,NO
-Alvin Kamara,19.5,Longest Rush,NFL,NO
-Alvin Kamara,9.5,Longest Rush,NFL,NO
-Alvin Kamara,74.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,99.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,49.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,9.5,Receiving Yards,NFL,NO
-Alvin Kamara,14.5,Receiving Yards,NFL,NO
-Alvin Kamara,2.5,Receptions,NFL,NO
-Alvin Kamara,4.5,Receptions,NFL,NO
-Alvin Kamara,5.5,Receptions,NFL,NO
-Alvin Kamara,3.5,Receptions,NFL,NO
-Alvin Kamara,29.5,Rush Yards,NFL,NO
-Alvin Kamara,59.5,Rush Yards,NFL,NO
-Alvin Kamara,79.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,39.5,Rush+Rec Yds,NFL,NO
-Alvin Kamara,11.0,Fantasy Score,NFL,NO
-Alvin Kamara,9.5,Longest Reception,NFL,NO
-Alvin Kamara,10.5,Rush Attempts,NFL,NO
-Alvin Kamara,8.5,Rush Attempts,NFL,NO
-Alvin Kamara,11.5,Rush Attempts,NFL,NO
-Alvin Kamara,4.0,Rec Targets,NFL,NO
-Alvin Kamara,14.5,Rush Attempts,NFL,NO
-Alvin Kamara,1.5,Halves with 25+ Rush Yards,NFL,NO
-Alvin Kamara,3.5,Quarters with 5+ Rush Yards,NFL,NO
-Alvin Kamara,7.5,Rush Attempts,NFL,NO
-Rashid Shaheed,0.5,Rush+Rec TDs,NFL,NO
-Rashid Shaheed,19.5,Longest Reception,NFL,NO
-Rashid Shaheed,69.5,Receiving Yards,NFL,NO
-Rashid Shaheed,64.5,Receiving Yards,NFL,NO
-Rashid Shaheed,59.5,Receiving Yards,NFL,NO
-Rashid Shaheed,79.5,Receiving Yards,NFL,NO
-Rashid Shaheed,44.5,Receiving Yards,NFL,NO
-Rashid Shaheed,29.5,Receiving Yards,NFL,NO
-Rashid Shaheed,24.5,Receiving Yards,NFL,NO
-Rashid Shaheed,39.5,Receiving Yards,NFL,NO
-Rashid Shaheed,5.5,Receptions,NFL,NO
-Rashid Shaheed,4.5,Receptions,NFL,NO
-Rashid Shaheed,2.5,Receptions,NFL,NO
-Rashid Shaheed,24.5,Longest Reception,NFL,NO
-Rashid Shaheed,29.5,Longest Reception,NFL,NO
-Rashid Shaheed,14.5,Longest Reception,NFL,NO
-Rashid Shaheed,6.5,Receptions,NFL,NO
-Rashid Shaheed,6.0,Rec Targets,NFL,NO
-Rashid Shaheed,1.5,Halves with 25+ Receiving Yards,NFL,NO
-Chris Olave,0.5,Rush+Rec TDs,NFL,NO
-Chris Olave,39.5,Receiving Yards,NFL,NO
-Chris Olave,49.5,Receiving Yards,NFL,NO
-Chris Olave,79.5,Receiving Yards,NFL,NO
-Chris Olave,99.5,Receiving Yards,NFL,NO
-Chris Olave,55.5,Receiving Yards,NFL,NO
-Chris Olave,29.5,Receiving Yards,NFL,NO
-Chris Olave,89.5,Receiving Yards,NFL,NO
-Chris Olave,18.5,Longest Reception,NFL,NO
-Chris Olave,7.5,Receptions,NFL,NO
-Chris Olave,8.5,Receptions,NFL,NO
-Chris Olave,4.5,Receptions,NFL,NO
-Chris Olave,24.5,Longest Reception,NFL,NO
-Chris Olave,29.5,Longest Reception,NFL,NO
-Chris Olave,14.5,Longest Reception,NFL,NO
-Chris Olave,9.5,Rec Targets,NFL,NO
-Chris Olave,1.5,Halves with 25+ Receiving Yards,NFL,NO
-Chris Olave,3.5,Quarters with 5+ Receiving Yards,NFL,NO
-Chris Olave,3.5,Quarters with 1+ Reception,NFL,NO
-Chris Olave,5.5,Receptions,NFL,NO
-Chris Olave,6.0,Receptions,NFL,NO
-Rhamondre Stevenson,4.5,Receiving Yards,NFL1Q,NE
-Rhamondre Stevenson,9.5,Receiving Yards,NFL1Q,NE
-Rhamondre Stevenson,4.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,14.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,19.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,24.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,29.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,14.5,Receiving Yards,NFL1Q,NE
-Rhamondre Stevenson,0.5,Rush+Rec TDs,NFL1Q,NE
-Rhamondre Stevenson,9.5,Rush+Rec Yds,NFL1Q,NE
-Rhamondre Stevenson,0.5,Receiving Yards,NFL1Q,NE
-Rhamondre Stevenson,9.5,Rush Yards,NFL1Q,NE
-Rhamondre Stevenson,14.5,Rush+Rec Yds,NFL1Q,NE
-Demario Douglas,4.5,Receiving Yards,NFL1Q,NE
-Demario Douglas,9.5,Receiving Yards,NFL1Q,NE
-Demario Douglas,14.5,Receiving Yards,NFL1Q,NE
-Chris Olave,4.5,Receiving Yards,NFL1Q,NO
-Chris Olave,19.5,Receiving Yards,NFL1Q,NO
-Chris Olave,14.5,Receiving Yards,NFL1Q,NO
-Chris Olave,24.5,Receiving Yards,NFL1Q,NO
-Chris Olave,29.5,Receiving Yards,NFL1Q,NO
-Chris Olave,7.5,Receiving Yards,NFL1Q,NO
-Alvin Kamara,4.5,Receiving Yards,NFL1Q,NO
-Alvin Kamara,9.5,Receiving Yards,NFL1Q,NO
-Alvin Kamara,14.5,Receiving Yards,NFL1Q,NO
-Alvin Kamara,14.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,19.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,9.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,24.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,4.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,0.5,Rush+Rec TDs,NFL1Q,NO
-Alvin Kamara,0.5,Receiving Yards,NFL1Q,NO
-Alvin Kamara,8.5,Rush Yards,NFL1Q,NO
-Alvin Kamara,9.5,Rush+Rec Yds,NFL1Q,NO
-Alvin Kamara,12.5,Rush+Rec Yds,NFL1Q,NO
-Alvin Kamara,8.5,Receiving Yards,NFL1H,NO
-Alvin Kamara,19.5,Rush Yards,NFL1H,NO
-Alvin Kamara,6.0,Fantasy Score,NFL1H,NO
-Alvin Kamara,0.5,1st Drive Receptions,NFL1H,NO
-Alvin Kamara,4.5,Receiving Yards,NFL1H,NO
-Alvin Kamara,14.5,Receiving Yards,NFL1H,NO
-Alvin Kamara,19.5,Receiving Yards,NFL1H,NO
-Alvin Kamara,9.5,Rush Yards,NFL1H,NO
-Alvin Kamara,14.5,Rush Yards,NFL1H,NO
-Alvin Kamara,29.5,Rush Yards,NFL1H,NO
-Alvin Kamara,24.5,Rush Yards,NFL1H,NO
-Alvin Kamara,4.5,1st Drive Receiving Yards,NFL1H,NO
-Alvin Kamara,9.5,1st Drive Rush Yards,NFL1H,NO
-Alvin Kamara,4.5,1st Drive Rush Yards,NFL1H,NO
-Alvin Kamara,14.5,1st Drive Rush Yards,NFL1H,NO
-Alvin Kamara,0.5,1st Drive Rush Yards,NFL1H,NO
-Chris Olave,0.5,Rush+Rec TDs,NFL1H,NO
-Chris Olave,49.5,Receiving Yards,NFL1H,NO
-Chris Olave,23.5,Receiving Yards,NFL1H,NO
-Chris Olave,14.5,Receiving Yards,NFL1H,NO
-Chris Olave,19.5,Receiving Yards,NFL1H,NO
-Chris Olave,39.5,Receiving Yards,NFL1H,NO
-Chris Olave,9.5,1st Drive Receiving Yards,NFL1H,NO
-Chris Olave,4.5,1st Drive Receiving Yards,NFL1H,NO
-Chris Olave,14.5,1st Drive Receiving Yards,NFL1H,NO
-Chris Olave,1.5,1st Drive Receptions,NFL1H,NO
-Rashid Shaheed,24.5,Receiving Yards,NFL1H,NO
-Rashid Shaheed,49.5,Receiving Yards,NFL1H,NO
-Rashid Shaheed,0.5,Rush+Rec TDs,NFL1H,NO
-Rashid Shaheed,19.5,Receiving Yards,NFL1H,NO
-Rashid Shaheed,9.5,Receiving Yards,NFL1H,NO
-Rashid Shaheed,14.5,Receiving Yards,NFL1H,NO
-Rashid Shaheed,4.5,1st Drive Receiving Yards,NFL1H,NO
-Rashid Shaheed,9.5,1st Drive Receiving Yards,NFL1H,NO
-Rashid Shaheed,14.5,1st Drive Receiving Yards,NFL1H,NO
-Rashid Shaheed,0.5,1st Drive Receptions,NFL1H,NO
-Taysom Hill,0.5,Rush+Rec TDs,NFL,NO
-Taysom Hill,7.5,Longest Rush,NFL,NO
-Taysom Hill,5.5,Rush Attempts,NFL,NO
-Taysom Hill,24.5,Rush Yards,NFL,NO
-Taysom Hill,39.5,Rush Yards,NFL,NO
-Taysom Hill,16.5,Rush Yards,NFL,NO
-Taysom Hill,19.5,Rush Yards,NFL,NO
-Taysom Hill,9.5,Rush Yards,NFL,NO
-Taysom Hill,29.5,Rush Yards,NFL,NO
-Austin Hooper,0.5,Rush+Rec TDs,NFL,NE
-Austin Hooper,9.5,Receiving Yards,NFL,NE
-Austin Hooper,24.5,Receiving Yards,NFL,NE
-Austin Hooper,39.5,Receiving Yards,NFL,NE
-Austin Hooper,49.5,Receiving Yards,NFL,NE
-Austin Hooper,8.5,Longest Reception,NFL,NE
-Austin Hooper,1.5,Receptions,NFL,NE
-Austin Hooper,14.5,Longest Reception,NFL,NE
-Austin Hooper,19.5,Longest Reception,NFL,NE
-Foster Moreau,0.5,Rush+Rec TDs,NFL,NO
-Hunter Henry,24.5,Receiving Yards,NFL1H,NE
-Hunter Henry,0.5,Rush+Rec TDs,NFL1H,NE
-Hunter Henry,19.5,Receiving Yards,NFL1H,NE
-Hunter Henry,9.5,Receiving Yards,NFL1H,NE
-Hunter Henry,14.5,Receiving Yards,NFL1H,NE
-Hunter Henry,29.5,Receiving Yards,NFL1H,NE
-Hunter Henry,4.5,1st Drive Receiving Yards,NFL1H,NE
-Hunter Henry,9.5,1st Drive Receiving Yards,NFL1H,NE
-Hunter Henry,14.5,1st Drive Receiving Yards,NFL1H,NE
-Hunter Henry,0.5,1st Drive Receptions,NFL1H,NE
-DeMario Douglas,0.5,Rush+Rec TDs,NFL,NE
-DeMario Douglas,9.5,Longest Reception,NFL,NE
-DeMario Douglas,24.5,Receiving Yards,NFL,NE
-DeMario Douglas,39.5,Receiving Yards,NFL,NE
-DeMario Douglas,49.5,Receiving Yards,NFL,NE
-DeMario Douglas,64.5,Receiving Yards,NFL,NE
-DeMario Douglas,11.5,Receiving Yards,NFL,NE
-DeMario Douglas,14.5,Longest Reception,NFL,NE
-DeMario Douglas,19.5,Longest Reception,NFL,NE
-DeMario Douglas,3.5,Receptions,NFL,NE
-DeMario Douglas,2.5,Receptions,NFL,NE
-Bryce Baringer,3.5,Punts,NFL,NE
-DeMario Douglas,1.5,Receiving Yards,NFL1H,NE
-Hunter Henry,14.5,Receiving Yards,NFL1Q,NE
-Hunter Henry,9.5,Receiving Yards,NFL1Q,NE
-Hunter Henry,19.5,Receiving Yards,NFL1Q,NE
-Hunter Henry,24.5,Receiving Yards,NFL1Q,NE
-Hunter Henry,5.5,Receiving Yards,NFL1Q,NE
-Rashid Shaheed,14.5,Receiving Yards,NFL1Q,NO
-Rashid Shaheed,9.5,Receiving Yards,NFL1Q,NO
-Rashid Shaheed,19.5,Receiving Yards,NFL1Q,NO
-Rashid Shaheed,24.5,Receiving Yards,NFL1Q,NO
-Rashid Shaheed,4.5,Receiving Yards,NFL1Q,NO
-Drake Maye,2.5,Pass TDs,NFL,Carolina Panthers
-Drake Maye,0.5,Rush+Rec TDs,NFL,Carolina Panthers
-Drake Maye,1.5,Pass TDs,NFL,Carolina Panthers
-Drake Maye,0.5,INT,NFL,Carolina Panthers
-Drake Maye,35.5,Longest Completion,NFL,Carolina Panthers
-Drake Maye,11.5,Longest Rush,NFL,Carolina Panthers
-Drake Maye,249.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,274.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,299.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,199.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,261.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,39.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,49.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,23.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,234.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,269.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,209.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,189.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,219.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,29.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,14.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,9.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,30.5,Pass Attempts,NFL,Carolina Panthers
-Drake Maye,21.5,Pass Completions,NFL,Carolina Panthers
-Drake Maye,3.5,Pass TDs,NFL,Carolina Panthers
-Drake Maye,34.5,Pass Attempts,NFL,Carolina Panthers
-Drake Maye,29.5,Pass Attempts,NFL,Carolina Panthers
-Drake Maye,24.5,Pass Completions,NFL,Carolina Panthers
-Drake Maye,19.5,Pass Completions,NFL,Carolina Panthers
-Drake Maye,299.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,274.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,324.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,224.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,249.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,44.5,Longest Completion,NFL,Carolina Panthers
-Drake Maye,39.5,Longest Completion,NFL,Carolina Panthers
-Drake Maye,29.5,Longest Completion,NFL,Carolina Panthers
-Drake Maye,27.5,Pass Attempts,NFL,Carolina Panthers
-Drake Maye,70.1,Completion Percentage,NFL,Carolina Panthers
-Drake Maye,1.5,INT,NFL,Carolina Panthers
-Drake Maye,229.5,Pass+Rush Yds,NFL,Carolina Panthers
-Drake Maye,14.5,Longest Rush,NFL,Carolina Panthers
-Drake Maye,19.5,Longest Rush,NFL,Carolina Panthers
-Drake Maye,9.5,Longest Rush,NFL,Carolina Panthers
-Drake Maye,19.5,Fantasy Score,NFL,Carolina Panthers
-Drake Maye,5.5,Rush Attempts,NFL,Carolina Panthers
-Drake Maye,8.5,Rush Attempts,NFL,Carolina Panthers
-Drake Maye,1.5,Halves with 100+ Pass Yards,NFL,Carolina Panthers
-Drake Maye,2.5,Sacks Taken,NFL,Carolina Panthers
-Drake Maye,3.5,Quarters with 25+ Pass Yards,NFL,Carolina Panthers
-Drake Maye,0.5,Rush+Rec TDs,NFL,Carolina Panthers
-Drake Maye,149.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,124.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,99.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,24.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,116.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,10.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,10.0,Fantasy Score,NFL,Carolina Panthers
-Drake Maye,94.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,9.5,1st Drive Pass Yards,NFL,Carolina Panthers
-Drake Maye,4.5,1st Drive Pass Yards,NFL,Carolina Panthers
-Drake Maye,39.5,1st Drive Pass Yards,NFL,Carolina Panthers
-Drake Maye,29.5,1st Drive Pass Yards,NFL,Carolina Panthers
-Drake Maye,49.5,1st Drive Pass Yards,NFL,Carolina Panthers
-Drake Maye,0.5,1st Drive Rush Yards,NFL,Carolina Panthers
-Drake Maye,4.5,1st Drive Rush Yards,NFL,Carolina Panthers
-Drake Maye,9.5,1st Drive Rush Yards,NFL,Carolina Panthers
-Drake Maye,19.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,4.5,Rush Yards,NFL,Carolina Panthers
-Spencer Rattler,1.5,Pass TDs,NFL,NO
-Spencer Rattler,2.5,Pass TDs,NFL,NO
-Spencer Rattler,0.5,Rush+Rec TDs,NFL,NO
-Spencer Rattler,0.5,Pass TDs,NFL,NO
-Spencer Rattler,0.5,INT,NFL,NO
-Spencer Rattler,32.5,Longest Completion,NFL,NO
-Spencer Rattler,10.5,Longest Rush,NFL,NO
-Spencer Rattler,39.5,Pass Attempts,NFL,NO
-Spencer Rattler,33.0,Pass Attempts,NFL,NO
-Spencer Rattler,29.5,Pass Attempts,NFL,NO
-Spencer Rattler,24.5,Pass Completions,NFL,NO
-Spencer Rattler,21.5,Pass Completions,NFL,NO
-Spencer Rattler,19.5,Pass Completions,NFL,NO
-Spencer Rattler,249.5,Pass Yards,NFL,NO
-Spencer Rattler,259.5,Pass Yards,NFL,NO
-Spencer Rattler,269.5,Pass Yards,NFL,NO
-Spencer Rattler,239.5,Pass Yards,NFL,NO
-Spencer Rattler,189.5,Pass Yards,NFL,NO
-Spencer Rattler,179.5,Pass Yards,NFL,NO
-Spencer Rattler,199.5,Pass Yards,NFL,NO
-Spencer Rattler,174.5,Pass Yards,NFL,NO
-Spencer Rattler,274.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,299.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,232.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,224.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,199.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,29.5,Rush Yards,NFL,NO
-Spencer Rattler,24.5,Rush Yards,NFL,NO
-Spencer Rattler,39.5,Rush Yards,NFL,NO
-Spencer Rattler,49.5,Rush Yards,NFL,NO
-Spencer Rattler,19.5,Rush Yards,NFL,NO
-Spencer Rattler,14.5,Rush Yards,NFL,NO
-Spencer Rattler,39.5,Longest Completion,NFL,NO
-Spencer Rattler,44.5,Longest Completion,NFL,NO
-Spencer Rattler,29.5,Longest Completion,NFL,NO
-Spencer Rattler,14.5,Longest Rush,NFL,NO
-Spencer Rattler,1.5,INT,NFL,NO
-Spencer Rattler,212.5,Pass Yards,NFL,NO
-Spencer Rattler,9.5,Rush Yards,NFL,NO
-Spencer Rattler,68.3,Completion Percentage,NFL,NO
-Spencer Rattler,269.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,209.5,Pass+Rush Yds,NFL,NO
-Spencer Rattler,19.5,Longest Rush,NFL,NO
-Spencer Rattler,24.5,Longest Completion,NFL,NO
-Spencer Rattler,15.0,Fantasy Score,NFL,NO
-Spencer Rattler,5.5,Rush Attempts,NFL,NO
-Spencer Rattler,1.5,Halves with 100+ Pass Yards,NFL,NO
-Spencer Rattler,2.5,Sacks Taken,NFL,NO
-Spencer Rattler,3.5,Quarters with 25+ Pass Yards,NFL,NO
-Spencer Rattler,124.5,Pass Yards,NFL1H,NO
-Spencer Rattler,149.5,Pass Yards,NFL1H,NO
-Spencer Rattler,74.5,Pass Yards,NFL1H,NO
-Spencer Rattler,100.5,Pass Yards,NFL1H,NO
-Spencer Rattler,7.5,Rush Yards,NFL1H,NO
-Spencer Rattler,7.5,Fantasy Score,NFL1H,NO
-Spencer Rattler,4.5,1st Drive Pass Yards,NFL1H,NO
-Spencer Rattler,9.5,1st Drive Pass Yards,NFL1H,NO
-Spencer Rattler,29.5,1st Drive Pass Yards,NFL1H,NO
-Spencer Rattler,39.5,1st Drive Pass Yards,NFL1H,NO
-Spencer Rattler,19.5,1st Drive Pass Yards,NFL1H,NO
-Drake Maye,69.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,59.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,79.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,89.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,29.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,39.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,4.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,9.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,14.5,Rush Yards,NFL,Carolina Panthers
-Drake Maye,49.5,Pass Yards,NFL,Carolina Panthers
-Drake Maye,1.5,Rush Yards,NFL,Carolina Panthers
-Spencer Rattler,59.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,69.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,49.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,79.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,4.5,Rush Yards,NFL1Q,NO
-Spencer Rattler,9.5,Rush Yards,NFL1Q,NO
-Spencer Rattler,14.5,Rush Yards,NFL1Q,NO
-Spencer Rattler,29.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,41.5,Pass Yards,NFL1Q,NO
-Spencer Rattler,1.5,Rush Yards,NFL1Q,NO
-Juwan Johnson,9.5,Receiving Yards,NFL1Q,NO
-Juwan Johnson,14.5,Receiving Yards,NFL1Q,NO
-Juwan Johnson,19.5,Receiving Yards,NFL1Q,NO
-Juwan Johnson,24.5,Receiving Yards,NFL1Q,NO
-Juwan Johnson,2.5,Receiving Yards,NFL1Q,NO
-Foster Moreau,0.5,Rush+Rec TDs,NFL1H,NO
-Kendre Miller,0.5,Rush+Rec TDs,NFL,NO
-Kendre Miller,30.5,Rush Yards,NFL,NO
-Kendre Miller,39.5,Rush Yards,NFL,NO
-Kendre Miller,64.5,Rush Yards,NFL,NO
-Kendre Miller,24.5,Rush Yards,NFL,NO
-Kendre Miller,49.5,Rush Yards,NFL,NO
-Kendre Miller,10.5,Longest Rush,NFL,NO
-Kendre Miller,14.5,Longest Rush,NFL,NO
-Kendre Miller,19.5,Longest Rush,NFL,NO
-Kendre Miller,9.5,Longest Rush,NFL,NO
-Kendre Miller,11.5,Rush Attempts,NFL,NO
-Kendre Miller,14.5,Rush Attempts,NFL,NO
-Kendre Miller,59.5,Rush Yards,NFL,NO
-Kendre Miller,19.5,Rush Yards,NFL,NO
-Kendre Miller,14.5,Rush Yards,NFL,NO
-Kendre Miller,0.5,Longest Reception,NFL,NO
-Kendre Miller,0.5,Receiving Yards,NFL,NO
-Kendre Miller,24.5,Receiving Yards,NFL,NO
-Kendre Miller,0.5,Receptions,NFL,NO
-Kendre Miller,1.5,Receptions,NFL,NO
-Kendre Miller,33.5,Rush+Rec Yds,NFL,NO
-Kendre Miller,7.5,Rush Attempts,NFL,NO
-Kendre Miller,1.5,Halves with 25+ Rush Yards,NFL,NO
-Kendre Miller,3.5,Quarters with 5+ Rush Yards,NFL,NO
-Kendre Miller,5.5,Rush Attempts,NFL,NO
-Kayshon Boutte,0.5,Rush+Rec TDs,NFL,NE
-Kayshon Boutte,17.5,Longest Reception,NFL,NE
-Kayshon Boutte,29.5,Receiving Yards,NFL,NE
-Kayshon Boutte,39.5,Receiving Yards,NFL,NE
-Kayshon Boutte,49.5,Receiving Yards,NFL,NE
-Kayshon Boutte,64.5,Receiving Yards,NFL,NE
-Kayshon Boutte,59.5,Receiving Yards,NFL,NE
-Kayshon Boutte,19.5,Receiving Yards,NFL,NE
-Kayshon Boutte,9.5,Receiving Yards,NFL,NE
-Kayshon Boutte,3.5,Receptions,NFL,NE
-Kayshon Boutte,2.5,Receptions,NFL,NE
-Kayshon Boutte,1.5,Receptions,NFL,NE
-Kayshon Boutte,24.5,Longest Reception,NFL,NE
-Kayshon Boutte,29.5,Longest Reception,NFL,NE
-Kayshon Boutte,9.5,Longest Reception,NFL,NE
-Kayshon Boutte,14.5,Longest Reception,NFL,NE
-Kayshon Boutte,24.5,Receiving Yards,NFL,NE
-Kayshon Boutte,4.5,Receptions,NFL,NE
-Kayshon Boutte,24.5,Receiving Yards,NFL1H,NE
-Kayshon Boutte,0.5,Rush+Rec TDs,NFL1H,NE
-Kayshon Boutte,10.5,Receiving Yards,NFL1H,NE
-Kayshon Boutte,4.5,1st Drive Receiving Yards,NFL1H,NE
-Kayshon Boutte,9.5,1st Drive Receiving Yards,NFL1H,NE
-Kayshon Boutte,14.5,1st Drive Receiving Yards,NFL1H,NE
-Kayshon Boutte,0.5,1st Drive Receptions,NFL1H,NE
-Kendre Miller,0.5,Rush+Rec TDs,NFL1H,NO
-Kendre Miller,12.5,Rush Yards,NFL1H,NO
-Kendre Miller,0.5,Receiving Yards,NFL1H,NO
-Kendre Miller,24.5,Rush Yards,NFL1H,NO
-Kendre Miller,9.5,Rush Yards,NFL1Q,NO
-Kendre Miller,14.5,Rush Yards,NFL1Q,NO
-Kendre Miller,19.5,Rush Yards,NFL1Q,NO
-Kendre Miller,4.5,Rush Yards,NFL1Q,NO
-Kendre Miller,0.5,Rush+Rec TDs,NFL1Q,NO
-Kendre Miller,24.5,Rush Yards,NFL1Q,NO
-Kendre Miller,5.5,Rush Yards,NFL1Q,NO
-Kendre Miller,4.5,Receiving Yards,NFL1Q,NO
-Kendre Miller,0.5,Receiving Yards,NFL1Q,NO
-Mack Hollins,0.5,Rush+Rec TDs,NFL,NE
-Mack Hollins,8.5,Longest Reception,NFL,NE
-Mack Hollins,24.5,Receiving Yards,NFL,NE
-Mack Hollins,39.5,Receiving Yards,NFL,NE
-Mack Hollins,49.5,Receiving Yards,NFL,NE
-Mack Hollins,9.5,Receiving Yards,NFL,NE
-Mack Hollins,1.5,Receptions,NFL,NE
-Mack Hollins,14.5,Longest Reception,NFL,NE
-Mack Hollins,19.5,Longest Reception,NFL,NE
-Mack Hollins,4.5,Receiving Yards,NFL,NE
-Mack Hollins,0.5,Receptions,NFL,NE
-Mack Hollins,2.5,Receptions,NFL,NE
-Stefon Diggs,0.5,Rush+Rec TDs,NFL,NE
-Stefon Diggs,22.5,Longest Reception,NFL,NE
-Stefon Diggs,79.5,Receiving Yards,NFL,NE
-Stefon Diggs,99.5,Receiving Yards,NFL,NE
-Stefon Diggs,39.5,Receiving Yards,NFL,NE
-Stefon Diggs,49.5,Receiving Yards,NFL,NE
-Stefon Diggs,63.5,Receiving Yards,NFL,NE
-Stefon Diggs,29.5,Receiving Yards,NFL,NE
-Stefon Diggs,89.5,Receiving Yards,NFL,NE
-Stefon Diggs,7.5,Receptions,NFL,NE
-Stefon Diggs,4.5,Receptions,NFL,NE
-Stefon Diggs,3.5,Receptions,NFL,NE
-Stefon Diggs,6.5,Receptions,NFL,NE
-Stefon Diggs,8.5,Receptions,NFL,NE
-Stefon Diggs,29.5,Longest Reception,NFL,NE
-Stefon Diggs,24.5,Longest Reception,NFL,NE
-Stefon Diggs,19.5,Longest Reception,NFL,NE
-Stefon Diggs,5.5,Receptions,NFL,NE
-Stefon Diggs,1.5,Halves with 25+ Receiving Yards,NFL,NE
-Stefon Diggs,3.5,Quarters with 5+ Receiving Yards,NFL,NE
-Stefon Diggs,3.5,Quarters with 1+ Reception,NFL,NE
-Stefon Diggs,8.0,Rec Targets,NFL,NE
-TreVeyon Henderson,0.5,Rush+Rec TDs,NFL,NE
-TreVeyon Henderson,10.5,Longest Reception,NFL,NE
-TreVeyon Henderson,24.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,29.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,19.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,39.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,16.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,9.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,3.5,Receptions,NFL,NE
-TreVeyon Henderson,1.5,Receptions,NFL,NE
-TreVeyon Henderson,9.5,Rush Attempts,NFL,NE
-TreVeyon Henderson,49.5,Rush Yards,NFL,NE
-TreVeyon Henderson,59.5,Rush Yards,NFL,NE
-TreVeyon Henderson,64.5,Rush Yards,NFL,NE
-TreVeyon Henderson,39.5,Rush Yards,NFL,NE
-TreVeyon Henderson,35.5,Rush Yards,NFL,NE
-TreVeyon Henderson,24.5,Rush Yards,NFL,NE
-TreVeyon Henderson,29.5,Rush Yards,NFL,NE
-TreVeyon Henderson,74.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,55.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,49.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,14.5,Longest Rush,NFL,NE
-TreVeyon Henderson,19.5,Longest Rush,NFL,NE
-TreVeyon Henderson,9.5,Longest Rush,NFL,NE
-TreVeyon Henderson,19.5,Rush Yards,NFL,NE
-TreVeyon Henderson,11.5,Rush Attempts,NFL,NE
-TreVeyon Henderson,14.5,Rush Attempts,NFL,NE
-TreVeyon Henderson,8.5,Rush Attempts,NFL,NE
-TreVeyon Henderson,10.5,Longest Rush,NFL,NE
-TreVeyon Henderson,99.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,7.5,Rush Attempts,NFL,NE
-TreVeyon Henderson,69.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,39.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,4.5,Receptions,NFL,NE
-TreVeyon Henderson,5.5,Receptions,NFL,NE
-TreVeyon Henderson,14.5,Longest Reception,NFL,NE
-TreVeyon Henderson,19.5,Longest Reception,NFL,NE
-TreVeyon Henderson,44.5,Rush+Rec Yds,NFL,NE
-TreVeyon Henderson,3.5,Rec Targets,NFL,NE
-TreVeyon Henderson,4.5,Receiving Yards,NFL,NE
-TreVeyon Henderson,1.5,Halves with 25+ Rush Yards,NFL,NE
-TreVeyon Henderson,3.5,Quarters with 5+ Rush Yards,NFL,NE
-Brandin Cooks,0.5,Rush+Rec TDs,NFL,NO
-Brandin Cooks,10.5,Longest Reception,NFL,NO
-Brandin Cooks,24.5,Receiving Yards,NFL,NO
-Brandin Cooks,29.5,Receiving Yards,NFL,NO
-Brandin Cooks,39.5,Receiving Yards,NFL,NO
-Brandin Cooks,16.5,Receiving Yards,NFL,NO
-Brandin Cooks,9.5,Receiving Yards,NFL,NO
-Brandin Cooks,2.5,Receptions,NFL,NO
-Brandin Cooks,3.5,Receptions,NFL,NO
-Brandin Cooks,14.5,Longest Reception,NFL,NO
-Brandin Cooks,19.5,Longest Reception,NFL,NO
-Brandin Cooks,9.5,Longest Reception,NFL,NO
-Brandin Cooks,1.5,Receptions,NFL,NO
-Brandin Cooks,4.5,Receptions,NFL,NO
-TreVeyon Henderson,24.5,Rush Yards,NFL1H,NE
-TreVeyon Henderson,0.5,Rush+Rec TDs,NFL1H,NE
-TreVeyon Henderson,6.5,Receiving Yards,NFL1H,NE
-TreVeyon Henderson,15.5,Rush Yards,NFL1H,NE
-TreVeyon Henderson,29.5,Rush Yards,NFL1H,NE
-TreVeyon Henderson,9.5,Rush Yards,NFL1H,NE
-TreVeyon Henderson,14.5,Receiving Yards,NFL1H,NE
-TreVeyon Henderson,9.5,Receiving Yards,NFL1H,NE
-TreVeyon Henderson,4.5,Receiving Yards,NFL1H,NE
-TreVeyon Henderson,0.5,1st Drive Receptions,NFL1H,NE
-TreVeyon Henderson,14.5,Rush Yards,NFL1H,NE
-Stefon Diggs,19.5,Receiving Yards,NFL1Q,NE
-Stefon Diggs,14.5,Receiving Yards,NFL1Q,NE
-Stefon Diggs,24.5,Receiving Yards,NFL1Q,NE
-Stefon Diggs,29.5,Receiving Yards,NFL1Q,NE
-Stefon Diggs,4.5,Receiving Yards,NFL1Q,NE
-Stefon Diggs,8.5,Receiving Yards,NFL1Q,NE
-TreVeyon Henderson,4.5,Receiving Yards,NFL1Q,NE
-TreVeyon Henderson,9.5,Receiving Yards,NFL1Q,NE
-TreVeyon Henderson,14.5,Receiving Yards,NFL1Q,NE
-TreVeyon Henderson,14.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,9.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,19.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,24.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,0.5,Rush+Rec TDs,NFL1Q,NE
-TreVeyon Henderson,4.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,0.5,Receiving Yards,NFL1Q,NE
-TreVeyon Henderson,6.5,Rush Yards,NFL1Q,NE
-TreVeyon Henderson,4.5,Rush+Rec Yds,NFL1Q,NE
-TreVeyon Henderson,11.5,Rush+Rec Yds,NFL1Q,NE
-Carl Granderson,0.5,Sacks,NFL,NO
-Carl Granderson,0.25,Sacks,NFL,NO
-Christian Barmore,0.25,Sacks,NFL,NE
-Christian Barmore,0.5,Sacks,NFL,NE
-Harold Landry,0.5,Sacks,NFL,NE
-Harold Landry,0.25,Sacks,NFL,NE
-K'Lavon Chaisson,0.5,Sacks,NFL,NE
-K'Lavon Chaisson,0.25,Sacks,NFL,NE
-Milton Williams,0.5,Sacks,NFL,NE
-Milton Williams,0.25,Sacks,NFL,NE
-Robert Spillane,0.5,Sacks,NFL,NE
-Robert Spillane,8.5,Tackles+Ast,NFL,NE
-Robert Spillane,0.25,Sacks,NFL,NE
-Bryan Bresee,0.25,Sacks,NFL,NO
-Cameron Jordan,0.5,Sacks,NFL,NO
-Cameron Jordan,0.25,Sacks,NFL,NO
-Demario Davis,0.5,Sacks,NFL,NO
-Demario Davis,0.25,Sacks,NFL,NO
-Pete Werner,0.5,Sacks,NFL,NO
-Pete Werner,7.5,Tackles+Ast,NFL,NO
-Pete Werner,0.25,Sacks,NFL,NO
-Alontae Taylor,0.5,Sacks,NFL,NO
-Alontae Taylor,0.25,Sacks,NFL,NO
-Brandin Cooks,9.5,Receiving Yards,NFL1Q,NO
-Brandin Cooks,14.5,Receiving Yards,NFL1Q,NO
-Brandin Cooks,4.5,Receiving Yards,NFL1Q,NO
-Brandin Cooks,0.5,Receiving Yards,NFL1Q,NO
-Devaughn Vele,0.5,Rush+Rec TDs,NFL,NO
-Devaughn Vele,5.5,Longest Reception,NFL,NO
-Devaughn Vele,5.5,Receiving Yards,NFL,NO
-Devaughn Vele,24.5,Receiving Yards,NFL,NO
-Devaughn Vele,39.5,Receiving Yards,NFL,NO
-Devaughn Vele,1.5,Receptions,NFL,NO
-Devaughn Vele,0.5,Receptions,NFL,NO
-Stefon Diggs,0.5,Rush+Rec TDs,NFL1H,NE
-Stefon Diggs,49.5,Receiving Yards,NFL1H,NE
-Stefon Diggs,24.5,Receiving Yards,NFL1H,NE
-Stefon Diggs,30.5,Receiving Yards,NFL1H,NE
-Stefon Diggs,19.5,Receiving Yards,NFL1H,NE
-Stefon Diggs,44.5,Receiving Yards,NFL1H,NE
-Stefon Diggs,9.5,1st Drive Receiving Yards,NFL1H,NE
-Stefon Diggs,4.5,1st Drive Receiving Yards,NFL1H,NE
-Stefon Diggs,14.5,1st Drive Receiving Yards,NFL1H,NE
-Stefon Diggs,1.5,1st Drive Receptions,NFL1H,NE
-Kai Kroeger,4.0,Punts,NFL,NO
-Andy Borregales,1.5,FG Made,NFL,NE
-Andy Borregales,7.5,Kicking Points,NFL,NE
-Austin Hooper,4.5,Receiving Yards,NFL1Q,NE
-Austin Hooper,9.5,Receiving Yards,NFL1Q,NE
-Austin Hooper,14.5,Receiving Yards,NFL1Q,NE
-Austin Hooper,0.5,Receiving Yards,NFL1Q,NE
-Kayshon Boutte,9.5,Receiving Yards,NFL1Q,NE
-Kayshon Boutte,4.5,Receiving Yards,NFL1Q,NE
-Kayshon Boutte,14.5,Receiving Yards,NFL1Q,NE
-Kayshon Boutte,19.5,Receiving Yards,NFL1Q,NE
-Mack Hollins,4.5,Receiving Yards,NFL1Q,NE
-Mack Hollins,9.5,Receiving Yards,NFL1Q,NE
-Mack Hollins,14.5,Receiving Yards,NFL1Q,NE
-Brandin Cooks,4.5,Receiving Yards,NFL1H,NO
-Brandin Cooks,24.5,Receiving Yards,NFL1H,NO
-Brandin Cooks,14.5,Receiving Yards,NFL1H,NO
-Brandin Cooks,4.5,1st Drive Receiving Yards,NFL1H,NO
-Brandin Cooks,0.5,1st Drive Receptions,NFL1H,NO
-Brandin Cooks,9.5,1st Drive Receiving Yards,NFL1H,NO
-Craig Woodson,5.5,Tackles+Ast,NFL,NE
-Jonas Sanker,1.5,Assists,NFL,NO
-Mack Hollins,0.5,Receiving Yards,NFL1H,NE
-Mack Hollins,0.5,1st Drive Receptions,NFL1H,NE
-Austin Hooper,0.5,Receiving Yards,NFL1H,NE
-Taysom Hill,4.5,Rush Yards,NFL1Q,NO
-Taysom Hill,9.5,Rush Yards,NFL1Q,NO
-Taysom Hill,0.5,Rush Yards,NFL1Q,NO
-Andy Borregales + Blake Grupe,3.5,FG Made (Combo),NFL,NE/NO
-Andy Borregales + Blake Grupe,52.5,Longest FG Made Yds (Combo),NFL,NE/NO
-Andy Borregales + Blake Grupe,27.5,Shortest FG Made Yds (Combo),NFL,NE/NO
-Andy Borregales + Blake Grupe,132.5,Field Goal Yards (Combo),NFL,NE/NO
-Drake Maye + Spencer Rattler,446.5,Pass Yards (Combo),NFL,NE/NO
-Stefon Diggs + Chris Olave,116.5,Receiving Yards (Combo),NFL,NE/NO
-Andy Borregales + Blake Grupe,2.0,FG Made (Combo),NFL1H,NE/NO
-Jack Stoll,0.5,Rush+Rec TDs,NFL,NO
-Devaughn Vele,0.5,Receiving Yards,NFL1H,NO
-Devaughn Vele,0.5,Receiving Yards,NFL1Q,NO
-Devaughn Vele,4.5,Receiving Yards,NFL1Q,NO
-Devaughn Vele,9.5,Receiving Yards,NFL1Q,NO
-Will Dissly,1.5,Receptions,NFL,LAC
-K.J. Britt,7.5,Tackles+Ast,NFL,MIA
-Greg Dortch,24.5,Receiving Yards,NFL,ARI
-Greg Dortch,39.5,Receiving Yards,NFL,ARI
-Greg Dortch,49.5,Receiving Yards,NFL,ARI
-Greg Dortch,1.5,Receptions,NFL,ARI
-Greg Dortch,0.5,Receiving Yards,NFL1H,ARI
-Elijah Higgins,6.5,Longest Reception,NFL,ARI
-Elijah Higgins,24.5,Receiving Yards,NFL,ARI
-Elijah Higgins,39.5,Receiving Yards,NFL,ARI
-Elijah Higgins,49.5,Receiving Yards,NFL,ARI
-Elijah Higgins,1.5,Receptions,NFL,ARI
-Zay Jones,24.5,Receiving Yards,NFL,ARI
-Zay Jones,39.5,Receiving Yards,NFL,ARI
-Zay Jones,49.5,Receiving Yards,NFL,ARI
-Emari Demercado,6.5,Longest Reception,NFL,ARI
-Emari Demercado,5.5,Longest Rush,NFL,ARI
-Daniel Jones,3.5,Rush Attempts,NFL,IND
-Zay Jones,4.5,Receiving Yards,NFL1Q,ARI
-Zay Jones,9.5,Receiving Yards,NFL1Q,ARI
-Greg Dortch,4.5,Receiving Yards,NFL1Q,ARI
-Zay Jones,0.5,Receiving Yards,NFL1H,ARI
-Jacoby Brissett,3.5,Rush Attempts,NFL,ARI
-Elijah Higgins,0.5,Receiving Yards,NFL1H,ARI
-Elijah Higgins,4.5,Receiving Yards,NFL1Q,ARI
-Elijah Higgins,9.5,Receiving Yards,NFL1Q,ARI
-Trent Forrest,13.5,Points,SACB,Baskonia
-Markus Howard,14.5,Points,SACB,Baskonia
-Timothé Luwawu-Cabarrot,14.5,Points,SACB,Baskonia
-Tadas Sedekerskis,8.5,Points,SACB,Baskonia
-Sergio Llull,6.5,Points,SACB,Real Madrid
-Walter Tavares,8.5,Points,SACB,Real Madrid
-Andres Feliz,8.5,Points,SACB,Real Madrid
-Facundo Campazzo,9.5,Points,SACB,Real Madrid
-cej0t,29.0,MAPS 1-2 Kills,CS2,9INE
-Dasha Plekhanova,20.5,Total Games,TENNIS,Dasha Plekhanova
-Dasha Plekhanova,2.5,Total Sets,TENNIS,Dasha Plekhanova
-Katrina Scott,20.5,Total Games,TENNIS,Katrina Scott
-Katrina Scott,2.5,Total Sets,TENNIS,Katrina Scott
-faveN,31.0,MAPS 1-2 Kills,CS2,9INE
-raalz,26.5,MAPS 1-2 Kills,CS2,9INE
-kraghen,30.5,MAPS 1-2 Kills,CS2,9INE
-MoDo,30.5,MAPS 1-2 Kills,CS2,9INE
-SHOCK,28.5,MAPS 1-2 Kills,CS2,SINNERS
-kisserek,29.5,MAPS 1-2 Kills,CS2,SINNERS
-Pepo,26.5,MAPS 1-2 Kills,CS2,SINNERS
-beastik,27.5,MAPS 1-2 Kills,CS2,SINNERS
-stressarN,31.5,MAPS 1-2 Kills,CS2,SINNERS
-cej0t,15.5,MAPS 1-2 Headshots,CS2,9INE
-faveN,19.0,MAPS 1-2 Headshots,CS2,9INE
-raalz,15.5,MAPS 1-2 Headshots,CS2,9INE
-kraghen,16.5,MAPS 1-2 Headshots,CS2,9INE
-MoDo,11.0,MAPS 1-2 Headshots,CS2,9INE
-SHOCK,15.5,MAPS 1-2 Headshots,CS2,SINNERS
-kisserek,15.5,MAPS 1-2 Headshots,CS2,SINNERS
-Pepo,8.5,MAPS 1-2 Headshots,CS2,SINNERS
-beastik,15.0,MAPS 1-2 Headshots,CS2,SINNERS
-stressarN,17.0,MAPS 1-2 Headshots,CS2,SINNERS
-Riley Patterson + Cameron Dicker,0.5,FG Made (Combo),NFL1Q,MIA/LAC
-Tyler Warren + Trey McBride,0.5,Rush+Rec TDs (Combo),NFL,IND/ARI
-Tyler Warren + Trey McBride,1.5,Rush+Rec TDs (Combo),NFL,IND/ARI
-Tyler Warren + Marvin Harrison,0.5,Rush+Rec TDs (Combo),NFL,IND/ARI
-Jonathan Taylor + Marvin Harrison,1.5,Rush+Rec TDs (Combo),NFL,IND/ARI
-De'Von Achane,8.0,Fantasy Score,NFL1H,MIA
-Tua Tagovailoa,60.5,Passing Yards in First 10 Attempts,NFL,MIA
-Tua Tagovailoa,7.5,Completions in First 10 Pass Attempts,NFL,MIA
-Tua Tagovailoa,6.5,Yards on First Pass Completion,NFL,MIA
-Justin Herbert,70.5,Passing Yards in First 10 Attempts,NFL,LAC
-Justin Herbert,7.5,Completions in First 10 Pass Attempts,NFL,LAC
-Justin Herbert,7.5,Yards on First Pass Completion,NFL,LAC
-Jaylen Waddle,14.5,Fantasy Score,NFL,MIA
-Jaylen Waddle,9.5,Yards on First Reception,NFL,MIA
-Jaylen Waddle,19.5,Receiving Yards in First 2 Receptions,NFL,MIA
-De'Von Achane,20.5,Rush Yards in First 5 Attempts,NFL,MIA
-De'Von Achane,17.0,Fantasy Score,NFL,MIA
-De'Von Achane,6.5,Yards on First Reception,NFL,MIA
-De'Von Achane,11.5,Receiving Yards in First 2 Receptions,NFL,MIA
-Ladd McConkey,14.5,Fantasy Score,NFL,LAC
-Ladd McConkey,9.5,Yards on First Reception,NFL,LAC
-Ladd McConkey,19.5,Receiving Yards in First 2 Receptions,NFL,LAC
-Ladd McConkey,6.5,Fantasy Score,NFL1H,LAC
-Jaylen Waddle,6.5,Fantasy Score,NFL1H,MIA
-Malik Washington,6.5,Fantasy Score,NFL,MIA
-Hassan Haskins,18.5,Rush Yards in First 5 Attempts,NFL,LAC
-Malik Washington,3.0,Fantasy Score,NFL1H,MIA
-Oronde Gadsden,5.5,Fantasy Score,NFL,LAC
-Oronde Gadsden,7.5,Yards on First Reception,NFL,LAC
-Darren Waller,9.5,Fantasy Score,NFL,MIA
-Darren Waller,8.5,Yards on First Reception,NFL,MIA
-Darren Waller,17.5,Receiving Yards in First 2 Receptions,NFL,MIA
-Keenan Allen,14.0,Fantasy Score,NFL,LAC
-Keenan Allen,8.5,Yards on First Reception,NFL,LAC
-Keenan Allen,19.5,Receiving Yards in First 2 Receptions,NFL,LAC
-Keenan Allen,6.5,Fantasy Score,NFL1H,LAC
-Darren Waller,4.5,Fantasy Score,NFL1H,MIA
-Oronde Gadsden,2.0,Fantasy Score,NFL1H,LAC
-Alec Pierce,6.5,Fantasy Score,NFL,IND
-Josh Downs,9.0,Fantasy Score,NFL,IND
-Josh Downs,4.5,Fantasy Score,NFL1H,IND
-Alec Pierce,3.0,Fantasy Score,NFL1H,IND
-Jonathan Taylor,21.5,Rush Yards in First 5 Attempts,NFL,IND
-Michael Wilson,5.5,Fantasy Score,NFL,ARI
-Marvin Harrison,5.5,Fantasy Score,NFL1H,ARI
-Trey McBride,14.0,Fantasy Score,NFL,ARI
-Michael Wilson,2.5,Fantasy Score,NFL1H,ARI
-Trey McBride,6.5,Fantasy Score,NFL1H,ARI
-Jonathan Taylor,2.5,Fantasy Score,NFL1Q,IND
-Marvin Harrison,1.5,Fantasy Score,NFL1Q,ARI
-Marvin Harrison,11.0,Fantasy Score,NFL,ARI
-Michael Pittman,2.5,Fantasy Score,NFL1Q,IND
-Trey McBride,2.5,Fantasy Score,NFL1Q,ARI
-Josh Downs,1.5,Fantasy Score,NFL1Q,IND
-Michael Carter,18.5,Rush Yards in First 5 Attempts,NFL,ARI
-Daniel Jones,69.5,Passing Yards in First 10 Attempts,NFL,IND
-Daniel Jones,8.5,Yards on First Pass Completion,NFL,IND
-Daniel Jones,7.5,Completions in First 10 Pass Attempts,NFL,IND
-Michael Wilson,0.5,Fantasy Score,NFL1Q,ARI
-Tyler Warren,1.5,Fantasy Score,NFL1Q,IND
-Alec Pierce,0.5,Fantasy Score,NFL1Q,IND
-Tyler Warren,5.5,Fantasy Score,NFL1H,IND
-Michael Carter,1.5,Fantasy Score,NFL1Q,ARI
 Jaelan Phillips,0.5,Sacks,NFL,MIA
 Jaelan Phillips,0.25,Sacks,NFL,MIA
 De'Von Achane,0.5,Rush+Rec TDs,NFL1H,MIA
@@ -3828,7 +3809,7 @@ Justin Herbert,229.5,Pass Yards,NFL,LAC
 Justin Herbert,289.5,Pass Yards,NFL,LAC
 Justin Herbert,3.5,Pass TDs,NFL,LAC
 Justin Herbert,12.0,Longest Rush,NFL,LAC
-Justin Herbert,21.5,Rush Yards,NFL,LAC
+Justin Herbert,22.5,Rush Yards,NFL,LAC
 Justin Herbert,280.5,Pass+Rush Yds,NFL,LAC
 Justin Herbert,39.5,Rush Yards,NFL,LAC
 Justin Herbert,29.5,Rush Yards,NFL,LAC
@@ -3861,7 +3842,7 @@ Justin Herbert,239.5,Pass+Rush Yds,NFL,LAC
 Justin Herbert,2.5,Rush Attempts,NFL,LAC
 Jaylen Waddle,0.5,Rush+Rec TDs,NFL,MIA
 Jaylen Waddle,22.5,Longest Reception,NFL,MIA
-Jaylen Waddle,69.5,Receiving Yards,NFL,MIA
+Jaylen Waddle,68.5,Receiving Yards,NFL,MIA
 Jaylen Waddle,49.5,Receiving Yards,NFL,MIA
 Jaylen Waddle,39.5,Receiving Yards,NFL,MIA
 Jaylen Waddle,79.5,Receiving Yards,NFL,MIA
@@ -3932,12 +3913,12 @@ Cameron Dicker,3.5,FG Made,NFL,LAC
 Cameron Dicker,3.5,PAT Made,NFL,LAC
 Cameron Dicker,1.5,PAT Made,NFL,LAC
 Ladd McConkey,0.5,Rush+Rec TDs,NFL,LAC
+Ladd McConkey,66.5,Receiving Yards,NFL,LAC
 Ladd McConkey,39.5,Receiving Yards,NFL,LAC
 Ladd McConkey,49.5,Receiving Yards,NFL,LAC
 Ladd McConkey,79.5,Receiving Yards,NFL,LAC
 Ladd McConkey,99.5,Receiving Yards,NFL,LAC
 Ladd McConkey,21.5,Longest Reception,NFL,LAC
-Ladd McConkey,64.5,Receiving Yards,NFL,LAC
 Ladd McConkey,89.5,Receiving Yards,NFL,LAC
 Ladd McConkey,5.5,Receptions,NFL,LAC
 Ladd McConkey,7.5,Receptions,NFL,LAC
@@ -4366,8 +4347,8 @@ Odafe Oweh,0.5,Sacks,NFL,LAC
 KeAndre Lambert-Smith,0.5,Receiving Yards,NFL1H,LAC
 Alec Pierce,0.5,Rush+Rec TDs,NFL,IND
 Alec Pierce,2.5,Receptions,NFL,IND
-Alec Pierce,18.5,Longest Reception,NFL,IND
-Alec Pierce,29.5,Receiving Yards,NFL,IND
+Alec Pierce,19.5,Longest Reception,NFL,IND
+Alec Pierce,33.5,Receiving Yards,NFL,IND
 Alec Pierce,24.5,Receiving Yards,NFL,IND
 Alec Pierce,49.5,Receiving Yards,NFL,IND
 Alec Pierce,39.5,Receiving Yards,NFL,IND
@@ -4395,7 +4376,7 @@ Michael Pittman Jr.,14.5,1st Drive Receiving Yards,NFL1H,IND
 Josh Downs,0.5,Rush+Rec TDs,NFL,IND
 Josh Downs,16.5,Longest Reception,NFL,IND
 Josh Downs,24.5,Receiving Yards,NFL,IND
-Josh Downs,38.5,Receiving Yards,NFL,IND
+Josh Downs,36.5,Receiving Yards,NFL,IND
 Josh Downs,49.5,Receiving Yards,NFL,IND
 Josh Downs,64.5,Receiving Yards,NFL,IND
 Josh Downs,79.5,Receiving Yards,NFL,IND
@@ -4428,7 +4409,7 @@ Josh Downs,4.5,1st Drive Receiving Yards,NFL1H,IND
 Josh Downs,9.5,1st Drive Receiving Yards,NFL1H,IND
 Josh Downs,14.5,1st Drive Receiving Yards,NFL1H,IND
 Alec Pierce,0.5,Rush+Rec TDs,NFL1H,IND
-Alec Pierce,14.5,Receiving Yards,NFL1H,IND
+Alec Pierce,15.5,Receiving Yards,NFL1H,IND
 Alec Pierce,24.5,Receiving Yards,NFL1H,IND
 Alec Pierce,4.5,Receiving Yards,NFL1H,IND
 Alec Pierce,9.5,Receiving Yards,NFL1H,IND
@@ -4448,7 +4429,7 @@ Jonathan Taylor,49.5,Receiving Yards,NFL,IND
 Jonathan Taylor,64.5,Receiving Yards,NFL,IND
 Jonathan Taylor,79.5,Rush Yards,NFL,IND
 Jonathan Taylor,64.5,Rush Yards,NFL,IND
-Jonathan Taylor,88.5,Rush Yards,NFL,IND
+Jonathan Taylor,92.5,Rush Yards,NFL,IND
 Jonathan Taylor,99.5,Rush Yards,NFL,IND
 Jonathan Taylor,109.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,69.5,Rush Yards,NFL,IND
@@ -4470,12 +4451,12 @@ Jonathan Taylor,17.5,Rush Attempts,NFL,IND
 Jonathan Taylor,21.5,Rush Attempts,NFL,IND
 Jonathan Taylor,9.5,Receiving Yards,NFL,IND
 Jonathan Taylor,1.5,Receptions,NFL,IND
-Jonathan Taylor,4.5,Receptions,NFL,IND
+Jonathan Taylor,3.5,Receptions,NFL,IND
 Jonathan Taylor,89.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,79.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,99.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,124.5,Rush+Rec Yds,NFL,IND
-Jonathan Taylor,149.5,Rush+Rec Yds,NFL,IND
+Jonathan Taylor,139.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,174.5,Rush+Rec Yds,NFL,IND
 Jonathan Taylor,14.5,Receiving Yards,NFL,IND
 Jonathan Taylor,3.5,Rec Targets,NFL,IND
@@ -4514,7 +4495,7 @@ Trey McBride,0.5,Rush+Rec TDs,NFL,ARI
 Trey McBride,18.5,Longest Reception,NFL,ARI
 Trey McBride,24.5,Longest Reception,NFL,ARI
 Trey McBride,29.5,Longest Reception,NFL,ARI
-Trey McBride,55.5,Receiving Yards,NFL,ARI
+Trey McBride,58.5,Receiving Yards,NFL,ARI
 Trey McBride,49.5,Receiving Yards,NFL,ARI
 Trey McBride,39.5,Receiving Yards,NFL,ARI
 Trey McBride,79.5,Receiving Yards,NFL,ARI
@@ -4541,7 +4522,7 @@ Michael Wilson,4.5,Receiving Yards,NFL1H,ARI
 Michael Wilson,14.5,Receiving Yards,NFL1H,ARI
 Michael Wilson,4.5,1st Drive Receiving Yards,NFL1H,ARI
 Michael Wilson,9.5,1st Drive Receiving Yards,NFL1H,ARI
-Trey McBride,25.5,Receiving Yards,NFL1H,ARI
+Trey McBride,24.5,Receiving Yards,NFL1H,ARI
 Trey McBride,0.5,Rush+Rec TDs,NFL1H,ARI
 Trey McBride,49.5,Receiving Yards,NFL1H,ARI
 Trey McBride,39.5,Receiving Yards,NFL1H,ARI
@@ -4559,7 +4540,7 @@ Jonathan Taylor,9.5,Rush Yards,NFL1Q,IND
 Jonathan Taylor,29.5,Rush Yards,NFL1Q,IND
 Jonathan Taylor,24.5,Rush Yards,NFL1Q,IND
 Jonathan Taylor,39.5,Rush Yards,NFL1Q,IND
-Jonathan Taylor,22.5,Rush Yards,NFL1Q,IND
+Jonathan Taylor,19.5,Rush Yards,NFL1Q,IND
 Jonathan Taylor,34.5,Rush Yards,NFL1Q,IND
 Jonathan Taylor,19.5,Rush+Rec Yds,NFL1Q,IND
 Jonathan Taylor,25.5,Rush+Rec Yds,NFL1Q,IND
@@ -4585,9 +4566,9 @@ Jonathan Taylor,4.5,1st Drive Rush Yards,NFL1H,IND
 Jonathan Taylor,14.5,1st Drive Rush Yards,NFL1H,IND
 Jonathan Taylor,9.5,1st Drive Rush Yards,NFL1H,IND
 Jonathan Taylor,19.5,1st Drive Rush Yards,NFL1H,IND
-Michael Pittman,50.5,Receiving Yards,NFL,IND
+Michael Pittman,51.5,Receiving Yards,NFL,IND
 Michael Pittman,0.5,Rush+Rec TDs,NFL,IND
-Michael Pittman,19.5,Longest Reception,NFL,IND
+Michael Pittman,18.5,Longest Reception,NFL,IND
 Michael Pittman,39.5,Receiving Yards,NFL,IND
 Michael Pittman,79.5,Receiving Yards,NFL,IND
 Michael Pittman,64.5,Receiving Yards,NFL,IND
@@ -4597,7 +4578,7 @@ Michael Pittman,24.5,Longest Reception,NFL,IND
 Michael Pittman,29.5,Longest Reception,NFL,IND
 Michael Pittman,14.5,Longest Reception,NFL,IND
 Michael Pittman,3.5,Receptions,NFL,IND
-Michael Pittman,5.5,Receptions,NFL,IND
+Michael Pittman,6.5,Receptions,NFL,IND
 Michael Pittman,7.5,Receptions,NFL,IND
 Michael Pittman,12.0,Fantasy Score,NFL,IND
 Michael Pittman,69.5,Receiving Yards,NFL,IND
@@ -4608,7 +4589,7 @@ Michael Pittman,7.5,Rec Targets,NFL,IND
 Michael Pittman,3.5,Quarters with 1+ Reception,NFL,IND
 Adonai Mitchell,0.5,Rush+Rec TDs,NFL,IND
 Marvin Harrison,0.5,Rush+Rec TDs,NFL,ARI
-Marvin Harrison,22.5,Longest Reception,NFL,ARI
+Marvin Harrison,21.5,Longest Reception,NFL,ARI
 Marvin Harrison,29.5,Longest Reception,NFL,ARI
 Marvin Harrison,24.5,Longest Reception,NFL,ARI
 Marvin Harrison,14.5,Longest Reception,NFL,ARI
@@ -4617,7 +4598,7 @@ Marvin Harrison,39.5,Receiving Yards,NFL,ARI
 Marvin Harrison,64.5,Receiving Yards,NFL,ARI
 Marvin Harrison,79.5,Receiving Yards,NFL,ARI
 Marvin Harrison,99.5,Receiving Yards,NFL,ARI
-Marvin Harrison,50.5,Receiving Yards,NFL,ARI
+Marvin Harrison,51.5,Receiving Yards,NFL,ARI
 Marvin Harrison,24.5,Receiving Yards,NFL,ARI
 Marvin Harrison,5.5,Receptions,NFL,ARI
 Marvin Harrison,4.5,Receptions,NFL,ARI
@@ -4640,11 +4621,10 @@ Trey McBride,19.5,Receiving Yards,NFL1Q,ARI
 Trey McBride,14.5,Receiving Yards,NFL1Q,ARI
 Trey McBride,24.5,Receiving Yards,NFL1Q,ARI
 Trey McBride,29.5,Receiving Yards,NFL1Q,ARI
-Trey McBride,8.5,Receiving Yards,NFL1Q,ARI
+Trey McBride,9.5,Receiving Yards,NFL1Q,ARI
 Rigoberto Sanchez,3.0,Punts,NFL,IND
-Elijah Higgins,0.5,Rush+Rec TDs,NFL,ARI
 Elijah Higgins,6.5,Receiving Yards,NFL,ARI
-Chad Ryland,1.5,FG Made,NFL,ARI
+Chad Ryland,2.5,FG Made,NFL,ARI
 Chad Ryland,1.5,PAT Made,NFL,ARI
 Chad Ryland,6.0,Kicking Points,NFL,ARI
 Chad Ryland,0.5,FG Made,NFL,ARI
@@ -4664,14 +4644,12 @@ Emari Demercado,39.5,Receiving Yards,NFL,ARI
 Emari Demercado,24.5,Rush Yards,NFL,ARI
 Emari Demercado,18.5,Rush+Rec Yds,NFL,ARI
 Ashton Dulin,0.5,Rush+Rec TDs,NFL,IND
-Anthony Gould,0.5,Rush+Rec TDs,NFL,IND
 Josh Downs,14.5,Receiving Yards,NFL1Q,IND
 Josh Downs,9.5,Receiving Yards,NFL1Q,IND
 Josh Downs,19.5,Receiving Yards,NFL1Q,IND
 Josh Downs,24.5,Receiving Yards,NFL1Q,IND
 Josh Downs,5.5,Receiving Yards,NFL1Q,IND
 Josh Downs,4.5,Receiving Yards,NFL1Q,IND
-Michael Carter,1.5,Rush+Rec TDs,NFL,ARI
 Michael Carter,6.5,Longest Reception,NFL,ARI
 Michael Carter,9.5,Longest Rush,NFL,ARI
 Michael Carter,7.5,Receiving Yards,NFL,ARI
@@ -4687,7 +4665,7 @@ Michael Carter,69.5,Rush Yards,NFL,ARI
 Michael Carter,3.5,Receptions,NFL,ARI
 Michael Carter,14.5,Longest Reception,NFL,ARI
 Michael Carter,19.5,Longest Reception,NFL,ARI
-Michael Carter,79.5,Rush+Rec Yds,NFL,ARI
+Michael Carter,49.5,Rush+Rec Yds,NFL,ARI
 Michael Carter,89.5,Rush+Rec Yds,NFL,ARI
 Michael Carter,3.5,Yards on First Rush Attempt,NFL,ARI
 Michael Carter,1.5,Halves with 25+ Rush Yards,NFL,ARI
@@ -4702,11 +4680,11 @@ Daniel Jones,0.5,INT,NFL,IND
 Daniel Jones,34.5,Longest Completion,NFL,IND
 Daniel Jones,8.5,Longest Rush,NFL,IND
 Daniel Jones,199.5,Pass Yards,NFL,IND
-Daniel Jones,233.5,Pass Yards,NFL,IND
+Daniel Jones,234.5,Pass Yards,NFL,IND
 Daniel Jones,274.5,Pass Yards,NFL,IND
 Daniel Jones,249.5,Pass Yards,NFL,IND
 Daniel Jones,299.5,Pass Yards,NFL,IND
-Daniel Jones,249.5,Pass+Rush Yds,NFL,IND
+Daniel Jones,250.5,Pass+Rush Yds,NFL,IND
 Daniel Jones,24.5,Rush Yards,NFL,IND
 Daniel Jones,39.5,Rush Yards,NFL,IND
 Daniel Jones,209.5,Pass Yards,NFL,IND
@@ -4721,7 +4699,7 @@ Daniel Jones,39.5,Longest Completion,NFL,IND
 Daniel Jones,29.5,Longest Completion,NFL,IND
 Daniel Jones,14.5,Longest Rush,NFL,IND
 Daniel Jones,19.5,Longest Rush,NFL,IND
-Daniel Jones,34.5,Pass Attempts,NFL,IND
+Daniel Jones,33.5,Pass Attempts,NFL,IND
 Daniel Jones,24.5,Pass Completions,NFL,IND
 Daniel Jones,69.9,Completion Percentage,NFL,IND
 Daniel Jones,18.5,Fantasy Score,NFL,IND
@@ -4751,10 +4729,10 @@ Tyler Warren,64.5,Receiving Yards,NFL,IND
 Tyler Warren,79.5,Receiving Yards,NFL,IND
 Tyler Warren,99.5,Receiving Yards,NFL,IND
 Tyler Warren,3.5,Receptions,NFL,IND
-Tyler Warren,5.5,Receptions,NFL,IND
+Tyler Warren,6.5,Receptions,NFL,IND
 Tyler Warren,7.5,Receptions,NFL,IND
 Tyler Warren,74.5,Receiving Yards,NFL,IND
-Tyler Warren,51.5,Receiving Yards,NFL,IND
+Tyler Warren,50.5,Receiving Yards,NFL,IND
 Tyler Warren,12.0,Fantasy Score,NFL,IND
 Tyler Warren,29.5,Receiving Yards,NFL,IND
 Tyler Warren,6.5,Receptions,NFL,IND
@@ -4762,7 +4740,6 @@ Tyler Warren,6.5,Rec Targets,NFL,IND
 Tyler Warren,1.5,Halves with 25+ Receiving Yards,NFL,IND
 Tyler Warren,3.5,Quarters with 5+ Receiving Yards,NFL,IND
 Tyler Warren,3.5,Quarters with 1+ Reception,NFL,IND
-DJ Giddens,0.5,Rush+Rec TDs,NFL,IND
 Daniel Jones,99.5,Pass Yards,NFL1H,IND
 Daniel Jones,149.5,Pass Yards,NFL1H,IND
 Daniel Jones,125.5,Pass Yards,NFL1H,IND
@@ -4786,7 +4763,7 @@ Daniel Jones,4.5,Rush Yards,NFL1Q,IND
 Daniel Jones,9.5,Rush Yards,NFL1Q,IND
 Daniel Jones,14.5,Rush Yards,NFL1Q,IND
 Daniel Jones,54.5,Pass Yards,NFL1Q,IND
-Daniel Jones,1.5,Rush Yards,NFL1Q,IND
+Daniel Jones,0.5,Rush Yards,NFL1Q,IND
 Michael Wilson,4.5,Receiving Yards,NFL1Q,ARI
 Michael Wilson,9.5,Receiving Yards,NFL1Q,ARI
 Michael Wilson,14.5,Receiving Yards,NFL1Q,ARI
@@ -4836,7 +4813,6 @@ Emari Demercado,4.5,Rush Yards,NFL1Q,ARI
 Emari Demercado,0.5,Rush Yards,NFL1Q,ARI
 Emari Demercado,9.5,Rush Yards,NFL1Q,ARI
 Emari Demercado,2.5,Rush Yards,NFL1H,ARI
-Charvarius Ward,3.5,Tackles+Ast,NFL,IND
 Michael Carter,4.5,Receiving Yards,NFL1Q,ARI
 Michael Carter,9.5,Receiving Yards,NFL1Q,ARI
 Michael Carter,19.5,Rush Yards,NFL1Q,ARI
@@ -4863,7 +4839,7 @@ Zay Jones,0.5,1st Drive Receptions,NFL1H,ARI
 Jacoby Brissett,0.5,Pass TDs,NFL,ARI
 Jacoby Brissett,1.5,Pass TDs,NFL,ARI
 Jacoby Brissett,2.5,Pass TDs,NFL,ARI
-Jacoby Brissett,209.5,Pass Yards,NFL,ARI
+Jacoby Brissett,207.5,Pass Yards,NFL,ARI
 Jacoby Brissett,174.5,Pass Yards,NFL,ARI
 Jacoby Brissett,249.5,Pass Yards,NFL,ARI
 Jacoby Brissett,224.5,Pass Yards,NFL,ARI
@@ -4871,14 +4847,14 @@ Jacoby Brissett,274.5,Pass Yards,NFL,ARI
 Jacoby Brissett,0.5,Rush+Rec TDs,NFL,ARI
 Jacoby Brissett,149.5,Pass Yards,NFL,ARI
 Jacoby Brissett,0.5,INT,NFL,ARI
-Jacoby Brissett,32.5,Longest Completion,NFL,ARI
-Jacoby Brissett,225.5,Pass+Rush Yds,NFL,ARI
+Jacoby Brissett,31.5,Longest Completion,NFL,ARI
+Jacoby Brissett,220.5,Pass+Rush Yds,NFL,ARI
 Jacoby Brissett,5.5,Rush Attempts,NFL,ARI
-Jacoby Brissett,10.5,Rush Yards,NFL,ARI
+Jacoby Brissett,11.5,Rush Yards,NFL,ARI
 Jacoby Brissett,24.5,Rush Yards,NFL,ARI
 Jacoby Brissett,1.5,INT,NFL,ARI
 Jacoby Brissett,29.5,Pass Attempts,NFL,ARI
-Jacoby Brissett,34.5,Pass Attempts,NFL,ARI
+Jacoby Brissett,35.5,Pass Attempts,NFL,ARI
 Jacoby Brissett,17.5,Pass Completions,NFL,ARI
 Jacoby Brissett,19.5,Pass Completions,NFL,ARI
 Jacoby Brissett,22.5,Pass Completions,NFL,ARI
@@ -4912,8 +4888,8 @@ Jacoby Brissett,9.5,1st Drive Pass Yards,NFL1H,ARI
 Jacoby Brissett,29.5,1st Drive Pass Yards,NFL1H,ARI
 Jacoby Brissett,19.5,1st Drive Pass Yards,NFL1H,ARI
 Jacoby Brissett,39.5,1st Drive Pass Yards,NFL1H,ARI
-Jacoby Brissett,98.5,Pass Yards,NFL1H,ARI
-Jacoby Brissett,4.5,Rush Yards,NFL1H,ARI
+Jacoby Brissett,97.5,Pass Yards,NFL1H,ARI
+Jacoby Brissett,3.5,Rush Yards,NFL1H,ARI
 Jacoby Brissett,124.5,Pass Yards,NFL1H,ARI
 Jacoby Brissett,74.5,Pass Yards,NFL1H,ARI
 Jacoby Brissett,69.5,Pass Yards,NFL1H,ARI
@@ -4927,7 +4903,6 @@ Jacoby Brissett,4.5,Rush Yards,NFL1Q,ARI
 Jacoby Brissett,0.5,Rush Yards,NFL1Q,ARI
 Jacoby Brissett,9.5,Rush Yards,NFL1Q,ARI
 Jacoby Brissett,19.5,Pass Yards,NFL1Q,ARI
-Bam Knight,36.5,Rush Yards,NFL,ARI
 Bam Knight,0.5,Rush+Rec TDs,NFL,ARI
 Fabio Pereyra,40.5,Passes Attempted,SOCCER,Huracán
 echo,15.0,MAP 4 Kills,VAL,ULF Esports
@@ -4943,12 +4918,22 @@ Fabio Pereyra,5.5,Clearances,SOCCER,Huracán
 Facundo Sebastián De La Vega,0.5,Goals,SOCCER,Aldosivi
 Facundo Sebastián De La Vega,1.5,Shots On Target,SOCCER,Aldosivi
 Rodrigo Cabral,1.5,Shots,SOCCER,Huracán
+Jv92,9.0,MAP 3 Kills,R6,FURIA
+Kheyze,8.5,MAP 3 Kills,R6,FURIA
+Herdsz,8.0,MAP 3 Kills,R6,FURIA
+FelipoX,7.0,MAP 3 Kills,R6,FURIA
+nade,6.5,MAP 3 Kills,R6,FURIA
+Dodez,8.5,MAP 3 Kills,R6,w7m
+Paluh,8.0,MAP 3 Kills,R6,w7m
+volpz,7.5,MAP 3 Kills,R6,w7m
+L0BIN,7.0,MAP 3 Kills,R6,w7m
+Dotz,6.0,MAP 3 Kills,R6,w7m
 Toki,29.5,MAPS 1-2 Kills,VAL,GIANTX GC
 ness,28.5,MAPS 1-2 Kills,VAL,GIANTX GC
 sarah,30.0,MAPS 1-2 Kills,VAL,GIANTX GC
 eva,31.5,MAPS 1-2 Kills,VAL,GIANTX GC
 Sucette,32.5,MAPS 1-2 Kills,VAL,GIANTX GC
-Luken,50.5,MAPS 1-3 Kills,CS2,9z
+Luken,51.0,MAPS 1-3 Kills,CS2,9z
 NiKo,15.5,MAP 4 Kills,CS2,Team Falcons
 HUASOPEEK,47.0,MAPS 1-3 Kills,CS2,9z
 m0NESY,16.5,MAP 4 Kills,CS2,Team Falcons
@@ -5184,6 +5169,38 @@ soulz1,15.0,MAPS 1-2 Kills,R6,FaZe
 VITAKING,12.5,MAPS 1-2 Kills,R6,FaZe
 fntzy + hatez,35.5,MAPS 1-2 Kills (Combo),R6,Ninjas in Pyjamas
 Cyber + handyy,36.5,MAPS 1-2 Kills (Combo),R6,FaZe
+Ragner,2.5,MAP 4 Kills,LoL,GL
+Xerxe,3.0,MAP 4 Kills,LoL,GL
+Serin,4.5,MAP 4 Kills,LoL,GL
+Harpoon,5.5,MAP 4 Kills,LoL,GL
+WhiteKnight,2.0,MAP 4 Kills,LoL,BAR
+113,3.0,MAP 4 Kills,LoL,BAR
+Czekolad,3.0,MAP 4 Kills,LoL,BAR
+Legolas,3.5,MAP 4 Kills,LoL,BAR
+JNX,3.0,MAP 4 Kills,LoL,VITB
+Lurox,2.5,MAP 4 Kills,LoL,VITB
+Vetheo,3.5,MAP 4 Kills,LoL,VITB
+Jopa,4.5,MAP 4 Kills,LoL,VITB
+Thebausffs,2.5,MAP 4 Kills,LoL,RAT
+Velja,3.5,MAP 4 Kills,LoL,RAT
+Nemesis,3.5,MAP 4 Kills,LoL,RAT
+Crownie,5.0,MAP 4 Kills,LoL,RAT
+Tracyn,3.0,MAP 4 Kills,LoL,HRTS
+Daglas,2.5,MAP 4 Kills,LoL,HRTS
+Mercy,3.5,MAP 4 Kills,LoL,HRTS
+Rin,4.0,MAP 4 Kills,LoL,HRTS
+Shelfmade,3.0,MAP 4 Kills,LoL,BIG
+Densi,3.5,MAP 4 Kills,LoL,BIG
+Dajor,3.0,MAP 4 Kills,LoL,BIG
+Bean,4.5,MAP 4 Kills,LoL,BIG
+Addusto,2.5,MAP 4 Kills,LoL,ROSS
+Xagog,3.0,MAP 4 Kills,LoL,ROSS
+Kanin,3.5,MAP 4 Kills,LoL,ROSS
+Fun K3y,4.0,MAP 4 Kills,LoL,ROSS
+Empyros,3.5,MAP 4 Kills,LoL,GM
+Zicssi,3.5,MAP 4 Kills,LoL,GM
+Eika,4.0,MAP 4 Kills,LoL,GM
+Comp,6.0,MAP 4 Kills,LoL,GM
 Scottie Barnes,13.5,Points,NBAP,TOR
 Scottie Barnes,24.5,Pts+Rebs+Asts,NBAP,TOR
 RJ Barrett,15.5,Points,NBAP,TOR
@@ -5226,6 +5243,38 @@ Alex Adrián Arce Barrios,0.5,Goal + Assist,SOCCER,Independiente
 Alex Adrián Arce Barrios,0.5,Goals,SOCCER,Independiente
 Santiago Muñoz Gómez,0.5,Goals,SOCCER,Independiente
 Matías Klimowicz,0.5,Goals,SOCCER,Instituto
+Ragner,2.5,MAP 5 Kills,LoL,GL
+Xerxe,3.0,MAP 5 Kills,LoL,GL
+Serin,4.5,MAP 5 Kills,LoL,GL
+Harpoon,5.5,MAP 5 Kills,LoL,GL
+WhiteKnight,2.0,MAP 5 Kills,LoL,BAR
+113,3.0,MAP 5 Kills,LoL,BAR
+Czekolad,3.0,MAP 5 Kills,LoL,BAR
+Legolas,3.5,MAP 5 Kills,LoL,BAR
+JNX,3.0,MAP 5 Kills,LoL,VITB
+Lurox,2.5,MAP 5 Kills,LoL,VITB
+Vetheo,3.5,MAP 5 Kills,LoL,VITB
+Jopa,4.5,MAP 5 Kills,LoL,VITB
+Thebausffs,2.5,MAP 5 Kills,LoL,RAT
+Velja,3.5,MAP 5 Kills,LoL,RAT
+Nemesis,3.5,MAP 5 Kills,LoL,RAT
+Crownie,5.0,MAP 5 Kills,LoL,RAT
+Tracyn,3.0,MAP 5 Kills,LoL,HRTS
+Daglas,2.5,MAP 5 Kills,LoL,HRTS
+Mercy,3.5,MAP 5 Kills,LoL,HRTS
+Rin,4.0,MAP 5 Kills,LoL,HRTS
+Shelfmade,3.0,MAP 5 Kills,LoL,BIG
+Densi,3.5,MAP 5 Kills,LoL,BIG
+Dajor,3.0,MAP 5 Kills,LoL,BIG
+Bean,4.5,MAP 5 Kills,LoL,BIG
+Addusto,2.5,MAP 5 Kills,LoL,ROSS
+Xagog,3.0,MAP 5 Kills,LoL,ROSS
+Kanin,3.5,MAP 5 Kills,LoL,ROSS
+Fun K3y,4.0,MAP 5 Kills,LoL,ROSS
+Empyros,3.5,MAP 5 Kills,LoL,GM
+Zicssi,3.5,MAP 5 Kills,LoL,GM
+Eika,4.0,MAP 5 Kills,LoL,GM
+Comp,6.0,MAP 5 Kills,LoL,GM
 Calvin Ridley,47.5,Receiving Yards,NFL,TEN
 Cameron Ward,12.5,Fantasy Score,NFL,TEN
 Calvin Ridley,9.5,Fantasy Score,NFL,TEN
@@ -5262,17 +5311,15 @@ Gunnar Helm,8.5,Yards on First Reception,NFL,TEN
 Gunnar Helm,5.0,Fantasy Score,NFL,TEN
 Gunnar Helm,0.5,Fantasy Score,NFL1Q,TEN
 Gunnar Helm,2.0,Fantasy Score,NFL1H,TEN
-Jeffery Simmons,0.5,Sacks,NFL,TEN
 Jeffery Simmons,4.5,Tackles+Ast,NFL,TEN
 Jeffery Simmons,1.5,Sacks,NFL,TEN
-Maxx Crosby,4.5,Tackles+Ast,NFL,LV
 Maxx Crosby,1.5,Sacks,NFL,LV
 Tyjae Spears,0.5,Rush+Rec TDs,NFL1H,TEN
 Tyjae Spears,0.5,Receiving Yards,NFL1H,TEN
 Tyjae Spears,8.5,Rush Yards,NFL1H,TEN
 Tyjae Spears,0.5,1st Drive Receptions,NFL1H,TEN
 Calvin Ridley,0.5,Rush+Rec TDs,NFL,TEN
-Calvin Ridley,19.5,Longest Reception,NFL,TEN
+Calvin Ridley,20.5,Longest Reception,NFL,TEN
 Calvin Ridley,64.5,Receiving Yards,NFL,TEN
 Calvin Ridley,79.5,Receiving Yards,NFL,TEN
 Calvin Ridley,24.5,Receiving Yards,NFL,TEN
@@ -5297,13 +5344,13 @@ Tony Pollard,13.0,Longest Rush,NFL,TEN
 Tony Pollard,24.5,Receiving Yards,NFL,TEN
 Tony Pollard,39.5,Receiving Yards,NFL,TEN
 Tony Pollard,49.5,Receiving Yards,NFL,TEN
-Tony Pollard,10.5,Receiving Yards,NFL,TEN
+Tony Pollard,9.5,Receiving Yards,NFL,TEN
 Tony Pollard,39.5,Rush Yards,NFL,TEN
 Tony Pollard,64.5,Rush Yards,NFL,TEN
 Tony Pollard,79.5,Rush Yards,NFL,TEN
 Tony Pollard,99.5,Rush Yards,NFL,TEN
 Tony Pollard,53.5,Rush Yards,NFL,TEN
-Tony Pollard,71.5,Rush+Rec Yds,NFL,TEN
+Tony Pollard,70.5,Rush+Rec Yds,NFL,TEN
 Tony Pollard,3.5,Receptions,NFL,TEN
 Tony Pollard,1.5,Receptions,NFL,TEN
 Tony Pollard,17.5,Rush Attempts,NFL,TEN
@@ -5322,14 +5369,13 @@ Tony Pollard,4.5,Receiving Yards,NFL,TEN
 Tony Pollard,2.5,Receptions,NFL,TEN
 Tony Pollard,59.5,Rush+Rec Yds,NFL,TEN
 Tony Pollard,89.5,Rush+Rec Yds,NFL,TEN
-Tony Pollard,0.5,Receptions,NFL,TEN
 Tony Pollard,44.5,Rush+Rec Yds,NFL,TEN
 Tony Pollard,2.5,Rec Targets,NFL,TEN
 Tony Pollard,3.5,Quarters with 5+ Rush Yards,NFL,TEN
 Tony Pollard,13.5,Rush Attempts,NFL,TEN
 Tony Pollard,1.5,Halves with 25+ Rush Yards,NFL,TEN
 Tony Pollard,2.5,Receiving Yards,NFL1H,TEN
-Tony Pollard,27.5,Rush Yards,NFL1H,TEN
+Tony Pollard,28.5,Rush Yards,NFL1H,TEN
 Tony Pollard,24.5,Rush Yards,NFL1H,TEN
 Tony Pollard,0.5,1st Drive Receptions,NFL1H,TEN
 Tony Pollard,9.5,Receiving Yards,NFL1H,TEN
@@ -5387,7 +5433,7 @@ Tyjae Spears,1.5,Receptions,NFL,TEN
 Tyjae Spears,24.5,Rush Yards,NFL,TEN
 Tyjae Spears,39.5,Rush Yards,NFL,TEN
 Tyjae Spears,18.5,Rush Yards,NFL,TEN
-Tyjae Spears,28.5,Rush+Rec Yds,NFL,TEN
+Tyjae Spears,29.5,Rush+Rec Yds,NFL,TEN
 Tyjae Spears,9.5,Longest Rush,NFL,TEN
 Tyjae Spears,14.5,Longest Rush,NFL,TEN
 Tyjae Spears,29.5,Rush Yards,NFL,TEN
@@ -5452,7 +5498,7 @@ Chig Okonkwo,1.5,Halves with 25+ Receiving Yards,NFL,TEN
 Michael Mayer,0.5,Rush+Rec TDs,NFL,LV
 Michael Mayer,14.5,Longest Reception,NFL,LV
 Michael Mayer,24.5,Receiving Yards,NFL,LV
-Michael Mayer,31.5,Receiving Yards,NFL,LV
+Michael Mayer,29.5,Receiving Yards,NFL,LV
 Michael Mayer,49.5,Receiving Yards,NFL,LV
 Michael Mayer,39.5,Receiving Yards,NFL,LV
 Michael Mayer,64.5,Receiving Yards,NFL,LV
@@ -5506,7 +5552,7 @@ Jakobi Meyers,19.5,Receiving Yards,NFL1Q,LV
 Jakobi Meyers,24.5,Receiving Yards,NFL1Q,LV
 Jakobi Meyers,14.5,Receiving Yards,NFL1Q,LV
 Jakobi Meyers,29.5,Receiving Yards,NFL1Q,LV
-Jakobi Meyers,8.5,Receiving Yards,NFL1Q,LV
+Jakobi Meyers,9.5,Receiving Yards,NFL1Q,LV
 Cameron Ward,1.5,Pass TDs,NFL,TEN
 Cameron Ward,0.5,Pass TDs,NFL,TEN
 Cameron Ward,0.5,Rush+Rec TDs,NFL,TEN
@@ -5519,7 +5565,7 @@ Cameron Ward,274.5,Pass Yards,NFL,TEN
 Cameron Ward,194.5,Pass Yards,NFL,TEN
 Cameron Ward,206.5,Pass+Rush Yds,NFL,TEN
 Cameron Ward,24.5,Rush Yards,NFL,TEN
-Cameron Ward,9.5,Rush Yards,NFL,TEN
+Cameron Ward,8.5,Rush Yards,NFL,TEN
 Cameron Ward,18.5,Pass Completions,NFL,TEN
 Cameron Ward,5.5,Rush Attempts,NFL,TEN
 Cameron Ward,159.5,Pass Yards,NFL,TEN
@@ -5560,6 +5606,7 @@ Tyler Lockett,49.5,Receiving Yards,NFL,TEN
 Tyler Lockett,10.5,Receiving Yards,NFL,TEN
 Tyler Lockett,1.5,Receptions,NFL,TEN
 Tyler Lockett,14.5,Longest Reception,NFL,TEN
+Tyler Lockett,64.5,Receiving Yards,NFL,TEN
 Ashton Jeanty,0.5,Rush+Rec TDs,NFL,LV
 Ashton Jeanty,1.5,Rush+Rec TDs,NFL,LV
 Ashton Jeanty,3.5,Yards on First Rush Attempt,NFL,LV
@@ -5571,10 +5618,10 @@ Ashton Jeanty,17.5,Receiving Yards,NFL,LV
 Ashton Jeanty,99.5,Rush Yards,NFL,LV
 Ashton Jeanty,49.5,Rush Yards,NFL,LV
 Ashton Jeanty,64.5,Rush Yards,NFL,LV
-Ashton Jeanty,10.5,Longest Reception,NFL,LV
+Ashton Jeanty,9.5,Longest Reception,NFL,LV
 Ashton Jeanty,17.0,Longest Rush,NFL,LV
-Ashton Jeanty,95.5,Rush+Rec Yds,NFL,LV
-Ashton Jeanty,76.5,Rush Yards,NFL,LV
+Ashton Jeanty,93.5,Rush+Rec Yds,NFL,LV
+Ashton Jeanty,74.5,Rush Yards,NFL,LV
 Ashton Jeanty,2.5,Receptions,NFL,LV
 Ashton Jeanty,3.5,Receptions,NFL,LV
 Ashton Jeanty,5.5,Receptions,NFL,LV
@@ -5606,7 +5653,7 @@ Ashton Jeanty,15.5,Longest Rush,NFL,LV
 Ashton Jeanty,1.5,Halves with 25+ Rush Yards,NFL,LV
 Dont'e Thornton,0.5,Rush+Rec TDs,NFL,LV
 Dont'e Thornton,13.5,Longest Reception,NFL,LV
-Dont'e Thornton,16.5,Receiving Yards,NFL,LV
+Dont'e Thornton,17.5,Receiving Yards,NFL,LV
 Dont'e Thornton,24.5,Receiving Yards,NFL,LV
 Dont'e Thornton,39.5,Receiving Yards,NFL,LV
 Dont'e Thornton,49.5,Receiving Yards,NFL,LV
@@ -5621,14 +5668,14 @@ Dont'e Thornton,0.5,Receptions,NFL,LV
 Dont'e Thornton,4.5,Receiving Yards,NFL,LV
 Geno Smith,2.5,Pass TDs,NFL,LV
 Geno Smith,0.5,Rush+Rec TDs,NFL,LV
-Geno Smith,34.5,Longest Completion,NFL,LV
+Geno Smith,32.5,Longest Completion,NFL,LV
 Geno Smith,7.5,Longest Rush,NFL,LV
 Geno Smith,199.5,Pass Yards,NFL,LV
 Geno Smith,224.5,Pass Yards,NFL,LV
 Geno Smith,274.5,Pass Yards,NFL,LV
 Geno Smith,249.5,Pass Yards,NFL,LV
 Geno Smith,299.5,Pass Yards,NFL,LV
-Geno Smith,9.5,Rush Yards,NFL,LV
+Geno Smith,10.5,Rush Yards,NFL,LV
 Geno Smith,24.5,Rush Yards,NFL,LV
 Geno Smith,235.5,Pass+Rush Yds,NFL,LV
 Geno Smith,30.5,Pass Attempts,NFL,LV
@@ -5664,6 +5711,7 @@ Geno Smith,1.5,Halves with 100+ Pass Yards,NFL,LV
 Geno Smith,1.5,Sacks Taken,NFL,LV
 Geno Smith,3.5,Quarters with 25+ Pass Yards,NFL,LV
 Geno Smith,209.5,Pass+Rush Yds,NFL,LV
+Geno Smith,3.5,Rush Attempts,NFL,LV
 Jack Bech,0.5,Rush+Rec TDs,NFL,LV
 Jack Bech,11.5,Longest Reception,NFL,LV
 Jack Bech,15.5,Receiving Yards,NFL,LV
@@ -5681,7 +5729,7 @@ Raheem Mostert,24.5,Rush Yards,NFL,LV
 Raheem Mostert,39.5,Rush Yards,NFL,LV
 Elic Ayomanor,0.5,Rush+Rec TDs,NFL,TEN
 Elic Ayomanor,15.5,Longest Reception,NFL,TEN
-Elic Ayomanor,31.5,Receiving Yards,NFL,TEN
+Elic Ayomanor,29.5,Receiving Yards,NFL,TEN
 Elic Ayomanor,49.5,Receiving Yards,NFL,TEN
 Elic Ayomanor,39.5,Receiving Yards,NFL,TEN
 Elic Ayomanor,64.5,Receiving Yards,NFL,TEN
@@ -5713,7 +5761,7 @@ Chimere Dike,19.5,Longest Reception,NFL,TEN
 Chimere Dike,3.5,Receptions,NFL,TEN
 Ashton Jeanty,0.5,Rush+Rec TDs,NFL1H,LV
 Ashton Jeanty,6.5,Receiving Yards,NFL1H,LV
-Ashton Jeanty,35.5,Rush Yards,NFL1H,LV
+Ashton Jeanty,34.5,Rush Yards,NFL1H,LV
 Ashton Jeanty,49.5,Rush Yards,NFL1H,LV
 Ashton Jeanty,24.5,Rush Yards,NFL1H,LV
 Ashton Jeanty,0.5,1st Drive Receptions,NFL1H,LV
@@ -5731,7 +5779,7 @@ Ashton Jeanty,4.5,1st Drive Receiving Yards,NFL1H,LV
 Geno Smith,149.5,Pass Yards,NFL1H,LV
 Geno Smith,124.5,Pass Yards,NFL1H,LV
 Geno Smith,99.5,Pass Yards,NFL1H,LV
-Geno Smith,108.5,Pass Yards,NFL1H,LV
+Geno Smith,110.5,Pass Yards,NFL1H,LV
 Geno Smith,3.5,Rush Yards,NFL1H,LV
 Geno Smith,7.5,Fantasy Score,NFL1H,LV
 Geno Smith,89.5,Pass Yards,NFL1H,LV
@@ -5746,7 +5794,7 @@ Cameron Ward,124.5,Pass Yards,NFL1H,TEN
 Cameron Ward,99.5,Pass Yards,NFL1H,TEN
 Cameron Ward,74.5,Pass Yards,NFL1H,TEN
 Cameron Ward,90.5,Pass Yards,NFL1H,TEN
-Cameron Ward,3.5,Rush Yards,NFL1H,TEN
+Cameron Ward,2.5,Rush Yards,NFL1H,TEN
 Cameron Ward,69.5,Pass Yards,NFL1H,TEN
 Cameron Ward,9.5,Rush Yards,NFL1H,TEN
 Cameron Ward,14.5,Rush Yards,NFL1H,TEN
@@ -5784,10 +5832,10 @@ Ashton Jeanty,39.5,Rush Yards,NFL1Q,LV
 Ashton Jeanty,9.5,Rush Yards,NFL1Q,LV
 Ashton Jeanty,0.5,Rush+Rec TDs,NFL1Q,LV
 Ashton Jeanty,0.5,Receiving Yards,NFL1Q,LV
-Ashton Jeanty,16.5,Rush Yards,NFL1Q,LV
+Ashton Jeanty,15.5,Rush Yards,NFL1Q,LV
 Ashton Jeanty,14.5,Rush Yards,NFL1Q,LV
 Ashton Jeanty,14.5,Rush+Rec Yds,NFL1Q,LV
-Ashton Jeanty,21.5,Rush+Rec Yds,NFL1Q,LV
+Ashton Jeanty,22.5,Rush+Rec Yds,NFL1Q,LV
 Chig Okonkwo,9.5,Receiving Yards,NFL1Q,TEN
 Chig Okonkwo,14.5,Receiving Yards,NFL1Q,TEN
 Chig Okonkwo,4.5,Receiving Yards,NFL1Q,TEN
@@ -5803,7 +5851,7 @@ Tyree Wilson,0.25,Sacks,NFL,LV
 Dre'Mont Jones,1.5,Assists,NFL,TEN
 Dre'Mont Jones,0.5,Sacks,NFL,TEN
 Dre'Mont Jones,0.25,Sacks,NFL,TEN
-Michael Mayer,2.5,Receiving Yards,NFL1Q,LV
+Michael Mayer,1.5,Receiving Yards,NFL1Q,LV
 Michael Mayer,9.5,Receiving Yards,NFL1Q,LV
 Michael Mayer,14.5,Receiving Yards,NFL1Q,LV
 Michael Mayer,19.5,Receiving Yards,NFL1Q,LV
@@ -5825,7 +5873,7 @@ Tre Tucker,9.5,Receiving Yards,NFL1Q,LV
 Tre Tucker,24.5,Receiving Yards,NFL1Q,LV
 Tre Tucker,3.5,Receiving Yards,NFL1Q,LV
 Elic Ayomanor,0.5,Rush+Rec TDs,NFL1H,TEN
-Elic Ayomanor,10.5,Receiving Yards,NFL1H,TEN
+Elic Ayomanor,11.5,Receiving Yards,NFL1H,TEN
 Elic Ayomanor,24.5,Receiving Yards,NFL1H,TEN
 Elic Ayomanor,0.5,1st Drive Receptions,NFL1H,TEN
 Elic Ayomanor,29.5,Receiving Yards,NFL1H,TEN
@@ -5840,12 +5888,12 @@ Dont'e Thornton,0.5,1st Drive Receptions,NFL1H,LV
 Dont'e Thornton,24.5,Receiving Yards,NFL1H,LV
 Dont'e Thornton,14.5,Receiving Yards,NFL1H,LV
 Xavier Woods,5.5,Tackles+Ast,NFL,TEN
-Raheem Mostert,1.5,Rush Yards,NFL1Q,LV
+Raheem Mostert,2.5,Rush Yards,NFL1Q,LV
 Raheem Mostert,4.5,Rush Yards,NFL1Q,LV
 Raheem Mostert,9.5,Rush Yards,NFL1Q,LV
 Raheem Mostert,14.5,Rush Yards,NFL1Q,LV
 Gunnar Helm,0.5,Rush+Rec TDs,NFL,TEN
-Gunnar Helm,11.5,Longest Reception,NFL,TEN
+Gunnar Helm,12.5,Longest Reception,NFL,TEN
 Gunnar Helm,24.5,Receiving Yards,NFL,TEN
 Gunnar Helm,39.5,Receiving Yards,NFL,TEN
 Gunnar Helm,49.5,Receiving Yards,NFL,TEN
@@ -5872,7 +5920,6 @@ Michael Mayer,0.5,1st Drive Receptions,NFL1H,LV
 Michael Mayer,4.5,1st Drive Receiving Yards,NFL1H,LV
 Michael Mayer,9.5,1st Drive Receiving Yards,NFL1H,LV
 Michael Mayer,14.5,1st Drive Receiving Yards,NFL1H,LV
-Amani Hooker,5.5,Tackles+Ast,NFL,TEN
 Amani Hooker,1.5,Assists,NFL,TEN
 Devin White,7.5,Tackles+Ast,NFL,LV
 Gunnar Helm,4.5,Receiving Yards,NFL1Q,TEN
@@ -5907,7 +5954,7 @@ Jack Bech,4.5,Receiving Yards,NFL1Q,LV
 Jack Bech,0.5,Receiving Yards,NFL1Q,LV
 Jack Bech,9.5,Receiving Yards,NFL1Q,LV
 Jack Bech,14.5,Receiving Yards,NFL1Q,LV
-Jack Bech,5.5,Receiving Yards,NFL1H,LV
+Jack Bech,4.5,Receiving Yards,NFL1H,LV
 Matthew Wright,1.5,FG Made,NFL,TEN
 Matthew Wright,6.5,Kicking Points,NFL,TEN
 Matthew Wright,1.5,PAT Made,NFL,TEN
@@ -5968,7 +6015,7 @@ Jauan Jennings,0.5,Rush+Rec TDs,NFL,SF
 Jauan Jennings,20.5,Longest Reception,NFL,SF
 Jauan Jennings,64.5,Receiving Yards,NFL,SF
 Jauan Jennings,39.5,Receiving Yards,NFL,SF
-Jauan Jennings,51.5,Receiving Yards,NFL,SF
+Jauan Jennings,52.5,Receiving Yards,NFL,SF
 Jauan Jennings,5.5,Receptions,NFL,SF
 Jauan Jennings,3.5,Receptions,NFL,SF
 Jauan Jennings,4.5,Receptions,NFL,SF
@@ -6098,7 +6145,7 @@ Baker Mayfield,299.5,Pass Yards,NFL,TB
 Baker Mayfield,324.5,Pass Yards,NFL,TB
 Baker Mayfield,199.5,Pass Yards,NFL,TB
 Baker Mayfield,224.5,Pass Yards,NFL,TB
-Baker Mayfield,265.5,Pass+Rush Yds,NFL,TB
+Baker Mayfield,266.5,Pass+Rush Yds,NFL,TB
 Baker Mayfield,24.5,Rush Yards,NFL,TB
 Baker Mayfield,39.5,Rush Yards,NFL,TB
 Baker Mayfield,49.5,Rush Yards,NFL,TB
@@ -6304,7 +6351,7 @@ Sean Tucker,39.5,Receiving Yards,NFL,TB
 Sean Tucker,7.5,Receiving Yards,NFL,TB
 Sean Tucker,24.5,Rush Yards,NFL,TB
 Sean Tucker,39.5,Rush Yards,NFL,TB
-Sean Tucker,13.5,Rush Yards,NFL,TB
+Sean Tucker,16.5,Rush Yards,NFL,TB
 Sean Tucker,24.5,Rush+Rec Yds,NFL,TB
 Sean Tucker,9.5,Longest Rush,NFL,TB
 Sean Tucker,14.5,Longest Rush,NFL,TB
@@ -6449,7 +6496,7 @@ Sterling Shepard,19.5,Receiving Yards,NFL1Q,TB
 Sterling Shepard,24.5,Receiving Yards,NFL1Q,TB
 Sterling Shepard,1.5,Receiving Yards,NFL1Q,TB
 Lavonte David,0.5,Sacks,NFL,TB
-Lavonte David,7.5,Tackles+Ast,NFL,TB
+Lavonte David,8.5,Tackles+Ast,NFL,TB
 Lavonte David,0.25,Sacks,NFL,TB
 Brian Robinson,4.5,Rush Yards,NFL1Q,SF
 Brian Robinson,9.5,Rush Yards,NFL1Q,SF
@@ -6501,7 +6548,7 @@ Kendrick Bourne,64.5,Receiving Yards,NFL,SF
 Kendrick Bourne,79.5,Receiving Yards,NFL,SF
 Kendrick Bourne,24.5,Receiving Yards,NFL,SF
 Kendrick Bourne,39.5,Receiving Yards,NFL,SF
-Kendrick Bourne,44.5,Receiving Yards,NFL,SF
+Kendrick Bourne,46.5,Receiving Yards,NFL,SF
 Kendrick Bourne,5.5,Receptions,NFL,SF
 Kendrick Bourne,4.5,Receptions,NFL,SF
 Kendrick Bourne,69.5,Receiving Yards,NFL,SF
@@ -6565,9 +6612,11 @@ Kendrick Bourne,18.5,Receiving Yards,NFL1H,SF
 Kendrick Bourne,4.5,1st Drive Receiving Yards,NFL1H,SF
 Kendrick Bourne,9.5,1st Drive Receiving Yards,NFL1H,SF
 Kendrick Bourne,14.5,1st Drive Receiving Yards,NFL1H,SF
+Kendrick Bourne,24.5,Receiving Yards,NFL1H,SF
 Demarcus Robinson,0.5,Rush+Rec TDs,NFL1H,SF
 Demarcus Robinson,7.5,Receiving Yards,NFL1H,SF
 Demarcus Robinson,0.5,1st Drive Receptions,NFL1H,SF
+Demarcus Robinson,24.5,Receiving Yards,NFL1H,SF
 Demarcus Robinson,4.5,Receiving Yards,NFL1Q,SF
 Demarcus Robinson,0.5,Receiving Yards,NFL1Q,SF
 Demarcus Robinson,9.5,Receiving Yards,NFL1Q,SF
@@ -6745,7 +6794,7 @@ Josh Jacobs,119.5,Rush Yards,NFL,GB
 Josh Jacobs,89.5,Rush Yards,NFL,GB
 Josh Jacobs,59.5,Rush Yards,NFL,GB
 Josh Jacobs,69.5,Rush Yards,NFL,GB
-Josh Jacobs,100.5,Rush+Rec Yds,NFL,GB
+Josh Jacobs,98.5,Rush+Rec Yds,NFL,GB
 Josh Jacobs,19.5,Longest Rush,NFL,GB
 Josh Jacobs,24.5,Longest Rush,NFL,GB
 Josh Jacobs,4.5,Receiving Yards,NFL,GB
@@ -6863,7 +6912,7 @@ Chase Brown,64.5,Rush Yards,NFL,CIN
 Chase Brown,49.5,Rush Yards,NFL,CIN
 Chase Brown,79.5,Rush Yards,NFL,CIN
 Chase Brown,39.5,Rush Yards,NFL,CIN
-Chase Brown,21.5,Receiving Yards,NFL,CIN
+Chase Brown,22.5,Receiving Yards,NFL,CIN
 Chase Brown,70.5,Rush+Rec Yds,NFL,CIN
 Chase Brown,39.5,Receiving Yards,NFL,CIN
 Chase Brown,49.5,Receiving Yards,NFL,CIN
@@ -7252,25 +7301,45 @@ Joe Flacco,4.5,1st Drive Pass Yards,NFL1H,CIN
 Joe Flacco,9.5,1st Drive Pass Yards,NFL1H,CIN
 Malik Heath,0.5,Receiving Yards,NFL1H,GB
 Kennedy Fuller,0.5,Goals,SOCCER,Angel City
+Paige Nielsen,6.5,Clearances,SOCCER,Dash
 Michelle Alozie,0.5,Goals,SOCCER,Dash
 Gisele Thompson,0.5,Goals,SOCCER,Angel City
+Gisele Thompson,0.5,Shots,SOCCER,Angel City
+Gisele Thompson,2.0,Tackles,SOCCER,Angel City
+Sarah Gorden,48.5,Passes Attempted,SOCCER,Angel City
+Sarah Gorden,4.5,Clearances,SOCCER,Angel City
 Ryan Gareis,0.5,Goals,SOCCER,Dash
+Angelina Anderson,3.0,Goalie Saves,SOCCER,Angel City
 Riley Tiernan,0.5,Goals,SOCCER,Angel City
+Riley Tiernan,1.5,Shots,SOCCER,Angel City
+Riley Tiernan,0.5,Shots Assisted,SOCCER,Angel City
+Danielle Colaprico,1.5,Tackles,SOCCER,Dash
 Yazmeen Ryan,0.5,Goals,SOCCER,Dash
+Yazmeen Ryan,1.5,Shots,SOCCER,Dash
+Yazmeen Ryan,30.5,Passes Attempted,SOCCER,Dash
 Delanie Sheehan,0.5,Goals,SOCCER,Dash
+Abby Smith,5.0,Goalie Saves,SOCCER,Dash
+Maggie Graham,0.5,Shots,SOCCER,Dash
 Christen Annemarie Press,0.5,Goals,SOCCER,Angel City
 Jun Endō,0.5,Goals,SOCCER,Angel City
 Kalyssa Priscilla van Zanten,0.5,Goals,SOCCER,Dash
+Kalyssa Priscilla van Zanten,1.5,Shots,SOCCER,Dash
+Kalyssa Priscilla van Zanten,0.5,Shots Assisted,SOCCER,Dash
+Kalyssa Priscilla van Zanten,1.5,Tackles,SOCCER,Dash
 Messiah Da'kahlian Bright,0.5,Goals,SOCCER,Dash
 Clarissa Laris­ey,0.5,Goals,SOCCER,Dash
 Sveindís Jane Jónsdóttir,0.5,Goals,SOCCER,Angel City
+Malia Berkely,0.5,Shots,SOCCER,Dash
 Hina Sugita,0.5,Goals,SOCCER,Angel City
+Hina Sugita,1.5,Shots,SOCCER,Angel City
+Hina Sugita,1.5,Tackles,SOCCER,Angel City
+Miyabi Moriya,1.5,Tackles,SOCCER,Angel City
 Kyle Larson,51.5,Fantasy Score,NASCAR,K. Larson
 Christopher Bell,55.5,Fantasy Score,NASCAR,C. Bell
-Denny Hamlin,58.5,Fantasy Score,NASCAR,D. Hamlin
-Ryan Blaney,45.5,Fantasy Score,NASCAR,R. Blaney
+Alex Michelsen,58.5,Fantasy Score,,
+NHL,45.5,Fantasy Score,,
 William Byron,49.5,Fantasy Score,NASCAR,W. Byron
-Rush Yards,39.5,Fantasy Score,,
+Joey Logano,39.5,Fantasy Score,NASCAR,J. Logano
 Tyler Reddick,43.5,Fantasy Score,NASCAR,Tyler Reddick
 Chase Elliott,36.5,Fantasy Score,NASCAR,C. Elliott
 Chase Briscoe,42.5,Fantasy Score,NASCAR,C. Briscoe
@@ -7279,15 +7348,15 @@ Bubba Wallace,35.5,Fantasy Score,NASCAR,Bubba Wallace
 Alex Bowman,33.5,Fantasy Score,NASCAR,A. Bowman
 Ty Gibbs,30.5,Fantasy Score,NASCAR,Ty Gibbs
 Chris Buescher,31.5,Fantasy Score,NASCAR,C. Buescher
-Brad Keselowski,44.5,Fantasy Score,NASCAR,Brad Keselowski
+Assists,44.5,Fantasy Score,,
 Carson Hocevar,35.5,Fantasy Score,NASCAR,Carson Hocevar
-Denny Hamlin,62.5,Laps Led,NASCAR,D. Hamlin
+Alex Michelsen,62.5,Laps Led,,
 Christopher Bell,44.5,Laps Led,NASCAR,C. Bell
 Christopher Bell,21.5,Fastest Laps,NASCAR,C. Bell
-Denny Hamlin,21.5,Fastest Laps,NASCAR,D. Hamlin
+Alex Michelsen,21.5,Fastest Laps,,
 William Byron,20.5,Fastest Laps,NASCAR,W. Byron
-Rush Yards,0.5,Cars Passed (Net),,
-Ryan Blaney,6.5,Cars Passed (Net),NASCAR,R. Blaney
+Joey Logano,0.5,Cars Passed (Net),NASCAR,J. Logano
+NHL,6.5,Cars Passed (Net),,
 Ross Chastain,4.5,Cars Passed (Net),NASCAR,Ross Chastain
 Kyle Larson,1.0,Cars Passed (Net),NASCAR,K. Larson
 Phony,2.5,MAPS 1-2 Kills,APEX,100 Thieves
@@ -7343,7 +7412,7 @@ Juan Fernando Quintero Paniagua,0.5,Goals,SOCCER,River
 Maximiliano Salas,3.0,Shots,SOCCER,River
 Maximiliano Salas,2.0,Attempted Dribbles,SOCCER,River
 Joel Godoy,2.5,Tackles,SOCCER,Sarmiento
-Gastón González,3.0,Attempted Dribbles,SOCCER,Sarmiento
+Gastón González,2.5,Attempted Dribbles,SOCCER,Sarmiento
 Brad Stuver,3.5,Goalie Saves,SOCCER,Austin
 Brendan Hines-Ike,59.5,Passes Attempted,SOCCER,Austin
 Osman Bukari,1.5,Shots,SOCCER,Austin
@@ -8465,7 +8534,7 @@ Jahmyr Gibbs,17.5,Rush Attempts,NFL,DET
 Jahmyr Gibbs,19.5,Rush Attempts,NFL,DET
 Jahmyr Gibbs,12.5,Longest Reception,NFL,DET
 Jahmyr Gibbs,16.5,Longest Rush,NFL,DET
-Jahmyr Gibbs,28.5,Receiving Yards,NFL,DET
+Jahmyr Gibbs,27.5,Receiving Yards,NFL,DET
 Jahmyr Gibbs,99.5,Rush+Rec Yds,NFL,DET
 Jahmyr Gibbs,39.5,Receiving Yards,NFL,DET
 Jahmyr Gibbs,49.5,Receiving Yards,NFL,DET
@@ -9122,6 +9191,12 @@ Jia-Jing Lu,19.5,Total Games,TENNIS,Jia-Jing Lu
 Xinxin Yao,19.5,Total Games,TENNIS,Xinxin Yao
 Xinxin Yao,2.5,Total Sets,TENNIS,Xinxin Yao
 Xinxin Yao,18.5,Total Games,TENNIS,Xinxin Yao
+Elena-Gabriela Ruse,13.0,Fantasy Score,TENNIS,Elena-Gabriela Ruse
+Elena-Gabriela Ruse,4.0,Break Points Won,TENNIS,Elena-Gabriela Ruse
+Varvara Gracheva,4.0,Break Points Won,TENNIS,Varvara Gracheva
+Olga Danilovic,19.5,Fantasy Score,TENNIS,Olga Danilovic
+Olga Danilovic,5.0,Break Points Won,TENNIS,Olga Danilovic
+Nao Hibino,9.0,Total Games Won,TENNIS,Nao Hibino
 Taylor Townsend,22.5,Fantasy Score,TENNIS,Taylor Townsend
 Dalma Galfi,21.0,Fantasy Score,TENNIS,Dalma Galfi
 Olga Danilovic,2.5,Total Sets,TENNIS,Olga Danilovic
@@ -9156,13 +9231,16 @@ Saki Imamura,18.5,Total Games,TENNIS,Saki Imamura
 Saki Imamura,2.5,Total Sets,TENNIS,Saki Imamura
 Fangran Tian,20.5,Total Games,TENNIS,Fangran Tian
 Fangran Tian,2.5,Total Sets,TENNIS,Fangran Tian
+Joanna Garland,8.5,Total Games Won,TENNIS,Joanna Garland
+Catherine McNally,20.5,Fantasy Score,TENNIS,Catherine McNally
+Naomi Osaka,24.0,Fantasy Score,TENNIS,Naomi Osaka
+Greet Minnen,10.5,Total Games Won,TENNIS,Greet Minnen
+Tereza Valentova,17.5,Fantasy Score,TENNIS,Tereza Valentova
 Elisabetta Cocciaretto,2.5,Total Sets,TENNIS,Elisabetta Cocciaretto
 Naomi Osaka,2.5,Total Sets,TENNIS,Naomi Osaka
-Naomi Osaka,18.5,Total Games,TENNIS,Naomi Osaka
 Naomi Osaka,21.5,Total Games,TENNIS,Naomi Osaka
 Naomi Osaka,20.5,Total Games,TENNIS,Naomi Osaka
 Naomi Osaka,16.5,Total Games,TENNIS,Naomi Osaka
-Naomi Osaka,17.5,Total Games,TENNIS,Naomi Osaka
 Naomi Osaka,0.5,Total Tie Breaks,TENNIS,Naomi Osaka
 Catherine McNally,2.5,Total Sets,TENNIS,Catherine McNally
 Catherine McNally,17.5,Total Games,TENNIS,Catherine McNally
@@ -9171,12 +9249,19 @@ Catherine McNally,19.5,Total Games,TENNIS,Catherine McNally
 Catherine McNally,23.5,Total Games,TENNIS,Catherine McNally
 Catherine McNally,22.5,Total Games,TENNIS,Catherine McNally
 Catherine McNally,21.5,Total Games,TENNIS,Catherine McNally
+Kaja Juvan,4.0,Break Points Won,TENNIS,Kaja Juvan
+Elisabetta Cocciaretto,15.5,Fantasy Score,TENNIS,Elisabetta Cocciaretto
+Elisabetta Cocciaretto,4.5,Break Points Won,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,21.5,Total Games,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,24.5,Total Games,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,23.5,Total Games,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,22.5,Total Games,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,18.5,Total Games,TENNIS,Elisabetta Cocciaretto
 Elisabetta Cocciaretto,19.5,Total Games,TENNIS,Elisabetta Cocciaretto
+Moyuka Uchijima,8.5,Total Games Won,TENNIS,Moyuka Uchijima
+Moyuka Uchijima,3.0,Break Points Won,TENNIS,Moyuka Uchijima
+Sorana Cirstea,21.5,Fantasy Score,TENNIS,Sorana Cirstea
+Sorana Cirstea,4.5,Break Points Won,TENNIS,Sorana Cirstea
 Sorana Cirstea,2.5,Total Sets,TENNIS,Sorana Cirstea
 Sorana Cirstea,20.0,Total Games,TENNIS,Sorana Cirstea
 Sorana Cirstea,21.5,Total Games,TENNIS,Sorana Cirstea
@@ -9185,6 +9270,9 @@ McCartney Kessler,15.5,Fantasy Score,TENNIS,McCartney Kessler
 McCartney Kessler,4.5,Break Points Won,TENNIS,McCartney Kessler
 Sofia Kenin,12.0,Total Games Won,TENNIS,Sofia Kenin
 Sofia Kenin,4.0,Break Points Won,TENNIS,Sofia Kenin
+Emiliana Arango,4.0,Break Points Won,TENNIS,Emiliana Arango
+Suzan Lamens,10.5,Fantasy Score,TENNIS,Suzan Lamens
+Suzan Lamens,4.0,Break Points Won,TENNIS,Suzan Lamens
 Veronika Kudermetova,20.5,Total Games,TENNIS,Veronika Kudermetova
 Veronika Kudermetova,21.5,Total Games,TENNIS,Veronika Kudermetova
 Veronika Kudermetova,22.5,Total Games,TENNIS,Veronika Kudermetova
@@ -9199,13 +9287,6 @@ McCartney Kessler,19.5,Total Games,TENNIS,McCartney Kessler
 McCartney Kessler,24.5,Total Games,TENNIS,McCartney Kessler
 McCartney Kessler,23.5,Total Games,TENNIS,McCartney Kessler
 McCartney Kessler,2.5,Total Sets,TENNIS,McCartney Kessler
-Emma Raducanu,19.5,Total Games,TENNIS,Emma Raducanu
-Emma Raducanu,2.5,Total Sets,TENNIS,Emma Raducanu
-Emma Raducanu,18.5,Total Games,TENNIS,Emma Raducanu
-Emma Raducanu,20.5,Total Games,TENNIS,Emma Raducanu
-Emma Raducanu,22.5,Total Games,TENNIS,Emma Raducanu
-Emma Raducanu,21.5,Total Games,TENNIS,Emma Raducanu
-Emma Raducanu,17.5,Total Games,TENNIS,Emma Raducanu
 Emiliana Arango,21.5,Total Games,TENNIS,Emiliana Arango
 Emiliana Arango,2.5,Total Sets,TENNIS,Emiliana Arango
 Emiliana Arango,24.5,Total Games,TENNIS,Emiliana Arango
@@ -9234,13 +9315,13 @@ Xinyu Wang,19.5,Total Games,TENNIS,Xinyu Wang
 Xinyu Wang,23.5,Total Games,TENNIS,Xinyu Wang
 Xinyu Wang,22.5,Total Games,TENNIS,Xinyu Wang
 Xinyu Wang,2.5,Total Sets,TENNIS,Xinyu Wang
+Linda Noskova,20.5,Fantasy Score,TENNIS,Linda Noskova
+Linda Noskova,3.5,Break Points Won,TENNIS,Linda Noskova
+Katie Boulter,9.5,Total Games Won,TENNIS,Katie Boulter
+Katie Boulter,3.0,Break Points Won,TENNIS,Katie Boulter
 Nicolas Jarry,21.5,Total Games,TENNIS,Nicolas Jarry
 Nicolas Jarry,22.5,Total Games,TENNIS,Nicolas Jarry
 Nicolas Jarry,23.5,Total Games,TENNIS,Nicolas Jarry
-Nicolas Jarry,19.5,Total Games,TENNIS,Nicolas Jarry
-Nicolas Jarry,25.5,Total Games,TENNIS,Nicolas Jarry
-Nicolas Jarry,20.5,Total Games,TENNIS,Nicolas Jarry
-Nicolas Jarry,24.5,Total Games,TENNIS,Nicolas Jarry
 Adam Walton,2.5,Total Sets,TENNIS,Adam Walton
 Adam Walton,22.5,Total Games,TENNIS,Adam Walton
 Adam Walton,21.5,Total Games,TENNIS,Adam Walton
@@ -9251,6 +9332,7 @@ Jan-Lennard Struff,27.5,Total Games,TENNIS,Jan-Lennard Struff
 Jan-Lennard Struff,26.5,Total Games,TENNIS,Jan-Lennard Struff
 Alexander Shevchenko,22.5,Total Games,TENNIS,Alexander Shevchenko
 Alexander Shevchenko,2.5,Total Sets,TENNIS,Alexander Shevchenko
+Alexander Shevchenko,21.5,Total Games,TENNIS,Alexander Shevchenko
 Arthur Cazaux,20.5,Total Games,TENNIS,Arthur Cazaux
 Arthur Cazaux,21.5,Total Games,TENNIS,Arthur Cazaux
 Arthur Cazaux,23.5,Total Games,TENNIS,Arthur Cazaux
@@ -9262,6 +9344,7 @@ Brandon Nakashima,2.5,Total Sets,TENNIS,Brandon Nakashima
 Brandon Nakashima,21.5,Total Games,TENNIS,Brandon Nakashima
 Alex Michelsen,23.0,Total Games,TENNIS,Alex Michelsen
 Alex Michelsen,2.5,Total Sets,TENNIS,Alex Michelsen
+Alex Michelsen,21.5,Total Games,TENNIS,Alex Michelsen
 Linda Noskova,20.5,Total Games,TENNIS,Linda Noskova
 Linda Noskova,22.5,Total Games,TENNIS,Linda Noskova
 Linda Noskova,2.5,Total Sets,TENNIS,Linda Noskova
@@ -9284,6 +9367,9 @@ Magda Linette,8.0,Total Games Won,TENNIS,Magda Linette
 Magda Linette,3.0,Break Points Won,TENNIS,Magda Linette
 Belinda Bencic,20.5,Fantasy Score,TENNIS,Belinda Bencic
 Belinda Bencic,4.5,Break Points Won,TENNIS,Belinda Bencic
+Ashlyn Krueger,3.5,Break Points Won,TENNIS,Ashlyn Krueger
+Maria Sakkari,10.5,Fantasy Score,TENNIS,Maria Sakkari
+Maria Sakkari,4.0,Break Points Won,TENNIS,Maria Sakkari
 Ashlyn Krueger,2.5,Total Sets,TENNIS,Ashlyn Krueger
 Ashlyn Krueger,21.5,Total Games,TENNIS,Ashlyn Krueger
 Ashlyn Krueger,26.5,Total Games,TENNIS,Ashlyn Krueger
@@ -9403,11 +9489,10 @@ Giovanni Perricard,21.5,Total Games,TENNIS,Giovanni Perricard
 Giovanni Perricard,26.5,Total Games,TENNIS,Giovanni Perricard
 Giovanni Perricard,1.5,Total Tie Breaks,TENNIS,Giovanni Perricard
 Roberto Bautista-Agut,2.5,Total Sets,TENNIS,Roberto Bautista-Agut
-Roberto Bautista-Agut,21.5,Total Games,TENNIS,Roberto Bautista-Agut
+Roberto Bautista-Agut,22.5,Total Games,TENNIS,Roberto Bautista-Agut
 Roberto Bautista-Agut,19.5,Total Games,TENNIS,Roberto Bautista-Agut
 Roberto Bautista-Agut,20.5,Total Games,TENNIS,Roberto Bautista-Agut
 Roberto Bautista-Agut,23.5,Total Games,TENNIS,Roberto Bautista-Agut
-Roberto Bautista-Agut,22.5,Total Games,TENNIS,Roberto Bautista-Agut
 Roberto Bautista-Agut,18.5,Total Games,TENNIS,Roberto Bautista-Agut
 Roberto Bautista-Agut,24.5,Total Games,TENNIS,Roberto Bautista-Agut
 Benjamin Bonzi,2.5,Total Sets,TENNIS,Benjamin Bonzi
@@ -9490,6 +9575,34 @@ azzr,15.5,MAPS 1-2 Kills,R6,Wolves
 Leadr,11.0,MAPS 1-2 Kills,R6,Wolves
 Robby + Virtue,32.5,MAPS 1-2 Kills (Combo),R6,Team BDS
 Tyrant + nudl,30.5,MAPS 1-2 Kills (Combo),R6,Wolves
+Gabriel Landeskog,0.5,Goals,NHL,COL
+Devon Toews,0.5,Goals,NHL,COL
+Valeri Nichushkin,0.5,Goals,NHL,COL
+Jack Quinn,0.5,Goals,NHL,BUF
+Artturi Lehkonen,0.5,Goals,NHL1P,COL
+Nathan MacKinnon,0.5,Goals,NHL1P,COL
+Ross Colton,0.5,Goals,NHL,COL
+Peyton Krebs,0.5,Goals,NHL,BUF
+Ryan McLeod,0.5,Goals,NHL,BUF
+Rasmus Dahlin,0.5,Goals,NHL,BUF
+Artturi Lehkonen,0.5,Goals,NHL,COL
+Tage Thompson,0.5,Goals,NHL,BUF
+Nathan MacKinnon,0.5,Goals,NHL,COL
+Nathan MacKinnon,1.5,Goals,NHL,COL
+Cale Makar,0.5,Goals,NHL,COL
+Alex Tuch,0.5,Goals,NHL,BUF
+Jason Zucker,0.5,Goals,NHL,BUF
+Alex Tuch,0.5,Goals,NHL1P,BUF
+Martin Necas,0.5,Goals,NHL,COL
+Valeri Nichushkin,0.5,Goals,NHL1P,COL
+Brock Nelson,0.5,Goals,NHL,COL
+Jiri Kulich,0.5,Goals,NHL,BUF
+Martin Necas,0.5,Goals,NHL1P,COL
+Jack Drury,0.5,Goals,NHL,COL
+Victor Olofsson,0.5,Goals,NHL,COL
+Gavin Brindley,0.5,Goals,NHL,COL
+Josh Doan,0.5,Goals,NHL,BUF
+Tage Thompson,0.5,Goals,NHL1P,BUF
 Petra Marcinko,19.5,Total Games,TENNIS,Petra Marcinko
 Cadence Brace,20.5,Total Games,TENNIS,Cadence Brace
 Varvara Lepchenko,20.5,Total Games,TENNIS,Varvara Lepchenko
@@ -9813,7 +9926,7 @@ Kyle Pitts,74.5,Receiving Yards,NFL,ATL
 Kyle Pitts,24.5,Longest Reception,NFL,ATL
 Kyle Pitts,29.5,Longest Reception,NFL,ATL
 Kyle Pitts,14.5,Longest Reception,NFL,ATL
-Kyle Pitts,39.5,Receiving Yards,NFL,ATL
+Kyle Pitts,40.5,Receiving Yards,NFL,ATL
 Kyle Pitts,9.5,Fantasy Score,NFL,ATL
 Kyle Pitts,5.5,Rec Targets,NFL,ATL
 Kyle Pitts,1.5,Halves with 25+ Receiving Yards,NFL,ATL
@@ -9824,7 +9937,7 @@ Kyle Pitts,6.5,Receptions,NFL,ATL
 Kyle Pitts,2.5,Receptions,NFL,ATL
 Ray-Ray McCloud,0.5,Rush+Rec TDs,NFL,ATL
 Ray-Ray McCloud,11.5,Longest Reception,NFL,ATL
-Ray-Ray McCloud,18.5,Receiving Yards,NFL,ATL
+Ray-Ray McCloud,19.5,Receiving Yards,NFL,ATL
 Ray-Ray McCloud,2.5,Receptions,NFL,ATL
 Ray-Ray McCloud,19.5,Longest Reception,NFL,ATL
 Ray-Ray McCloud,14.5,Longest Reception,NFL,ATL
@@ -10485,7 +10598,7 @@ Roschon Johnson,0.5,Rush+Rec TDs,NFL1H,CHI
 Caleb Williams,234.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,2.5,Pass TDs,NFL,Chicago Bears
 Caleb Williams,0.5,Rush+Rec TDs,NFL,Chicago Bears
-Caleb Williams,35.5,Longest Completion,NFL,Chicago Bears
+Caleb Williams,36.5,Longest Completion,NFL,Chicago Bears
 Caleb Williams,10.5,Longest Rush,NFL,Chicago Bears
 Caleb Williams,35.5,Pass Attempts,NFL,Chicago Bears
 Caleb Williams,32.0,Pass Attempts,NFL,Chicago Bears
@@ -10529,7 +10642,6 @@ Caleb Williams,34.5,Longest Completion,NFL,Chicago Bears
 Caleb Williams,4.5,Rush Attempts,NFL,Chicago Bears
 Caleb Williams,6.5,Rush Attempts,NFL,Chicago Bears
 Caleb Williams,9.5,Rush Attempts,NFL,Chicago Bears
-Caleb Williams,5.5,Rush Attempts,NFL,Chicago Bears
 Caleb Williams,3.5,Rush Attempts,NFL,Chicago Bears
 Caleb Williams,1.5,Halves with 25+ Rush Yards,NFL,Chicago Bears
 Caleb Williams,3.5,Quarters with 5+ Rush Yards,NFL,Chicago Bears
@@ -10621,7 +10733,7 @@ Jayden Daniels,49.5,Rush Yards,NFL,Washington Commanders
 Jayden Daniels,79.5,Rush Yards,NFL,Washington Commanders
 Jayden Daniels,24.5,Rush Yards,NFL,Washington Commanders
 Jayden Daniels,269.5,Pass+Rush Yds,NFL,Washington Commanders
-Jayden Daniels,221.5,Pass Yards,NFL,Washington Commanders
+Jayden Daniels,220.5,Pass Yards,NFL,Washington Commanders
 Jayden Daniels,259.5,Pass Yards,NFL,Washington Commanders
 Jayden Daniels,209.5,Pass Yards,NFL,Washington Commanders
 Jayden Daniels,30.0,Pass Attempts,NFL,Washington Commanders
@@ -10718,7 +10830,7 @@ D.J. Moore,39.5,Rush+Rec Yds,NFL,CHI
 D.J. Moore,69.5,Rush+Rec Yds,NFL,CHI
 D.J. Moore,79.5,Rush+Rec Yds,NFL,CHI
 D.J. Moore,59.5,Rush+Rec Yds,NFL,CHI
-D.J. Moore,49.5,Rush+Rec Yds,NFL,CHI
+D.J. Moore,48.5,Rush+Rec Yds,NFL,CHI
 D.J. Moore,1.5,Halves with 25+ Receiving Yards,NFL,CHI
 D.J. Moore,24.5,Rush+Rec Yds,NFL,CHI
 D.J. Moore,9.5,Rush Yards,NFL,CHI
@@ -10726,7 +10838,7 @@ Rome Odunze,0.5,Rush+Rec TDs,NFL,CHI
 Rome Odunze,24.5,Longest Reception,NFL,CHI
 Rome Odunze,99.5,Receiving Yards,NFL,CHI
 Rome Odunze,79.5,Receiving Yards,NFL,CHI
-Rome Odunze,68.5,Receiving Yards,NFL,CHI
+Rome Odunze,66.5,Receiving Yards,NFL,CHI
 Rome Odunze,49.5,Receiving Yards,NFL,CHI
 Rome Odunze,39.5,Receiving Yards,NFL,CHI
 Rome Odunze,5.5,Receptions,NFL,CHI
@@ -10759,14 +10871,14 @@ Caleb Williams,29.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,39.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,9.5,Rush Yards,NFL,Chicago Bears
 Caleb Williams,14.5,Rush Yards,NFL,Chicago Bears
-Caleb Williams,46.5,Pass Yards,NFL,Chicago Bears
+Caleb Williams,45.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,2.5,Rush Yards,NFL,Chicago Bears
 Rome Odunze,19.5,Receiving Yards,NFL1Q,CHI
 Rome Odunze,24.5,Receiving Yards,NFL1Q,CHI
 Rome Odunze,14.5,Receiving Yards,NFL1Q,CHI
 Rome Odunze,29.5,Receiving Yards,NFL1Q,CHI
 Rome Odunze,4.5,Receiving Yards,NFL1Q,CHI
-Rome Odunze,11.5,Receiving Yards,NFL1Q,CHI
+Rome Odunze,9.5,Receiving Yards,NFL1Q,CHI
 Rome Odunze,0.5,Rush+Rec TDs,NFL1Q,CHI
 D'Andre Swift,0.5,Rush+Rec TDs,NFL1Q,CHI
 D'Andre Swift,4.5,Receiving Yards,NFL1Q,CHI
@@ -10808,7 +10920,7 @@ Caleb Williams,149.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,124.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,99.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,0.5,Rush+Rec TDs,NFL,Chicago Bears
-Caleb Williams,110.5,Pass Yards,NFL,Chicago Bears
+Caleb Williams,109.5,Pass Yards,NFL,Chicago Bears
 Caleb Williams,10.5,Rush Yards,NFL,Chicago Bears
 Caleb Williams,24.5,Rush Yards,NFL,Chicago Bears
 Caleb Williams,9.5,Fantasy Score,NFL,Chicago Bears
@@ -10876,9 +10988,9 @@ Luther Burden,4.5,Receiving Yards,NFL,CHI
 Luther Burden,14.5,Receiving Yards,NFL,CHI
 Luther Burden,2.5,Receptions,NFL,CHI
 Luther Burden,3.5,Receptions,NFL,CHI
-Luther Burden,18.5,Rush+Rec Yds,NFL,CHI
+Luther Burden,19.5,Rush+Rec Yds,NFL,CHI
 Olamide Zaccheaus,0.5,Rush+Rec TDs,NFL,CHI
-Olamide Zaccheaus,14.5,Longest Reception,NFL,CHI
+Olamide Zaccheaus,15.5,Longest Reception,NFL,CHI
 Olamide Zaccheaus,39.5,Receiving Yards,NFL,CHI
 Olamide Zaccheaus,49.5,Receiving Yards,NFL,CHI
 Olamide Zaccheaus,64.5,Receiving Yards,NFL,CHI
@@ -10912,7 +11024,7 @@ Deebo Samuel,14.5,Longest Reception,NFL,WAS
 Deebo Samuel,74.5,Receiving Yards,NFL,WAS
 Deebo Samuel,6.5,Receptions,NFL,WAS
 Deebo Samuel,4.5,Receptions,NFL,WAS
-Deebo Samuel,6.5,Rush Yards,NFL,WAS
+Deebo Samuel,7.5,Rush Yards,NFL,WAS
 Deebo Samuel,19.5,Rush Yards,NFL,WAS
 Deebo Samuel,29.5,Rush Yards,NFL,WAS
 Deebo Samuel,14.5,Rush Yards,NFL,WAS
@@ -10922,7 +11034,7 @@ Deebo Samuel,59.5,Rush+Rec Yds,NFL,WAS
 Deebo Samuel,89.5,Rush+Rec Yds,NFL,WAS
 Deebo Samuel,99.5,Rush+Rec Yds,NFL,WAS
 Deebo Samuel,109.5,Rush+Rec Yds,NFL,WAS
-Deebo Samuel,72.5,Rush+Rec Yds,NFL,WAS
+Deebo Samuel,68.5,Rush+Rec Yds,NFL,WAS
 Deebo Samuel,6.0,Receptions,NFL,WAS
 Deebo Samuel,1.5,Halves with 25+ Receiving Yards,NFL,WAS
 Deebo Samuel,3.5,Quarters with 1+ Reception,NFL,WAS
@@ -10935,14 +11047,14 @@ Jaylin Lane,49.5,Receiving Yards,NFL,WAS
 Jaylin Lane,64.5,Receiving Yards,NFL,WAS
 Jaylin Lane,3.5,Receptions,NFL,WAS
 Jaylin Lane,1.5,Receptions,NFL,WAS
-Jaylin Lane,13.5,Longest Reception,NFL,WAS
-Jaylin Lane,19.5,Receiving Yards,NFL,WAS
+Jaylin Lane,12.5,Longest Reception,NFL,WAS
+Jaylin Lane,18.5,Receiving Yards,NFL,WAS
 Jaylin Lane,9.5,Longest Reception,NFL,WAS
 Jaylin Lane,19.5,Longest Reception,NFL,WAS
 Jaylin Lane,24.5,Longest Reception,NFL,WAS
 Chris Moore,0.5,Rush+Rec TDs,NFL,WAS
-Chris Moore,13.5,Longest Reception,NFL,WAS
-Chris Moore,20.5,Receiving Yards,NFL,WAS
+Chris Moore,14.5,Longest Reception,NFL,WAS
+Chris Moore,21.5,Receiving Yards,NFL,WAS
 Chris Moore,39.5,Receiving Yards,NFL,WAS
 Chris Moore,49.5,Receiving Yards,NFL,WAS
 Chris Moore,24.5,Receiving Yards,NFL,WAS
@@ -11020,7 +11132,7 @@ Jacory Croskey-Merritt,4.5,Rush Yards,NFL1Q,WAS
 Jacory Croskey-Merritt,0.5,Rush+Rec TDs,NFL1Q,WAS
 Jacory Croskey-Merritt,0.5,Receiving Yards,NFL1Q,WAS
 Jacory Croskey-Merritt,39.5,Rush Yards,NFL1Q,WAS
-Jacory Croskey-Merritt,15.5,Rush Yards,NFL1Q,WAS
+Jacory Croskey-Merritt,14.5,Rush Yards,NFL1Q,WAS
 Jacory Croskey-Merritt,9.5,Rush+Rec Yds,NFL1Q,WAS
 Olamide Zaccheaus,4.5,Receiving Yards,NFL1Q,CHI
 Olamide Zaccheaus,9.5,Receiving Yards,NFL1Q,CHI
@@ -11028,7 +11140,7 @@ Olamide Zaccheaus,14.5,Receiving Yards,NFL1Q,CHI
 Olamide Zaccheaus,19.5,Receiving Yards,NFL1Q,CHI
 Bobby Wagner,0.5,Sacks,NFL,WAS
 Bobby Wagner,3.5,Assists,NFL,WAS
-Deebo Samuel,26.5,Receiving Yards,NFL1H,WAS
+Deebo Samuel,28.5,Receiving Yards,NFL1H,WAS
 Deebo Samuel,19.5,Receiving Yards,NFL1H,WAS
 Deebo Samuel,14.5,Receiving Yards,NFL1H,WAS
 Deebo Samuel,44.5,Receiving Yards,NFL1H,WAS
@@ -11046,7 +11158,7 @@ Luther Burden,4.5,Receiving Yards,NFL1Q,CHI
 Luther Burden,0.5,Receiving Yards,NFL1Q,CHI
 Luther Burden,9.5,Receiving Yards,NFL1Q,CHI
 Luther Burden,14.5,Receiving Yards,NFL1Q,CHI
-Luther Burden,4.5,Receiving Yards,NFL1H,CHI
+Luther Burden,3.5,Receiving Yards,NFL1H,CHI
 Luther Burden,14.5,Receiving Yards,NFL1H,CHI
 Luther Burden,19.5,Receiving Yards,NFL1H,CHI
 Jacory Croskey-Merritt,24.5,Rush Yards,NFL1H,WAS
@@ -11092,6 +11204,13 @@ Jayden Daniels + Rome Odunze,112.5,Rush+Rec Yds (Combo),NFL,WAS/CHI
 John Bates,0.5,Receiving Yards,NFL1H,WAS
 John Bates,4.5,Receiving Yards,NFL1Q,WAS
 John Bates,9.5,Receiving Yards,NFL1Q,WAS
+Emma Raducanu,19.5,Total Games,TENNIS,Emma Raducanu
+Emma Raducanu,2.5,Total Sets,TENNIS,Emma Raducanu
+Emma Raducanu,18.5,Total Games,TENNIS,Emma Raducanu
+Emma Raducanu,20.5,Total Games,TENNIS,Emma Raducanu
+Emma Raducanu,22.5,Total Games,TENNIS,Emma Raducanu
+Emma Raducanu,21.5,Total Games,TENNIS,Emma Raducanu
+Emma Raducanu,17.5,Total Games,TENNIS,Emma Raducanu
 Anastasia Zakharova,21.5,Total Games,TENNIS,Anastasia Zakharova
 Janice Tjen,20.5,Total Games,TENNIS,Janice Tjen
 Alina Korneeva,18.5,Total Games,TENNIS,Alina Korneeva
@@ -11177,6 +11296,7 @@ David Goffin,24.5,Total Games,TENNIS,David Goffin
 David Goffin,23.5,Total Games,TENNIS,David Goffin
 David Goffin,0.5,Total Tie Breaks,TENNIS,David Goffin
 Zizou Bergs,0.5,Total Tie Breaks,TENNIS,Zizou Bergs
+Zizou Bergs,1.5,Total Tie Breaks,TENNIS,Zizou Bergs
 Rauno Sappinen,0.5,Goals,SOCCER,Estonia
 Ștefan Bodișteanu,0.5,Goals,SOCCER,Moldova
 Victor Bogaciuc,0.5,Goals,SOCCER,Moldova

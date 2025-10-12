@@ -334,6 +334,83 @@ def render_stats_sidebar():
             st.metric("Avg Confidence", "74%", "+1%")
             st.metric("Expected ROI", "+15.3%", "+3.2%")
 
+def render_agent_controls():
+    """Render OpenAI Agent controls in sidebar"""
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🤖 AI Agent Settings")
+        
+        # Check if agent manager is available
+        if hasattr(st.session_state, 'agent_manager') and st.session_state.agent_manager:
+            # OpenAI Toggle
+            openai_enabled = st.toggle(
+                "Use OpenAI Assistants",
+                value=st.session_state.get('openai_enabled', False),
+                help="Route analysis to specialized OpenAI Assistants for enhanced insights"
+            )
+            
+            if openai_enabled != st.session_state.get('openai_enabled', False):
+                if openai_enabled:
+                    st.session_state.agent_manager.switch_to_openai_mode()
+                    st.success("🤖 Switched to OpenAI mode")
+                else:
+                    st.session_state.agent_manager.switch_to_local_mode()
+                    st.success("💻 Switched to local mode")
+                st.session_state.openai_enabled = openai_enabled
+                st.rerun()
+            
+            # Performance metrics
+            if st.button("📈 View Agent Performance"):
+                stats = st.session_state.agent_manager.get_all_performance_stats()
+                
+                st.markdown("#### Agent Performance")
+                overall = stats.get('overall_stats', {})
+                
+                st.metric("Total Requests", overall.get('total_requests', 0))
+                st.metric("Success Rate", f"{overall.get('overall_success_rate', 0):.1f}%")
+                st.metric("OpenAI Usage", f"{overall.get('overall_openai_percentage', 0):.1f}%")
+                
+                # Individual agent stats
+                st.markdown("#### By Sport")
+                for sport, agent_stats in stats.get('individual_agents', {}).items():
+                    if agent_stats['total_requests'] > 0:
+                        st.markdown(f"**{sport.title()}**: {agent_stats['total_requests']} requests, {agent_stats['success_rate']:.1f}% success")
+        
+        else:
+            st.info("🔧 Agent manager not available. Using fallback mode.")
+            
+            # API Key input for setup
+            api_key = st.text_input(
+                "OpenAI API Key",
+                type="password",
+                help="Enter your OpenAI API key to enable AI assistant routing"
+            )
+            
+            if st.button("🚀 Initialize AI Agents") and api_key:
+                try:
+                    from agent_integration import create_agent_manager
+                    st.session_state.agent_manager = create_agent_manager(
+                        use_openai=True,
+                        openai_api_key=api_key
+                    )
+                    st.session_state.openai_enabled = True
+                    st.success("✅ AI Agents initialized successfully!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Failed to initialize AI agents: {e}")
+
+def render_routing_status():
+    """Show current routing status"""
+    if hasattr(st.session_state, 'agent_manager') and st.session_state.agent_manager:
+        mode = "🤖 OpenAI" if st.session_state.get('openai_enabled', False) else "💻 Local"
+        st.markdown(f"""
+        <div style="background: #1e40af; border-radius: 6px; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid #3b82f6;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="color: #60a5fa; font-size: 0.875rem;">Analysis Mode: {mode}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 def render_live_data_status():
     """Show live data status"""
     eastern = ZoneInfo("America/New_York")
