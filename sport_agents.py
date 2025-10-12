@@ -702,7 +702,8 @@ class SportAgent(ABC):
             'prizepicks_classification': detailed_reasoning.get('prizepicks_classification', {}),
             'expected_value': round(expected_value, 2),
             'analysis_factors': analysis_factors,
-            'bet_amount': self._calculate_bet_size(confidence, expected_value)
+            'bet_amount': self._calculate_bet_size(confidence, expected_value),
+            'allow_under': prop.get('allow_under', True),
         }
         
         return pick
@@ -1119,7 +1120,12 @@ class SportAgent(ABC):
                 base_decision = over_under_pref['preference']
             else:
                 base_decision = random.choice(['over', 'under'])
-        
+
+        # Enforce over-only props: never return 'under' if not allowed
+        allow_under_flag = prop.get('allow_under')
+        if allow_under_flag is False and base_decision == 'under':
+            base_decision = 'over'
+
         return base_decision
     
     def _classify_pick_with_prizepicks_terms(self, prop: Dict, confidence: float, line_value_edge: float, over_under: str) -> Dict[str, str]:
@@ -1794,7 +1800,14 @@ class BasketballAgent(SportAgent):
         }
     
     def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
-        """Enhanced analysis including basketball-specific factors"""
+        """Enhanced analysis including basketball-specific factors and NBA history enrichment"""
+        # Try to enrich prop with recent averages using nbastatpy (best-effort, safe to fail)
+        try:
+            from nba_history import enrich_prop_data_with_history
+            enrich_prop_data_with_history(prop)
+        except Exception:
+            pass
+
         # Get base analysis
         factors = super()._perform_detailed_analysis(prop)
         
@@ -1806,6 +1819,160 @@ class BasketballAgent(SportAgent):
         factors['overall_score'] = statistics.mean(factor_scores) if factor_scores else 5.0
         
         return factors
+
+    def _analyze_historical_performance(self, prop: Dict) -> Dict[str, Any]:
+        """Analyze historical performance using nbastatpy game logs when available.
+
+        Falls back to base implementation on failure.
+        """
+        stat_type = str(prop.get('stat_type', '')).lower()
+        line = prop.get('line', 0) or 0
+        player_name = prop.get('player_name') or prop.get('player')
+
+        # Map common PrizePicks stat labels to NBA stat columns
+        stat_map = {
+            'points': 'PTS', 'pts': 'PTS',
+            'assists': 'AST', 'ast': 'AST',
+            'rebounds': 'REB', 'reb': 'REB',
+            'steals': 'STL', 'stl': 'STL',
+            'blocks': 'BLK', 'blk': 'BLK',
+            '3pt': 'FG3M', '3pt made': 'FG3M', 'three': 'FG3M', '3pm': 'FG3M',
+            'pra': None, 'pts+rebs+asts': None,  # Composite not directly in logs
+        }
+
+        try:
+            # If no player name or unsupported stat, defer to base logic
+            if not player_name:
+                raise ValueError('missing player')
+
+            # Choose the best-matching stat column
+            stat_col = None
+            for key, col in stat_map.items():
+                if key in stat_type:
+                    stat_col = col
+                    break
+
+            if stat_col is None:
+                # For composites, attempt to compute from components if possible
+                composite = None
+                if 'pra' in stat_type or 'pts+rebs+asts' in stat_type:
+                    composite = ('PTS', 'REB', 'AST')
+                # Load logs and compute accordingly
+                from nba_history import get_player_history
+                data = get_player_history(player_name)
+                logs = data.get('game_logs')
+                if logs is None or len(logs) == 0:
+                    raise ValueError('no logs')
+
+                # Ensure most recent games are last; try common date columns
+                date_cols = [c for c in ['GAME_DATE', 'Game Date', 'DATE', 'Date'] if c in logs.columns]
+                if date_cols:
+                    logs = logs.sort_values(by=date_cols[0])
+
+                if composite:
+                    # Compute PRA per game
+                    comp_cols = [c for c in composite if c in logs.columns]
+                    if len(comp_cols) == 3:
+                        series = logs[comp_cols[0]] + logs[comp_cols[1]] + logs[comp_cols[2]]
+                    else:
+                        raise ValueError('missing composite columns')
+                else:
+                    raise ValueError('unsupported stat type')
+
+                season_avg = float(series.mean()) if len(series) else 0.0
+                l10_avg = float(series.tail(10).mean()) if len(series) else 0.0
+                over_rate = float((series > float(line)).mean()) if len(series) else 0.0
+
+                score = 5.0
+                try:
+                    if line:
+                        if season_avg > line:
+                            score += min(3.0, (season_avg - line) / max(1e-6, line) * 3)
+                        else:
+                            score -= min(3.0, (line - season_avg) / max(1e-6, line) * 3)
+                        if l10_avg > line:
+                            score += 1
+                        else:
+                            score -= 1
+                except Exception:
+                    pass
+
+                return {
+                    'season_average': round(season_avg, 2),
+                    'l10_average': round(l10_avg, 2),
+                    'vs_opponent_average': None,
+                    'over_rate': round(over_rate, 2),
+                    'score': max(1, min(10, score)),
+                    'reasoning': f"Hist avg {season_avg:.1f}, L10 {l10_avg:.1f} vs line {line}",
+                }
+
+            # Load logs for simple single-stat analysis
+            from nba_history import get_player_history
+            data = get_player_history(player_name)
+            logs = data.get('game_logs')
+            if logs is None or len(logs) == 0 or stat_col not in logs.columns:
+                raise ValueError('no logs or stat col')
+
+            # Sort chronologically if possible
+            date_cols = [c for c in ['GAME_DATE', 'Game Date', 'DATE', 'Date'] if c in logs.columns]
+            if date_cols:
+                logs = logs.sort_values(by=date_cols[0])
+
+            series = logs[stat_col]
+
+            # Opponent-specific average if we can parse matchup/opponent
+            vs_opponent_avg = None
+            try:
+                # Common columns: 'MATCHUP' like 'LAL @ BOS' or separate 'OPP'
+                if 'OPP' in logs.columns:
+                    opp_series = logs['OPP']
+                elif 'MATCHUP' in logs.columns:
+                    # Extract opponent from matchup: 'LAL vs BOS' -> 'BOS'
+                    opp_series = logs['MATCHUP'].astype(str).str.extract(r"[vV]s\s+([A-Z]{2,3})|@\s+([A-Z]{2,3})").ffill(axis=1).iloc[:, 0]
+                else:
+                    opp_series = None
+                if opp_series is not None and isinstance(opp_series, type(series)):
+                    matchup = str(prop.get('matchup', ''))
+                    # Try to find 3-letter code in matchup
+                    import re
+                    m = re.findall(r"\b[A-Z]{2,3}\b", matchup.upper())
+                    target_opp = m[-1] if m else None
+                    if target_opp:
+                        vs_mask = opp_series.astype(str).str.upper().str.contains(target_opp)
+                        if vs_mask.any():
+                            vs_opponent_avg = float(series[vs_mask].mean())
+            except Exception:
+                pass
+
+            season_avg = float(series.mean()) if len(series) else 0.0
+            l10_avg = float(series.tail(10).mean()) if len(series) else 0.0
+            over_rate = float((series > float(line)).mean()) if len(series) else 0.0
+
+            score = 5.0
+            try:
+                if line:
+                    if season_avg > line:
+                        score += min(3.0, (season_avg - line) / max(1e-6, line) * 3)
+                    else:
+                        score -= min(3.0, (line - season_avg) / max(1e-6, line) * 3)
+                    if l10_avg > line:
+                        score += 1
+                    else:
+                        score -= 1
+            except Exception:
+                pass
+
+            return {
+                'season_average': round(season_avg, 2),
+                'l10_average': round(l10_avg, 2),
+                'vs_opponent_average': round(vs_opponent_avg, 2) if vs_opponent_avg is not None else None,
+                'over_rate': round(over_rate, 2),
+                'score': max(1, min(10, score)),
+                'reasoning': f"Hist avg {season_avg:.1f}, L10 {l10_avg:.1f} vs line {line}",
+            }
+        except Exception:
+            # Fallback to simulated analysis if history fetch fails
+            return super()._analyze_historical_performance(prop)
 
 
 class FootballAgent(SportAgent):
