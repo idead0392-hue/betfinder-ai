@@ -7,8 +7,8 @@
     "recency_factor": 0.1
   },
   "version": "1.0",
-  "last_training_time": "2025-10-10T17:56:11.777071",
-  "training_sample_size": 0,
+  "last_training_time": "2025-10-12T20:08:15.095609",
+  "training_sample_size": 2,
   "feature_importance": {},
   "accuracy": 0.0
 }
