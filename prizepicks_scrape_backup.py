@@ -119,47 +119,12 @@ def fetch_prizepicks_api(sport: str = None, league_id: str = None) -> List[Dict]
                                 if nfl_info:
                                     league, team = nfl_info  # Force to NFL/team
 
-                                    # Extract matchup information from game relationship
-                                    matchup = "TBD vs TBD"
-                                    home_team = ""
-                                    away_team = ""
-                                
-                                    try:
-                                        game_rel = proj.get("relationships", {}).get("game", {}).get("data", {})
-                                        if game_rel and game_rel.get("id"):
-                                            game_id = game_rel["id"]
-                                            game_obj = included.get(game_id)
-                                        
-                                            if game_obj:
-                                                game_info = game_obj.get("attributes", {}).get("metadata", {}).get("game_info", {})
-                                                teams = game_info.get("teams", {})
-                                            
-                                                home_info = teams.get("home", {})
-                                                away_info = teams.get("away", {})
-                                            
-                                                home_team = home_info.get("name") or home_info.get("abbreviation", "")
-                                                away_team = away_info.get("name") or away_info.get("abbreviation", "")
-                                            
-                                                if home_team and away_team:
-                                                    matchup = f"{away_team} @ {home_team}"
-                                                elif home_team or away_team:
-                                                    # For individual sports like tennis, use vs format
-                                                    player_team = team if team else (home_team or away_team)
-                                                    opponent = away_team if home_team == player_team else home_team
-                                                    if opponent and player_team != opponent:
-                                                        matchup = f"{player_team} vs {opponent}"
-                                    except Exception:
-                                        pass  # Keep default "TBD vs TBD" if extraction fails
-
                                 items.append({
                                     "Name": player_name,
                                     "Points": line_val,
                                     "Prop": projection_type,
                                     "League": league,
                                     "Team": team,
-                                        "Matchup": matchup,
-                                        "Home_Team": home_team,
-                                        "Away_Team": away_team,
                                 })
                             except Exception:
                                 continue
@@ -494,11 +459,11 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
         if rows:
             df = pd.DataFrame(rows)
             # Ensure consistent columns
-            for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
-                if col not in df.columns:
-                    df[col] = ""
-            df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]]
-            df.to_csv(output_csv, index=False)
+                for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
+                    if col not in df.columns:
+                        df[col] = ""
+                df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]]
+                df.to_csv(output_csv, index=False)
             return True
         return False
         

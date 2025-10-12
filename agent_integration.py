@@ -15,6 +15,12 @@ from sport_data_formatters import format_props_for_sport, extract_prop_insights
 from sport_agents import SportAgent, BasketballAgent, FootballAgent, CollegeFootballAgent
 from picks_ledger import picks_ledger
 
+# Import comprehensive logging and monitoring
+from agent_logger import AgentLogger
+from agent_error_handler import AgentErrorHandler, with_error_handling
+from agent_monitor import AgentMonitor
+from agent_analytics_tracker import AgentAnalyticsTracker
+
 logger = logging.getLogger(__name__)
 
 class EnhancedSportAgent:
@@ -35,6 +41,22 @@ class EnhancedSportAgent:
         self.use_openai = use_openai
         self.openai_enabled = False
         
+        # Initialize comprehensive logging and monitoring
+        self.agent_logger = AgentLogger(
+            log_dir=f"logs/integration/{self.sport}"
+        )
+        
+        # Initialize error handling
+        self.error_handler = AgentErrorHandler()
+        
+        # Initialize monitoring
+        self.monitor = AgentMonitor()
+        
+        # Initialize analytics tracker
+        self.analytics = AgentAnalyticsTracker(
+            data_dir=f"analytics_data/{self.sport}"
+        )
+        
         # Initialize OpenAI router if enabled
         if use_openai:
             try:
@@ -43,10 +65,45 @@ class EnhancedSportAgent:
                     enable_logging=True
                 )
                 self.openai_enabled = True
+                
+                # Log successful OpenAI initialization
+                self.agent_logger.log_agent_request(
+                    agent_name=f"{self.sport}_enhanced_agent",
+                    sport=self.sport,
+                    request_data={
+                        "action": "openai_initialization",
+                        "status": "success"
+                    }
+                )
+                
                 logger.info(f"OpenAI routing enabled for {sport}")
             except Exception as e:
+                # Log OpenAI initialization failure
+                self.agent_logger.log_agent_response(
+                    agent_name=f"{self.sport}_enhanced_agent",
+                    sport=self.sport,
+                    response_data={"error": str(e)},
+                    success=False,
+                    error_message=f"OpenAI initialization failed: {e}"
+                )
+                
                 logger.warning(f"OpenAI routing failed for {sport}: {e}")
                 self.openai_enabled = False
+        
+        # Initialize fallback local agent
+        self.local_agent = self._create_local_agent(sport)
+        
+        # Performance tracking
+        self.request_count = 0
+        self.success_count = 0
+        self.openai_usage_count = 0
+        self.local_usage_count = 0
+        
+        # Performance tracking
+        self.request_count = 0
+        self.success_count = 0
+        self.openai_usage_count = 0
+        self.local_usage_count = 0
         
         # Initialize fallback local agent
         self.local_agent = self._create_local_agent(sport)
@@ -80,6 +137,7 @@ class EnhancedSportAgent:
             
             return GenericSportAgent(sport)
     
+    @with_error_handling()
     def analyze_props(self, 
                      props_data: List[Dict],
                      include_stats: bool = True,
@@ -98,8 +156,23 @@ class EnhancedSportAgent:
             Analysis results with picks and recommendations
         """
         
+        # Start operation tracking
         self.request_count += 1
         start_time = datetime.now()
+        
+        # Log analysis request
+        self.agent_logger.log_agent_request(
+            agent_name=f"{self.sport}_enhanced_agent",
+            sport=self.sport,
+            request_data={
+                "action": "analyze_props",
+                "props_count": len(props_data),
+                "include_stats": include_stats,
+                "include_context": include_context,
+                "force_local": force_local,
+                "request_number": self.request_count
+            }
+        )
         
         try:
             # Decide which analysis method to use
@@ -114,27 +187,46 @@ class EnhancedSportAgent:
                     props_data, include_stats, include_context
                 )
                 self.openai_usage_count += 1
+                analysis_method = "openai"
             else:
                 result = self._analyze_with_local_agent(
                     props_data, include_stats, include_context
                 )
                 self.local_usage_count += 1
+                analysis_method = "local"
+            
+            # Calculate duration
+            duration_ms = (datetime.now() - start_time).total_seconds() * 1000
             
             # Add metadata
             result['analysis_metadata'] = {
                 'sport': self.sport,
-                'method': 'openai' if use_openai_for_request else 'local',
+                'method': analysis_method,
                 'timestamp': start_time.isoformat(),
-                'duration_ms': (datetime.now() - start_time).total_seconds() * 1000,
+                'duration_ms': duration_ms,
                 'props_analyzed': len(props_data),
                 'request_id': f"{self.sport}_{self.request_count}_{int(start_time.timestamp())}"
             }
+            
+            # Log successful response
+            self.agent_logger.log_agent_response(
+                agent_name=f"{self.sport}_enhanced_agent",
+                sport=self.sport,
+                response_data={
+                    "method": analysis_method,
+                    "duration_ms": duration_ms,
+                    "picks_count": len(result.get('picks', [])),
+                    "success": True
+                },
+                success=True
+            )
             
             self.success_count += 1
             return result
             
         except Exception as e:
-            logger.error(f"Error in prop analysis for {self.sport}: {e}")
+            error_msg = f"Error in prop analysis for {self.sport}: {e}"
+            logger.error(error_msg)
             
             # Fallback to local agent if OpenAI fails
             if use_openai_for_request:
@@ -143,31 +235,84 @@ class EnhancedSportAgent:
                     result = self._analyze_with_local_agent(
                         props_data, include_stats, include_context
                     )
+                    
+                    duration_ms = (datetime.now() - start_time).total_seconds() * 1000
+                    
                     result['analysis_metadata'] = {
                         'sport': self.sport,
                         'method': 'local_fallback',
                         'timestamp': start_time.isoformat(),
-                        'duration_ms': (datetime.now() - start_time).total_seconds() * 1000,
+                        'duration_ms': duration_ms,
                         'props_analyzed': len(props_data),
                         'fallback_reason': str(e)
                     }
-                    self.local_usage_count += 1
+                    
+                    # Log fallback success
+                    self.agent_logger.log_agent_response(
+                        agent_name=f"{self.sport}_enhanced_agent",
+                        sport=self.sport,
+                        response_data={
+                            "method": "local_fallback",
+                            "duration_ms": duration_ms,
+                            "fallback_reason": str(e),
+                            "success": True
+                        },
+                        success=True
+                    )
+                    
                     self.success_count += 1
+                    self.local_usage_count += 1
                     return result
+                    
                 except Exception as fallback_error:
-                    logger.error(f"Fallback also failed: {fallback_error}")
-            
-            # Return error result
-            return {
-                'success': False,
-                'error': str(e),
-                'sport': self.sport,
-                'analysis_metadata': {
-                    'method': 'failed',
-                    'timestamp': start_time.isoformat(),
-                    'error': str(e)
+                    error_msg = f"Both OpenAI and local agent failed for {self.sport}: {fallback_error}"
+                    
+                    # Log complete failure
+                    self.agent_logger.log_agent_response(
+                        agent_name=f"{self.sport}_enhanced_agent",
+                        sport=self.sport,
+                        response_data={
+                            "openai_error": str(e),
+                            "local_error": str(fallback_error)
+                        },
+                        success=False,
+                        error_message=error_msg
+                    )
+                    
+                    logger.error(error_msg)
+                    return {
+                        'success': False,
+                        'error': error_msg,
+                        'picks': [],
+                        'analysis_metadata': {
+                            'sport': self.sport,
+                            'method': 'failed',
+                            'timestamp': start_time.isoformat(),
+                            'openai_error': str(e),
+                            'local_error': str(fallback_error)
+                        }
+                    }
+            else:
+                # Log direct failure
+                self.agent_logger.log_agent_response(
+                    agent_name=f"{self.sport}_enhanced_agent",
+                    sport=self.sport,
+                    response_data={"error": str(e)},
+                    success=False,
+                    error_message=error_msg
+                )
+                
+                return {
+                    'success': False,
+                    'error': error_msg,
+                    'picks': [],
+                    'analysis_metadata': {
+                        'sport': self.sport,
+                        'method': 'failed',
+                        'timestamp': start_time.isoformat(),
+                        'error': str(e)
+                    }
                 }
-            }
     
     def _analyze_with_openai(self, 
                             props_data: List[Dict],

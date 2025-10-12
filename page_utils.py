@@ -172,6 +172,9 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
     league_col = cols.get('league')
     team_col = cols.get('team')
     game_col = cols.get('game')
+        matchup_col = cols.get('matchup')
+        home_team_col = cols.get('home_team')
+        away_team_col = cols.get('away_team')
 
     for _, row in df.iterrows():
         player_name = row.get(name_col, '') if name_col else ''
@@ -189,6 +192,11 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
         sport_raw = str(row.get(sport_col, '')).strip() if sport_col else ''
         norm = _normalize_league_to_sport(league_val or game_val or sport_raw)
         sport_val = norm.lower()
+        
+        # Extract matchup information from enhanced CSV
+        matchup_val = str(row.get(matchup_col, '')).strip() if matchup_col else ''
+        home_team_val = str(row.get(home_team_col, '')).strip() if home_team_col else ''
+        away_team_val = str(row.get(away_team_col, '')).strip() if away_team_col else ''
 
         prop = {
             'player_name': player_name,
@@ -205,7 +213,10 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
             'start_time': '',
             'sport': sport_val or '',
             'league': (league_val or game_val or sport_raw).strip(),
-            'over_under': None
+                'over_under': None,
+                'matchup': matchup_val,
+                'home_team': home_team_val,
+                'away_team': away_team_val
         }
         props.append(prop)
 

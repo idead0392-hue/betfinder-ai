@@ -15,6 +15,11 @@ from openai import OpenAI
 # Import configuration manager
 from agent_config import get_config_manager
 
+# Import comprehensive logging and monitoring
+from agent_logger import AgentLogger
+from agent_error_handler import AgentErrorHandler, with_error_handling
+from agent_monitor import AgentMonitor
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -114,6 +119,17 @@ class OpenAIAgentRouter:
         # Load configuration
         self.config_manager = get_config_manager()
         
+        # Initialize comprehensive logging and monitoring
+        self.agent_logger = AgentLogger(
+            log_dir="logs/agent_router"
+        )
+        
+        # Initialize error handling
+        self.error_handler = AgentErrorHandler()
+        
+        # Initialize monitoring
+        self.monitor = AgentMonitor()
+        
         # Set API key from parameter, config, or environment
         self.api_key = (api_key or 
                        self.config_manager.router_config.openai_api_key or 
@@ -129,34 +145,66 @@ class OpenAIAgentRouter:
         self.SPORT_AGENT_MAP = self.config_manager.get_sport_agent_mapping()
         self.AGENT_ASSISTANT_IDS = self.config_manager.get_assistant_id_mapping()
         
+        # Performance tracking
+        self.request_count = 0
+        self.success_count = 0
+        self.openai_usage_count = 0
+        self.local_usage_count = 0
+        
+        # Log initialization
+        self.agent_logger.log_agent_request(
+            agent_name="agent_router",
+            sport="system",
+            request_data={
+                "action": "initialization",
+                "total_agents": len(self.AGENT_ASSISTANT_IDS),
+                "supported_sports": len(self.SPORT_AGENT_MAP)
+            }
+        )
+        
         if enable_logging:
             logger.info("OpenAI Agent Router initialized successfully")
             logger.info(f"Loaded {len(self.AGENT_ASSISTANT_IDS)} agent configurations")
     
     def detect_sport(self, prop_data: Union[PropData, dict, str]) -> str:
         """Detect sport from prop data or context"""
-        if isinstance(prop_data, PropData):
-            return prop_data.sport.lower()
-        elif isinstance(prop_data, dict):
-            return prop_data.get('sport', '').lower()
-        elif isinstance(prop_data, str):
-            # Simple keyword detection
-            sport_keywords = {
-                'basketball': ['nba', 'basketball', 'points', 'rebounds', 'assists'],
-                'football': ['nfl', 'football', 'touchdown', 'yards', 'passing'],
-                'soccer': ['soccer', 'football', 'goals', 'shots', 'cards'],
-                'baseball': ['mlb', 'baseball', 'hits', 'runs', 'strikeouts'],
-                'hockey': ['nhl', 'hockey', 'goals', 'assists', 'saves'],
-                'csgo': ['csgo', 'counter-strike', 'kills', 'maps', 'rounds'],
-                'tennis': ['tennis', 'sets', 'games', 'aces']
-            }
+        with self.monitor.track_operation("sport_detection"):
+            if isinstance(prop_data, PropData):
+                detected_sport = prop_data.sport.lower()
+            elif isinstance(prop_data, dict):
+                detected_sport = prop_data.get('sport', '').lower()
+            elif isinstance(prop_data, str):
+                # Simple keyword detection
+                sport_keywords = {
+                    'basketball': ['nba', 'basketball', 'points', 'rebounds', 'assists'],
+                    'football': ['nfl', 'football', 'touchdown', 'yards', 'passing'],
+                    'soccer': ['soccer', 'football', 'goals', 'shots', 'cards'],
+                    'baseball': ['mlb', 'baseball', 'hits', 'runs', 'strikeouts'],
+                    'hockey': ['nhl', 'hockey', 'goals', 'assists', 'saves'],
+                    'csgo': ['csgo', 'counter-strike', 'kills', 'maps', 'rounds'],
+                    'tennis': ['tennis', 'sets', 'games', 'aces']
+                }
+                
+                text_lower = prop_data.lower()
+                detected_sport = 'unknown'
+                for sport, keywords in sport_keywords.items():
+                    if any(keyword in text_lower for keyword in keywords):
+                        detected_sport = sport
+                        break
+            else:
+                detected_sport = 'unknown'
             
-            text_lower = prop_data.lower()
-            for sport, keywords in sport_keywords.items():
-                if any(keyword in text_lower for keyword in keywords):
-                    return sport
-        
-        return 'unknown'
+            # Log sport detection
+            self.agent_logger.log_agent_request(
+                agent_name="sport_detector",
+                sport=detected_sport,
+                request_data={
+                    "input_type": type(prop_data).__name__,
+                    "detected_sport": detected_sport
+                }
+            )
+            
+            return detected_sport
     
     def get_agent_for_sport(self, sport: str) -> Optional[str]:
         """Get the appropriate agent name for a sport"""
@@ -247,6 +295,7 @@ class OpenAIAgentRouter:
         
         return "\n".join(prompt_parts)
     
+    @with_error_handling()
     async def call_openai_agent(self, 
                                agent_name: str, 
                                agent_input: Dict[str, Any],
@@ -260,6 +309,19 @@ class OpenAIAgentRouter:
             
             # Create analysis prompt
             prompt = self.create_analysis_prompt(agent_input, sport)
+            
+            # Log agent request
+            self.agent_logger.log_agent_request(
+                agent_name=agent_name,
+                sport=sport,
+                request_data={
+                    "assistant_id": assistant_id,
+                    "prompt_length": len(prompt),
+                    "props_count": len(agent_input.get("props", [])),
+                    "has_stats": "stats" in agent_input,
+                    "has_context": "context" in agent_input
+                }
+            )
             
             if self.enable_logging:
                 logger.info(f"Calling {agent_name} for {sport} analysis")
@@ -299,6 +361,19 @@ class OpenAIAgentRouter:
                 # Get the assistant's response
                 assistant_response = messages.data[0].content[0].text.value
                 
+                # Log successful response
+                self.agent_logger.log_agent_response(
+                    agent_name=agent_name,
+                    sport=sport,
+                    response_data={
+                        "status": "completed",
+                        "response_length": len(assistant_response),
+                        "thread_id": thread.id,
+                        "run_id": run.id
+                    },
+                    success=True
+                )
+                
                 if self.enable_logging:
                     logger.info(f"Successfully received analysis from {agent_name}")
                 
@@ -313,6 +388,16 @@ class OpenAIAgentRouter:
                 }
             else:
                 error_msg = f"Agent run failed with status: {run.status}"
+                
+                # Log failed response
+                self.agent_logger.log_agent_response(
+                    agent_name=agent_name,
+                    sport=sport,
+                    response_data={"status": run.status, "error": error_msg},
+                    success=False,
+                    error_message=error_msg
+                )
+                
                 logger.error(error_msg)
                 return {
                     "success": False,
@@ -323,6 +408,16 @@ class OpenAIAgentRouter:
                 
         except Exception as e:
             error_msg = f"Error calling OpenAI agent {agent_name}: {str(e)}"
+            
+            # Log error
+            self.agent_logger.log_agent_response(
+                agent_name=agent_name,
+                sport=sport,
+                response_data={"error": str(e)},
+                success=False,
+                error_message=error_msg
+            )
+            
             logger.error(error_msg)
             return {
                 "success": False,
@@ -331,6 +426,7 @@ class OpenAIAgentRouter:
                 "sport": sport
             }
     
+    @with_error_handling()
     def route_to_sport_agent(self, 
                            sport: str,
                            props: List[Union[PropData, dict]],
@@ -344,11 +440,24 @@ class OpenAIAgentRouter:
             agent_name = self.get_agent_for_sport(sport_normalized)
             
             if not agent_name:
-                return {
+                error_result = {
                     "success": False,
                     "error": f"No agent available for sport: {sport}",
                     "available_sports": list(set(self.SPORT_AGENT_MAP.keys()))
                 }
+                
+                # Log routing failure
+                self.agent_logger.log_agent_request(
+                    agent_name="router",
+                    sport=sport,
+                    request_data={
+                        "action": "routing_failed",
+                        "reason": "no_agent_available",
+                        "requested_sport": sport
+                    }
+                )
+                
+                return error_result
             
             # Convert props to PropData objects if needed
             prop_objects = []
@@ -362,13 +471,38 @@ class OpenAIAgentRouter:
                     continue
             
             if not prop_objects:
-                return {
+                error_result = {
                     "success": False,
                     "error": "No valid props provided for analysis"
                 }
+                
+                # Log validation failure
+                self.agent_logger.log_agent_request(
+                    agent_name="router",
+                    sport=sport,
+                    request_data={
+                        "action": "validation_failed",
+                        "reason": "no_valid_props",
+                        "original_props_count": len(props)
+                    }
+                )
+                
+                return error_result
             
             # Format input for agent
             agent_input = self.format_agent_input(prop_objects, stats, context)
+            
+            # Log successful routing request
+            self.agent_logger.log_agent_request(
+                agent_name=agent_name,
+                sport=sport,
+                request_data={
+                    "action": "routing_to_agent",
+                    "props_count": len(prop_objects),
+                    "has_stats": bool(stats),
+                    "has_context": bool(context)
+                }
+            )
             
             if self.enable_logging:
                 logger.info(f"Routing {len(prop_objects)} props to {agent_name} for {sport}")
@@ -389,6 +523,16 @@ class OpenAIAgentRouter:
             
         except Exception as e:
             error_msg = f"Error in routing to sport agent: {str(e)}"
+            
+            # Log routing error
+            self.agent_logger.log_agent_response(
+                agent_name="router",
+                sport=sport,
+                response_data={"error": str(e)},
+                success=False,
+                error_message=error_msg
+            )
+            
             logger.error(error_msg)
             return {
                 "success": False,
@@ -407,7 +551,16 @@ class OpenAIAgentRouter:
             "supported_sports": self.get_supported_sports(),
             "agent_mapping": self.SPORT_AGENT_MAP,
             "assistant_ids_configured": len(self.AGENT_ASSISTANT_IDS),
-            "api_key_configured": bool(self.api_key)
+            "api_key_configured": bool(self.api_key),
+            "monitoring": {
+                "monitor_initialized": self.monitor is not None,
+                "data_directory": str(self.monitor.data_dir) if self.monitor else None
+            },
+            "logging": {
+                "log_directory": str(self.agent_logger.log_dir),
+                "log_level": self.agent_logger.log_level.value,
+                "max_log_files": self.agent_logger.max_log_files
+            }
         }
         return status
 
