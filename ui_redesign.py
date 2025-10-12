@@ -243,6 +243,10 @@ def render_pick_card(pick, sport_emoji="🏈"):
     expected_value = pick.get('expected_value', 0)
     odds = pick.get('odds', -110)
     matchup = pick.get('matchup', '')
+    event_date = pick.get('event_date', '')
+    event_time_et = pick.get('event_time_et', '')
+    event_start_iso = pick.get('event_start_time', '')
+    last_updated = pick.get('last_updated', '')
     
     # Get PrizePicks classification
     prizepicks_class = pick.get('prizepicks_classification', '')
@@ -278,8 +282,23 @@ def render_pick_card(pick, sport_emoji="🏈"):
             else:
                 st.markdown(f"<span style='background: #6b7280; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>🎯 PICK</span>", unsafe_allow_html=True)
         
-        # Bet details
-        st.markdown(f"**{over_under} {line} {stat_type}** • {matchup}")
+        # Bet details with event time
+        # Convert ISO UTC to user timezone string if available, else show ET strings
+        local_time_str = ''
+        try:
+            if isinstance(event_start_iso, str) and event_start_iso:
+                dt = datetime.fromisoformat(event_start_iso.replace('Z', '+00:00'))
+                tz_env = st.session_state.get('user_timezone') or 'America/Chicago'
+                local_time_str = dt.astimezone(ZoneInfo(tz_env)).strftime('%b %d, %I:%M %p %Z')
+        except Exception:
+            local_time_str = ''
+
+        when_display = local_time_str or (f"{event_date} {event_time_et}" if event_date or event_time_et else '')
+        st.markdown(
+            f"**{over_under} {line} {stat_type}** • {matchup}"
+            + (f"\n<span style='color:#9ca3af;font-size:0.85rem;'>🕒 {when_display}</span>" if when_display else ''),
+            unsafe_allow_html=True
+        )
         
         # Metrics row
         metric_col1, metric_col2, metric_col3 = st.columns(3)
@@ -296,6 +315,16 @@ def render_pick_card(pick, sport_emoji="🏈"):
         with metric_col3:
             st.markdown(f"<div style='text-align: center;'><div style='color: #9ca3af; font-size: 0.8rem;'>Odds</div><div style='color: #1a73e8; font-weight: 600;'>{odds}</div></div>", unsafe_allow_html=True)
         
+        # Last updated pill
+        if last_updated:
+            try:
+                dt = datetime.fromisoformat(str(last_updated).replace('Z', '+00:00'))
+                tz_env = st.session_state.get('user_timezone') or 'America/Chicago'
+                lu_str = dt.astimezone(ZoneInfo(tz_env)).strftime('Updated: %I:%M %p %Z')
+                st.markdown(f"<div style='color:#9ca3af;font-size:0.75rem;'>⏱️ {lu_str}</div>", unsafe_allow_html=True)
+            except Exception:
+                pass
+
         # Add separator
         st.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #374151;'>", unsafe_allow_html=True)
 
