@@ -17,7 +17,12 @@ from ui_redesign import (
     render_live_data_status,
     get_sport_emoji
 )
-from page_utils import load_prizepicks_csv_grouped, get_effective_csv_path, ensure_fresh_csv
+from page_utils import (
+    load_prizepicks_csv_grouped,
+    get_effective_csv_path,
+    ensure_fresh_csv,
+    render_validated_props_for_sport,
+)
 from sport_agents import SportAgent
 
 # Page configuration
@@ -50,14 +55,18 @@ if 'agent_manager' not in st.session_state:
         st.session_state.agent_manager = None
         st.session_state.openai_enabled = False
 
+@st.cache_data(show_spinner=False)
 def load_sport_picks(sport_key, cap=50):
     """Load picks for a specific sport using enhanced agent routing"""
     try:
         # Load props data
         csv_path = get_effective_csv_path()
-        ensure_fresh_csv(csv_path, 60)  # Refresh every minute
+        ensure_fresh_csv(csv_path, 60, target_sport=sport_key)  # Refresh every minute (sport-scoped)
         grouped = load_prizepicks_csv_grouped(csv_path)
         items = grouped.get(sport_key, [])
+
+        # STRICT validation before any analysis
+        items = render_validated_props_for_sport(items, sport_key)
         
         if not items:
             return []
@@ -193,7 +202,7 @@ def main():
                             get_sport_emoji(sport_key)
                         )
                     else:
-                        st.info(f"No {sport_name.lower()} picks available right now.")
+                        st.info("No valid props available right now.")
         
         else:  # Grouped Sports layout
             # Traditional Sports Group
@@ -222,7 +231,7 @@ def main():
                                 get_sport_emoji(sport_key)
                             )
                         else:
-                            st.info(f"No {sport_name.lower()} picks available right now.")
+                            st.info("No valid props available right now.")
             
             # Esports Group
             with st.expander("🎮 **Esports**", expanded=False):
@@ -248,7 +257,7 @@ def main():
                                 get_sport_emoji(sport_key)
                             )
                         else:
-                            st.info(f"No {sport_name.lower()} picks available right now.")
+                            st.info("No valid props available right now.")
             
             # Other Sports
             with st.expander("⛳ **Other Sports**", expanded=False):
@@ -263,7 +272,7 @@ def main():
                         get_sport_emoji('golf')
                     )
                 else:
-                    st.info("No golf picks available right now.")
+                    st.info("No valid props available right now.")
     
     with col2:
         st.markdown("### ⚡ Quick Stats")

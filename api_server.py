@@ -6,11 +6,12 @@ import logging
 import traceback
 import sqlite3
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict, deque
 from typing import Any, Dict, Optional
 from threading import Lock
 import functools
+import pandas as pd
 
 # Import our provider system
 try:
@@ -472,6 +473,143 @@ def provider_meta():
     except Exception as e:
         logger.error(f"Error in provider_meta: {str(e)}\n{traceback.format_exc()}")
         return make_error("Failed to fetch provider metadata", 500, {"exception": str(e)})
+
+# =====================
+# PrizePicks CSV bridge
+# =====================
+
+def _parse_event_start(game_date: str, game_time_et: str) -> str:
+    try:
+        if not (game_date and game_time_et):
+            return ''
+        t = str(game_time_et).replace('ET', '').strip()
+        # Try 12-hour first then 24-hour
+        try:
+            dt_local = datetime.strptime(f"{game_date} {t}", "%Y-%m-%d %I:%M %p")
+        except Exception:
+            dt_local = datetime.strptime(f"{game_date} {t}", "%Y-%m-%d %H:%M")
+        # Treat provided time as America/New_York
+        from zoneinfo import ZoneInfo
+        dt_et = dt_local.replace(tzinfo=ZoneInfo('America/New_York'))
+        return dt_et.astimezone(timezone.utc).isoformat().replace('+00:00','Z')
+    except Exception:
+        return ''
+
+@app.route('/api/prizepicks/props', methods=['GET'])
+@monitor_request('api_prizepicks_props')
+def prizepicks_props():
+    """Serve live props from PrizePicks CSV with event date/time and freshness.
+
+    Query params:
+      - sport: optional logical sport key (basketball, football, hockey, etc.) to filter
+      - limit: optional int cap on results
+    """
+    try:
+        csv_path = os.environ.get('PRIZEPICKS_CSV', 'prizepicks_props.csv')
+        if not os.path.exists(csv_path):
+            return make_error("PrizePicks CSV not found", 404, {"path": csv_path})
+
+        df = pd.read_csv(csv_path)
+        cols = {c.lower(): c for c in df.columns}
+        name_c = cols.get('name') or cols.get('player')
+        line_c = cols.get('points') or cols.get('line')
+        prop_c = cols.get('prop')
+        league_c = cols.get('league')
+        team_c = cols.get('team')
+        matchup_c = cols.get('matchup') or cols.get('game')
+        gdate_c = cols.get('game_date')
+        gtime_c = cols.get('game_time')
+        lupd_c = cols.get('last_updated')
+
+        def to_float(x):
+            try:
+                s = str(x).strip().replace('+','')
+                return float(s)
+            except Exception:
+                return None
+
+        sport_filter = (request.args.get('sport') or '').strip().lower()
+        limit = int(request.args.get('limit') or 0)
+
+        items = []
+        for _, row in df.iterrows():
+            player = str(row.get(name_c, '')).strip() if name_c else ''
+            prop_type = str(row.get(prop_c, '')).strip()
+            team = str(row.get(team_c, '')).strip() if team_c else ''
+            league = str(row.get(league_c, '')).strip() if league_c else ''
+            matchup = str(row.get(matchup_c, '')).strip() if matchup_c else ''
+            date = str(row.get(gdate_c, '')).strip() if gdate_c else ''
+            time_et = str(row.get(gtime_c, '')).strip() if gtime_c else ''
+            last_updated = str(row.get(lupd_c, '')).strip() if lupd_c else ''
+            line = to_float(row.get(line_c)) if line_c else None
+
+            # Optional sport filter - approximate using league
+            if sport_filter:
+                league_lc = league.lower()
+                mapping = {
+                    'basketball': ['nba','wnba','cbb'],
+                    'football': ['nfl','nfl1h','nfl1q','nfl2h'],
+                    'college_football': ['cfb','ncaa'],
+                    'baseball': ['mlb','mlblive'],
+                    'hockey': ['nhl','nhl1p'],
+                    'soccer': ['soccer']
+                }
+                acceptable = mapping.get(sport_filter, [])
+                if acceptable and not any(a in league_lc for a in acceptable):
+                    continue
+
+            event_start_time = _parse_event_start(date, time_et)
+            # Filter out expired past events when we have a time
+            if event_start_time:
+                try:
+                    dt = datetime.fromisoformat(event_start_time.replace('Z','+00:00'))
+                    if dt < datetime.now(timezone.utc):
+                        continue
+                except Exception:
+                    pass
+
+            item = {
+                "player": player,
+                "team": team,
+                "matchup": matchup,
+                "prop": prop_type,
+                "line": line,
+                "league": league,
+                "date": date,
+                "time": time_et,
+                "event_start_time": event_start_time,
+                "last_updated": last_updated
+            }
+            items.append(item)
+
+            if limit and len(items) >= limit:
+                break
+
+        # Compute overall last_updated for payload transparency
+        overall_updated = None
+        for it in items:
+            lu = it.get('last_updated')
+            if lu:
+                try:
+                    dt = datetime.fromisoformat(lu.replace('Z','+00:00'))
+                    if (overall_updated is None) or (dt > overall_updated):
+                        overall_updated = dt
+                except Exception:
+                    pass
+        if overall_updated is None:
+            try:
+                overall_updated = datetime.fromtimestamp(os.path.getmtime(csv_path), timezone.utc)
+            except Exception:
+                pass
+
+        return jsonify({
+            "count": len(items),
+            "last_updated": overall_updated.isoformat().replace('+00:00','Z') if overall_updated else None,
+            "props": items
+        })
+    except Exception as e:
+        logger.error(f"Error in prizepicks_props: {str(e)}\n{traceback.format_exc()}")
+        return make_error("Failed to load PrizePicks props", 500, {"exception": str(e)})
 
 # Error handler for unhandled exceptions
 @app.errorhandler(500)

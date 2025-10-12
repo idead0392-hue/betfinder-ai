@@ -1,12 +1,13 @@
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from typing import Dict, List
 
 import pandas as pd
 import streamlit as st
 import requests
+from functools import lru_cache
 
 
 def get_effective_csv_path() -> str:
@@ -15,19 +16,64 @@ def get_effective_csv_path() -> str:
     return st.session_state['prizepicks_csv_path']
 
 
-def ensure_fresh_csv(path: str, max_age_sec: int = 300) -> None:
+def ensure_fresh_csv(path: str, max_age_sec: int = 300, target_sport: str | None = None) -> None:
+    """
+    Ensure the CSV is fresh, with a lightweight cross-process lock to avoid
+    multiple concurrent scrapes triggered by multiple tabs/pages.
+    """
     try:
         mtime = os.path.getmtime(path)
     except Exception:
         mtime = 0
     age = time.time() - mtime if mtime else 1e9
-    if age > max(30, 2 * max_age_sec):
-        try:
+
+    # If the file is fresh within the configured interval, skip re-scrape
+    # Keep a small minimum window to avoid thrashing if interval is very low
+    if age <= max(15, max_age_sec):
+        return
+
+    lock_path = f"{path}.lock"
+    lock_acquired = False
+    try:
+        # Try to acquire a simple PID-based lock
+        if not os.path.exists(lock_path):
+            with open(lock_path, 'w') as f:
+                f.write(str(os.getpid()))
+            lock_acquired = True
+        else:
+            # If lock is stale (>3 minutes), override
+            try:
+                lmtime = os.path.getmtime(lock_path)
+            except Exception:
+                lmtime = 0
+            if (time.time() - lmtime) > 180:
+                with open(lock_path, 'w') as f:
+                    f.write(str(os.getpid()))
+                lock_acquired = True
+
+        if lock_acquired:
             os.environ['PRIZEPICKS_CSV'] = path
+            # Hint the scraper to fetch a specific sport only (best-effort)
+            if target_sport:
+                sport_hint_map = {
+                    'basketball': 'nba',
+                    'football': 'nfl',
+                    'college_football': 'cfb',
+                    'baseball': 'mlb',
+                    'hockey': 'nhl',
+                    'soccer': 'soccer'
+                }
+                os.environ['PRIZEPICKS_SPORT_PARAM'] = sport_hint_map.get(target_sport, '')
             from prizepicks_scrape import main as scrape_main
             scrape_main()
-        except Exception:
-            pass
+    except Exception:
+        pass
+    finally:
+        if lock_acquired:
+            try:
+                os.remove(lock_path)
+            except Exception:
+                pass
 
 
 def _normalize_league_to_sport(value: str) -> str:
@@ -50,108 +96,245 @@ def _normalize_league_to_sport(value: str) -> str:
     return aliases.get(s, s)
 
 
+# --------------------
+# Strict NHL filtering
+# --------------------
+
+NHL_TEAM_NAMES = [
+    'bruins', 'sabres', 'red wings', 'panthers', 'canadiens', 'senators', 'lightning', 'maple leafs',
+    'hurricanes', 'blue jackets', 'devils', 'islanders', 'rangers', 'flyers', 'penguins', 'capitals',
+    'blackhawks', 'avalanche', 'stars', 'wild', 'predators', 'blues', 'jets', 'ducks', 'coyotes',
+    'flames', 'oilers', 'kings', 'sharks', 'kraken', 'canucks', 'golden knights'
+]
+
+NHL_TEAM_ABBREVS = [
+    'bos','buf','det','fla','mtl','ott','tbl','tb','tor','car','cbj','njd','nj','nyi','nyr','phi','pit','wsh','chi','col','dal','min','nsh','stl','wpg','ana','ari','cgy','edm','lak','la','sjs','sj','sea','van','vgk'
+]
+
+NHL_HOCKEY_STATS = [
+    'goals', 'assists', 'shots on goal', 'sog', 'saves'
+]
+
+SOCCER_ONLY_STATS = ['goals conceded', 'yellow cards', 'red cards', 'clean sheets']
+
+
+@lru_cache(maxsize=1)
+def _load_nhl_roster() -> List[str]:
+    """Load NHL roster from data file, fallback to a core whitelist of star players.
+    The list is lowercase names. To expand coverage, add data/nhl_roster.txt (one name per line)."""
+    roster: List[str] = []
+    try:
+        roster_path = os.path.join(os.getcwd(), 'data', 'nhl_roster.txt')
+        if os.path.exists(roster_path):
+            with open(roster_path, 'r', encoding='utf-8') as f:
+                roster = [line.strip().lower() for line in f if line.strip()]
+    except Exception:
+        pass
+    if not roster:
+        roster = [
+            'sidney crosby','evgeni malkin','auston matthews','mitch marner','nathan mackinnon','mikko rantanen',
+            'connor mcdavid','leon draisaitl','nikita kucherov','brayden point','matthew tkachuk','brady tkachuk',
+            'cale makar','adam fox','victor hedman','roman josi','david pastrnak','brad marchand','igor shesterkin',
+            'andrei vasilevskiy','ilja sorokin','jason robertson','alex ovechkin','patrick kane','jack eichel',
+        ]
+    return roster
+
+
+def _is_team_nhl(team: str, matchup: str) -> bool:
+    t = (team or '').lower()
+    m = (matchup or '').lower()
+    if any(name in t for name in NHL_TEAM_NAMES) or any(ab in t for ab in NHL_TEAM_ABBREVS):
+        return True
+    if any(name in m for name in NHL_TEAM_NAMES) or any(ab in m for ab in NHL_TEAM_ABBREVS):
+        return True
+    return False
+
+
+def hockey_strict_filter(prop: dict) -> bool:
+    """Strict NHL prop filter: require NHL team, NHL player (if enabled), and hockey stats only."""
+    if not prop:
+        return False
+    player = str(prop.get('player_name','')).lower()
+    team = str(prop.get('team','')).lower()
+    stat = str(prop.get('stat_type','')).lower()
+    matchup = str(prop.get('matchup','')).lower()
+    league = str(prop.get('league','')).lower()
+
+    # League must be NHL when present
+    if league and not any(x in league for x in ['nhl','nhl1p']):
+        return False
+
+    # Team/matchup must be NHL
+    if not _is_team_nhl(team, matchup):
+        return False
+
+    # Stat must be allowed hockey type and not soccer-only
+    if not any(s in stat for s in NHL_HOCKEY_STATS):
+        return False
+    if any(s in stat for s in SOCCER_ONLY_STATS):
+        return False
+
+    # Optional strict player roster enforcement (requires a reasonably complete roster)
+    if os.getenv('STRICT_NHL_PLAYER_FILTER','1') == '1':
+        roster = _load_nhl_roster()
+        if len(roster) >= 50 and player not in roster:
+            return False
+
+    return True
+
+
+def _log_misclassified(prop: dict, sport: str) -> None:
+    """Append misclassified prop details to a per-sport log file for admin review."""
+    try:
+        log_dir = os.path.join(os.getcwd(), 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, f'misclassified_{sport}.log')
+        # Keep it simple: one-line JSON-ish dict for easy tailing
+        payload = {
+            'player': prop.get('player_name'),
+            'team': prop.get('team'),
+            'stat': prop.get('stat_type'),
+            'league': prop.get('league'),
+            'matchup': prop.get('matchup'),
+            'timestamp': datetime.now().isoformat()
+        }
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write(str(payload) + "\n")
+    except Exception:
+        # Best-effort logging only
+        pass
+
+
 def _map_to_sport(p: dict) -> str:
+
     player = str(p.get('player_name', '')).lower()
     stat = str(p.get('stat_type', '')).lower()
+    team = str(p.get('team', '')).lower()
+    matchup = str(p.get('matchup', '')).lower()
+    orig_sport = str(p.get('sport', '')).lower()
 
-    if p.get('sport'):
-        s = str(p['sport']).lower()
-        aliases = {
-            'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-            'nfl': 'football', 'cfb': 'college_football',
-            'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer',
-            'lol': 'league_of_legends', 'league of legends': 'league_of_legends', 'league_of_legends': 'league_of_legends',
-            'dota2': 'dota2', 'dota 2': 'dota2',
-            'valorant': 'valorant', 'valo': 'valorant',
-            'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
-            'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
-            'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
-        }
-        mapped = aliases.get(s)
-        if mapped:
-            return mapped
+    # --- Sport-specific cheat sheets ---
+    football_terms = ["kicking points", "field goals made", "touchdowns", "pass yards", "passing yards", "rush yards", "rushing yards", "receiving yards", "receptions", "field goals", "extra points"]
+    basketball_terms = ["points", "rebounds", "assists", "blocks", "steals", "3pt made", "pts+rebs+asts"]
+    hockey_terms = ["shots", "penalty minutes", "power play", "faceoff", "time on ice", "plus/minus", "blocked shots", "goalie saves"]
+    baseball_terms = ["hits", "home runs", "rbis", "strikeouts", "total bases", "stolen bases"]
+    tennis_terms = ["aces", "double faults", "games won", "sets won"]
+    soccer_terms = ["goals", "assists", "shots on goal", "shots on target", "goal + assist", "fouls", "cards", "clean sheets", "saves", "goalie saves"]
 
-    nba_players = ['stephen curry', 'kevin durant', 'lebron james', 'giannis antetokounmpo', 'james harden',
-                   'luka doncic', 'nikola jokic', 'joel embiid', 'jayson tatum', 'anthony davis']
-    basketball_stats = ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt made', 'pts+rebs+asts']
-    if any(n in player for n in nba_players) or any(k in stat for k in basketball_stats):
-        return 'basketball'
+    football_teams = ["patriots", "saints", "packers", "cowboys", "giants", "jets", "bears", "steelers", "eagles", "chiefs", "49ers", "ravens", "bengals", "bills", "dolphins", "broncos", "lions", "jaguars", "panthers", "raiders", "chargers", "seahawks", "buccaneers", "cardinals", "commanders", "colts", "vikings", "texans", "falcons", "rams", "titans"]
+    basketball_teams = ["lakers", "knicks", "warriors", "celtics", "bulls", "nets", "suns", "mavericks", "clippers", "spurs", "heat", "bucks", "76ers", "nuggets", "hawks", "pelicans", "grizzlies", "timberwolves", "magic", "wizards", "pacers", "pistons", "hornets", "jazz", "thunder", "raptors", "rockets", "kings", "trail blazers"]
 
-    college_players = ['caleb williams', 'drake maye', 'bo nix', 'michael penix jr', 'marvin harrison jr']
-    football_stats = ['pass yards', 'passing yards', 'rush yards', 'rushing yards', 'receiving yards', 'receptions', 'touchdown']
-    if any(n in player for n in college_players) and any(k in stat for k in football_stats):
-        return 'college_football'
-    if any(k in stat for k in football_stats):
-        return 'football'
+    football_kickers = ["jason myers", "chris boswell", "cam little", "michael badgley", "justin tucker", "harrison butker", "younghoe koo", "daniel carlson", "greg joseph", "matt gay", "brandon mcmanus", "evan mcpherson", "eddie pineiro", "riley patterson", "brett maher", "nick folk", "cairo santos", "dustin hopkins", "jake elliott", "graham gano", "chase mclaughlin", "andrew mevis", "joey slye", "chris naggar", "sam ficken"]
 
-    csgo_players = ['s1mple', 'niko', 'zywoo', 'm0nesy', 'ropz', 'broky']
-    dota_players = ['sumail', 'miracle', 'yatoro', 'ame']
-    lol_players = ['faker', 'ruler', 'chovy', 'knight', 'caps', 'showmaker']
-    valorant_players = ['tenz', 'scream', 'aspas', 'derke', 'yay']
-    overwatch_players = ['profit', 'fleta', 'carpe']
-    rl_players = ['apparentlyjack', 'firstkiller', 'atomic', 'jknaps']
+    # 1. Stat label check (most robust)
+    if stat in football_terms:
+        return "football"
+    if stat in basketball_terms:
+        return "basketball"
+    if stat in hockey_terms:
+        return "hockey"
+    if stat in baseball_terms:
+        return "baseball"
+    if stat in tennis_terms:
+        return "tennis"
+    if stat in soccer_terms:
+        return "soccer"
 
-    if any(n in player for n in dota_players):
-        return 'dota2'
-    if any(n in player for n in lol_players):
-        return 'league_of_legends'
-    if any(n in player for n in valorant_players):
-        return 'valorant'
-    if any(n in player for n in overwatch_players):
-        return 'overwatch'
-    if any(n in player for n in rl_players):
-        return 'rocket_league'
-    if any(n in player for n in csgo_players):
-        return 'csgo'
+    # 2. Team name check (matchup, team, or player)
+    if any(t in team for t in football_teams) or any(t in matchup for t in football_teams):
+        return "football"
+    if any(t in team for t in basketball_teams) or any(t in matchup for t in basketball_teams):
+        return "basketball"
 
-    lol_keywords = ['kda', 'k/d/a', 'kills+assists', 'kills + assists', 'creep score', 'cs ']
-    if any(k in stat for k in lol_keywords):
-        return 'league_of_legends'
-    dota_keywords = ['gpm', 'xpm', 'last hits', 'denies', 'roshan']
-    if any(k in stat for k in dota_keywords):
-        return 'dota2'
-    if ('map' in stat or 'maps' in stat) and 'kills' in stat:
-        if any(n in player for n in csgo_players):
-            return 'csgo'
-        if any(n in player for n in valorant_players):
-            return 'valorant'
-        if any(n in player for n in dota_players):
-            return 'dota2'
-        return ''
-    valorant_keywords = ['acs', 'first bloods', 'first kills', 'spike']
-    if any(k in stat for k in valorant_keywords):
-        return 'valorant'
-    overwatch_keywords = ['eliminations', 'final blows', 'objective', 'healing']
-    if any(k in stat for k in overwatch_keywords):
-        return 'overwatch'
-    rocket_league_keywords = ['rocket league', 'rl goals', 'rl assists', 'rl saves', 'rl shots']
-    if any(k in stat for k in rocket_league_keywords):
-        return 'rocket_league'
-    csgo_keywords = ['headshot', 'headshots', 'awp', 'adr', 'clutch', 'clutches']
-    if any(k in stat for k in csgo_keywords):
-        return 'csgo'
+    # 3. Football kicker check
+    if stat == "kicking points" and (any(k in player for k in football_kickers) or any(k in team for k in football_teams)):
+        return "football"
 
-    nhl_players = ['connor mcdavid', 'leon draisaitl', 'sidney crosby', 'auston matthews']
-    if any(n in player for n in nhl_players):
-        return 'hockey'
-    hockey_specific = ['penalty minutes', 'power play', 'faceoff', 'time on ice', 'plus/minus', 'blocked shots', 'goalie saves']
-    if any(k in stat for k in hockey_specific):
-        return 'hockey'
-    if 'saves' in stat and any(k in stat for k in ['goalie', 'save percentage', 'goals against']):
-        return 'hockey'
+    # 4. Fallback to original sport mapping (aliases)
+    aliases = {
+        'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
+        'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
+        'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
+        'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
+        'valorant': 'valorant', 'valo': 'valorant',
+        'dota 2': 'dota2', 'dota2': 'dota2',
+        'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
+        'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
+        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
+    }
+    mapped = aliases.get(orig_sport)
+    if mapped:
+        return mapped
 
-    soccer_stats = ['goals', 'assists', 'shots on goal', 'shots on target', 'shots', 'goal + assist', 'fouls', 'cards', 'clean sheets', 'saves', 'goalie saves']
-    if any(k in stat for k in soccer_stats):
-        return 'soccer'
-
-    if any(k in stat for k in ['strokes', 'birdies', 'eagles', 'pars', 'bogeys']):
-        return ''
-    if any(k in stat for k in ['aces', 'double faults', 'games won', 'sets won']):
-        return 'tennis'
-    if any(k in stat for k in ['hits', 'home runs', 'rbis', 'strikeouts', 'total bases', 'stolen bases']):
-        return 'baseball'
+    # 5. Legacy player/stat heuristics (for esports, hockey, etc.)
+    # ...existing code...
 
     return ''
+
+
+def _validate_prop_consistency(prop_data: dict) -> bool:
+    """
+    Validate that prop data is internally consistent (team, matchup, sport alignment)
+    Returns False if the prop should be filtered out due to inconsistencies
+    """
+    player_name = str(prop_data.get('player_name', '')).lower()
+    stat_type = str(prop_data.get('stat_type', '')).lower()
+    team = str(prop_data.get('team', '')).lower()
+    matchup = str(prop_data.get('matchup', '')).lower()
+    league = str(prop_data.get('league', '')).lower()
+    
+    # Skip props with missing essential data
+    if not player_name or not stat_type:
+        return False
+    
+    # Skip if team is completely inconsistent with matchup
+    if team and matchup and '@' in matchup:
+        # Extract teams from matchup (e.g., "CHI @ WAS" -> ["chi", "was"])
+        parts = matchup.split('@')
+        if len(parts) == 2:
+            away_team = parts[0].strip().lower()
+            home_team = parts[1].strip().lower()
+            
+            # Team should appear in either away or home position
+            if team not in away_team and team not in home_team and away_team not in team and home_team not in team:
+                # Additional check: see if it's an abbreviation mismatch
+                team_abbrevs = {
+                    'new england patriots': 'ne', 'new orleans saints': 'no',
+                    'chicago bears': 'chi', 'washington commanders': 'was',
+                    'carolina panthers': 'car', 'arizona cardinals': 'ari',
+                    'indianapolis colts': 'ind'
+                }
+                
+                team_full_name = None
+                for full, abbrev in team_abbrevs.items():
+                    if abbrev == team or team in full:
+                        team_full_name = full
+                        break
+                
+                if team_full_name:
+                    # Check if full team name appears in matchup
+                    if team_full_name not in matchup:
+                        return False
+                else:
+                    # If no mapping found and team doesn't match, filter out
+                    return False
+    
+    # Additional validation: NFL props should have NFL-like stats
+    if league and 'nfl' in league:
+        nfl_stats = ['pass yards', 'passing yards', 'rush yards', 'rushing yards', 
+                     'receiving yards', 'receptions', 'touchdowns', 'completions',
+                     'fantasy score', 'field goals', 'kicking points']
+        if not any(nfl_stat in stat_type for nfl_stat in nfl_stats):
+            # This might be a misclassified prop
+            return False
+    
+    # Basketball props should have basketball stats
+    if league and ('nba' in league or 'basketball' in league):
+        basketball_stats = ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt', 'three']
+        if not any(bb_stat in stat_type for bb_stat in basketball_stats):
+            return False
+    
+    return True
 
 
 @st.cache_data(show_spinner=False)
@@ -172,9 +355,12 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
     league_col = cols.get('league')
     team_col = cols.get('team')
     game_col = cols.get('game')
-        matchup_col = cols.get('matchup')
-        home_team_col = cols.get('home_team')
-        away_team_col = cols.get('away_team')
+    matchup_col = cols.get('matchup')
+    home_team_col = cols.get('home_team')
+    away_team_col = cols.get('away_team')
+    game_date_col = cols.get('game_date')
+    game_time_col = cols.get('game_time')
+    last_updated_col = cols.get('last_updated')
 
     for _, row in df.iterrows():
         player_name = row.get(name_col, '') if name_col else ''
@@ -198,6 +384,35 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
         home_team_val = str(row.get(home_team_col, '')).strip() if home_team_col else ''
         away_team_val = str(row.get(away_team_col, '')).strip() if away_team_col else ''
 
+        # Compute event_start_time ISO if Game_Date/Game_Time present
+        event_start_iso = ''
+        try:
+            gd = (str(row.get(game_date_col)) if game_date_col else '').strip()
+            gt = (str(row.get(game_time_col)) if game_time_col else '').strip()
+            # Expected Game_Time like "8:00 PM ET"; strip trailing timezone label
+            if gd and gt:
+                gt_clean = gt.replace('ET', '').strip()
+                # Handle cases like "8:00 PM" or "20:00"
+                dt_local = None
+                try:
+                    # Prefer 12-hour format
+                    dt_local = datetime.strptime(f"{gd} {gt_clean}", "%Y-%m-%d %I:%M %p")
+                except Exception:
+                    try:
+                        dt_local = datetime.strptime(f"{gd} {gt_clean}", "%Y-%m-%d %H:%M")
+                    except Exception:
+                        dt_local = None
+                if dt_local is not None:
+                    # Treat provided time as America/New_York unless specified otherwise
+                    try:
+                        from zoneinfo import ZoneInfo  # py3.9+
+                        dt_et = dt_local.replace(tzinfo=ZoneInfo('America/New_York'))
+                    except Exception:
+                        dt_et = dt_local
+                    event_start_iso = dt_et.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+        except Exception:
+            event_start_iso = ''
+
         prop = {
             'player_name': player_name,
             'team': (row.get(team_col, '') if team_col else ''),
@@ -211,14 +426,21 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
             'l5_average': row.get('L5') or 0.0,
             'h2h': row.get('H2H') or row.get('h2h') or '',
             'start_time': '',
+            'event_start_time': event_start_iso,  # ISO UTC when available
+            'event_date': (str(row.get(game_date_col)).strip() if game_date_col else ''),
+            'event_time_et': (str(row.get(game_time_col)).strip() if game_time_col else ''),
             'sport': sport_val or '',
             'league': (league_val or game_val or sport_raw).strip(),
-                'over_under': None,
-                'matchup': matchup_val,
-                'home_team': home_team_val,
-                'away_team': away_team_val
+            'over_under': None,
+            'matchup': matchup_val,
+            'home_team': home_team_val,
+            'away_team': away_team_val,
+            'last_updated': (str(row.get(last_updated_col)).strip() if last_updated_col else '')
         }
-        props.append(prop)
+        
+        # Validate prop consistency before adding
+        if _validate_prop_consistency(prop):
+            props.append(prop)
 
     grouped = {k: [] for k in [
         'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
@@ -227,9 +449,347 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
     for p in props:
         key = _map_to_sport(p)
         if key and key in grouped:
-            grouped[key].append(p)
+            # Double-check: ensure the prop actually belongs to this sport category
+            if _validate_sport_category_match(p, key):
+                grouped[key].append(p)
 
     return grouped
+
+
+def _validate_sport_category_match(prop: dict, assigned_sport: str) -> bool:
+    """
+    Final validation to ensure a prop truly belongs to the assigned sport category
+    """
+    stat_type = str(prop.get('stat_type', '')).lower()
+    league = str(prop.get('league', '')).lower()
+    
+    # NFL/Football validation
+    if assigned_sport == 'football':
+        football_stats = ['pass yards', 'passing yards', 'rush yards', 'rushing yards', 
+                         'receiving yards', 'receptions', 'touchdowns', 'completions',
+                         'fantasy score', 'field goals', 'kicking points', 'attempts']
+        football_leagues = ['nfl', 'nfl1h', 'nfl1q', 'nfl2h']
+        
+        # Must have football stat OR be in football league
+        has_football_stat = any(fs in stat_type for fs in football_stats)
+        has_football_league = any(fl in league for fl in football_leagues)
+        
+        if not (has_football_stat or has_football_league):
+            return False
+    
+    # Basketball validation
+    elif assigned_sport == 'basketball':
+        basketball_stats = ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt', 'three']
+        basketball_leagues = ['nba', 'nbaszn', 'nbap', 'wnba', 'cbb']
+        
+        has_basketball_stat = any(bs in stat_type for bs in basketball_stats)
+        has_basketball_league = any(bl in league for bl in basketball_leagues)
+        
+        if not (has_basketball_stat or has_basketball_league):
+            return False
+    
+    # Baseball validation
+    elif assigned_sport == 'baseball':
+        baseball_stats = ['hits', 'home runs', 'rbis', 'strikeouts', 'total bases', 'stolen bases']
+        baseball_leagues = ['mlb', 'mlblive']
+        
+        has_baseball_stat = any(bs in stat_type for bs in baseball_stats)
+        has_baseball_league = any(bl in league for bl in baseball_leagues)
+        
+        if not (has_baseball_stat or has_baseball_league):
+            return False
+    
+    # Hockey validation
+    elif assigned_sport == 'hockey':
+        # Require strict NHL filter — blocks any non-NHL teams/players/stats
+        return hockey_strict_filter(prop)
+    
+    # Soccer validation  
+    elif assigned_sport == 'soccer':
+        soccer_leagues = ['soccer']
+        if 'soccer' not in league:
+            return False
+    
+    return True
+
+
+def _get_trusted_sport_data() -> Dict[str, Dict[str, List[str]]]:
+    """
+    Return trusted lists of teams, players, and keywords for each sport
+    This is the definitive source for strict category validation
+    """
+    return {
+        'basketball': {
+            'teams': [
+                'lakers', 'knicks', 'warriors', 'celtics', 'bulls', 'nets', 'suns', 'mavericks', 
+                'clippers', 'spurs', 'heat', 'bucks', '76ers', 'nuggets', 'hawks', 'pelicans',
+                'grizzlies', 'timberwolves', 'magic', 'wizards', 'pacers', 'pistons', 'hornets',
+                'jazz', 'thunder', 'raptors', 'rockets', 'kings', 'trail blazers', 'blazers'
+            ],
+            'team_abbreviations': [
+                'lal', 'nyk', 'gsw', 'bos', 'chi', 'bkn', 'phx', 'dal', 'lac', 'sas',
+                'mia', 'mil', 'phi', 'den', 'atl', 'nop', 'mem', 'min', 'orl', 'was',
+                'ind', 'det', 'cha', 'uta', 'okc', 'tor', 'hou', 'sac', 'por'
+            ],
+            'players': [
+                'lebron james', 'stephen curry', 'kevin durant', 'giannis antetokounmpo', 
+                'luka doncic', 'nikola jokic', 'joel embiid', 'jayson tatum', 'anthony davis',
+                'james harden', 'damian lillard', 'jimmy butler', 'kawhi leonard', 'paul george',
+                'devin booker', 'donovan mitchell', 'russell westbrook', 'chris paul',
+                'victor wembanyama', 'paolo banchero', 'anthony edwards', 'ja morant',
+                'trae young', 'zion williamson', 'lamelo ball', 'scottie barnes'
+            ],
+            'stats': ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt made', 'pts+rebs+asts', 'three pointers'],
+            'leagues': ['nba', 'nbaszn', 'nbap', 'wnba', 'cbb']
+        },
+        'football': {
+            'teams': [
+                'patriots', 'saints', 'packers', 'cowboys', 'giants', 'jets', 'bears', 'steelers',
+                'eagles', 'chiefs', '49ers', 'ravens', 'bengals', 'bills', 'dolphins', 'broncos',
+                'lions', 'jaguars', 'panthers', 'raiders', 'chargers', 'seahawks', 'buccaneers',
+                'cardinals', 'commanders', 'colts', 'vikings', 'texans', 'falcons', 'rams', 'titans'
+            ],
+            'team_abbreviations': [
+                'ne', 'no', 'gb', 'dal', 'nyg', 'nyj', 'chi', 'pit', 'phi', 'kc', 'sf',
+                'bal', 'cin', 'buf', 'mia', 'den', 'det', 'jax', 'car', 'lv', 'lac',
+                'sea', 'tb', 'ari', 'was', 'ind', 'min', 'hou', 'atl', 'lar', 'ten'
+            ],
+            'players': [
+                'josh allen', 'patrick mahomes', 'lamar jackson', 'joe burrow', 'aaron rodgers',
+                'tom brady', 'dak prescott', 'russell wilson', 'kyler murray', 'derek carr',
+                'tua tagovailoa', 'justin herbert', 'travis kelce', 'tyreek hill', 'davante adams',
+                'cooper kupp', 'stefon diggs', 'mike evans', 'derrick henry', 'jonathan taylor',
+                'christian mccaffrey', 'alvin kamara', 'dalvin cook', 'nick chubb'
+            ],
+            'stats': [
+                'pass yards', 'passing yards', 'rush yards', 'rushing yards', 'receiving yards',
+                'receptions', 'touchdowns', 'completions', 'attempts', 'fantasy score',
+                'field goals', 'kicking points', 'extra points'
+            ],
+            'leagues': ['nfl', 'nfl1h', 'nfl1q', 'nfl2h']
+        },
+        'baseball': {
+            'teams': [
+                'yankees', 'dodgers', 'astros', 'braves', 'red sox', 'giants', 'phillies',
+                'padres', 'mets', 'cardinals', 'blue jays', 'rangers', 'orioles', 'marlins',
+                'cubs', 'brewers', 'twins', 'guardians', 'white sox', 'tigers', 'royals',
+                'angels', 'athletics', 'mariners', 'rays', 'nationals', 'pirates', 'reds',
+                'rockies', 'diamondbacks'
+            ],
+            'stats': ['hits', 'home runs', 'rbis', 'strikeouts', 'total bases', 'stolen bases'],
+            'leagues': ['mlb', 'mlblive']
+        },
+        'hockey': {
+            'teams': [
+                'rangers', 'bruins', 'penguins', 'capitals', 'lightning', 'panthers', 'maple leafs',
+                'canadiens', 'senators', 'sabres', 'devils', 'islanders', 'flyers', 'hurricanes',
+                'blue jackets', 'predators', 'blues', 'wild', 'blackhawks', 'red wings',
+                'avalanche', 'stars', 'jets', 'flames', 'oilers', 'canucks', 'sharks',
+                'ducks', 'kings', 'golden knights', 'kraken', 'coyotes'
+            ],
+            'stats': ['goals', 'assists', 'shots', 'saves', 'penalty minutes', 'blocked shots'],
+            'leagues': ['nhl', 'nhl1p']
+        },
+        'soccer': {
+            'stats': ['goals', 'assists', 'shots on goal', 'shots on target', 'fouls', 'cards'],
+            'leagues': ['soccer']
+        },
+        'tennis': {
+            'stats': ['aces', 'double faults', 'games won', 'sets won'],
+            'leagues': ['tennis']
+        }
+    }
+
+
+def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
+    """
+    ULTRA-STRICT validation before rendering - ZERO tolerance for cross-sport contamination
+    Returns True only if prop passes ALL validation checks for the target sport
+    ANY doubt = REJECT
+    """
+    if not prop or not target_sport:
+        return False
+        
+    player_name = str(prop.get('player_name', '')).lower()
+    team = str(prop.get('team', '')).lower()
+    matchup = str(prop.get('matchup', '')).lower()
+    stat_type = str(prop.get('stat_type', '')).lower()
+    league = str(prop.get('league', '')).lower()
+    
+    # ABSOLUTE BLOCKLIST - these NEVER belong in certain sports
+    soccer_indicators = [
+        'poland', 'lithuania', 'lewandowski', 'messi', 'ronaldo', 'mbappe', 'neymar',
+        'benzema', 'haaland', 'salah', 'mane', 'de bruyne', 'modric', 'kroos',
+        'real madrid', 'barcelona', 'manchester', 'liverpool', 'chelsea', 'arsenal',
+        'juventus', 'bayern munich', 'psg', 'atletico', 'tottenham', 'inter',
+        'ac milan', 'napoli', 'dortmund', 'ajax', 'porto', 'benfica'
+    ]
+    
+    tennis_indicators = [
+        'djokovic', 'nadal', 'federer', 'alcaraz', 'medvedev', 'tsitsipas',
+        'zverev', 'rublev', 'berrettini', 'sinner', 'auger-aliassime',
+        'wimbledon', 'roland garros', 'us open', 'australian open'
+    ]
+    
+    if target_sport == 'basketball':
+        # ZERO tolerance for non-basketball elements
+        forbidden_elements = soccer_indicators + tennis_indicators + [
+            'patriots', 'saints', 'cowboys', 'packers', 'steelers', 'eagles',
+            'nfl', 'passing', 'rushing', 'receiving', 'touchdowns', 'field goal',
+            'yankees', 'dodgers', 'astros', 'mlb', 'home run', 'strikeout',
+            'rangers', 'bruins', 'penguins', 'nhl', 'penalty', 'goalie'
+        ]
+        
+        # Check ALL fields for forbidden content
+        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
+        if any(forbidden in all_text for forbidden in forbidden_elements):
+            return False
+            
+        # MUST have basketball league OR basketball stat
+        basketball_leagues = ['nba', 'nbaszn', 'nbap', 'wnba', 'cbb']
+        basketball_stats = ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt', 'three']
+        
+        has_basketball_league = any(bl in league for bl in basketball_leagues)
+        has_basketball_stat = any(bs in stat_type for bs in basketball_stats)
+        
+        if not (has_basketball_league or has_basketball_stat):
+            return False
+            
+        # MUST have recognizable NBA team OR player
+        nba_teams = [
+            'lakers', 'knicks', 'warriors', 'celtics', 'bulls', 'nets', 'suns', 'mavericks',
+            'clippers', 'spurs', 'heat', 'bucks', '76ers', 'nuggets', 'hawks', 'pelicans',
+            'grizzlies', 'timberwolves', 'magic', 'wizards', 'pacers', 'pistons', 'hornets',
+            'jazz', 'thunder', 'raptors', 'rockets', 'kings', 'blazers', 'trail blazers'
+        ]
+        nba_abbrevs = ['lal', 'nyk', 'gsw', 'bos', 'chi', 'bkn', 'phx', 'dal', 'lac', 'sas',
+                      'mia', 'mil', 'phi', 'den', 'atl', 'nop', 'mem', 'min', 'orl', 'was',
+                      'ind', 'det', 'cha', 'uta', 'okc', 'tor', 'hou', 'sac', 'por']
+        
+        nba_players = [
+            'lebron', 'curry', 'durant', 'giannis', 'luka', 'jokic', 'embiid', 'tatum',
+            'davis', 'harden', 'lillard', 'butler', 'leonard', 'george', 'booker',
+            'mitchell', 'westbrook', 'paul', 'wembanyama', 'banchero', 'edwards',
+            'morant', 'young', 'williamson', 'ball', 'barnes'
+        ]
+        
+        has_nba_team = any(team_name in f"{team} {matchup}" for team_name in nba_teams + nba_abbrevs)
+        has_nba_player = any(player in player_name for player in nba_players)
+        
+        if not (has_nba_team or has_nba_player):
+            return False
+    
+    elif target_sport == 'football':
+        # ZERO tolerance for non-football elements
+        forbidden_elements = soccer_indicators + tennis_indicators + [
+            'lakers', 'celtics', 'warriors', 'knicks', 'bulls', 'nets',
+            'nba', 'rebounds', 'assists', 'blocks', 'steals', '3pt',
+            'yankees', 'dodgers', 'astros', 'mlb', 'home run', 'strikeout',
+            'rangers', 'bruins', 'penguins', 'nhl', 'penalty', 'goalie'
+        ]
+        
+        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
+        if any(forbidden in all_text for forbidden in forbidden_elements):
+            return False
+            
+        # MUST have football league OR football stat
+        football_leagues = ['nfl', 'nfl1h', 'nfl1q', 'nfl2h']
+        football_stats = ['pass', 'passing', 'rush', 'rushing', 'receiving', 'reception',
+                         'touchdown', 'completion', 'attempt', 'fantasy', 'field goal', 'kick']
+        
+        has_football_league = any(fl in league for fl in football_leagues)
+        has_football_stat = any(fs in stat_type for fs in football_stats)
+        
+        if not (has_football_league or has_football_stat):
+            return False
+            
+        # MUST have recognizable NFL team
+        nfl_teams = [
+            'patriots', 'saints', 'packers', 'cowboys', 'giants', 'jets', 'bears', 'steelers',
+            'eagles', 'chiefs', '49ers', 'ravens', 'bengals', 'bills', 'dolphins', 'broncos',
+            'lions', 'jaguars', 'panthers', 'raiders', 'chargers', 'seahawks', 'buccaneers',
+            'cardinals', 'commanders', 'colts', 'vikings', 'texans', 'falcons', 'rams', 'titans'
+        ]
+        nfl_abbrevs = ['ne', 'no', 'gb', 'dal', 'nyg', 'nyj', 'chi', 'pit', 'phi', 'kc', 'sf',
+                      'bal', 'cin', 'buf', 'mia', 'den', 'det', 'jax', 'car', 'lv', 'lac',
+                      'sea', 'tb', 'ari', 'was', 'ind', 'min', 'hou', 'atl', 'lar', 'ten']
+        
+        has_nfl_team = any(team_name in f"{team} {matchup}" for team_name in nfl_teams + nfl_abbrevs)
+        
+        if not has_nfl_team:
+            return False
+    
+    elif target_sport == 'baseball':
+        # Block non-baseball content
+        forbidden_elements = soccer_indicators + tennis_indicators + [
+            'patriots', 'lakers', 'nfl', 'nba', 'nhl', 'passing', 'rebounds'
+        ]
+        
+        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
+        if any(forbidden in all_text for forbidden in forbidden_elements):
+            return False
+            
+        mlb_leagues = ['mlb', 'mlblive']
+        mlb_stats = ['hits', 'home run', 'rbi', 'strikeout', 'total base', 'stolen base']
+        
+        has_mlb_league = any(ml in league for ml in mlb_leagues)
+        has_mlb_stat = any(ms in stat_type for ms in mlb_stats)
+        
+        if not (has_mlb_league or has_mlb_stat):
+            return False
+    
+    elif target_sport == 'hockey':
+        # Use the centralized strict NHL filter for consistency
+        return hockey_strict_filter(prop)
+    
+    elif target_sport == 'soccer':
+        # Only allow explicit soccer content
+        soccer_leagues = ['soccer']
+        if 'soccer' not in league:
+            return False
+    
+    elif target_sport == 'tennis':
+        # Only allow explicit tennis content
+        tennis_leagues = ['tennis']
+        tennis_stats = ['aces', 'double fault', 'games won', 'sets won']
+        
+        has_tennis_league = 'tennis' in league
+        has_tennis_stat = any(ts in stat_type for ts in tennis_stats)
+        
+        if not (has_tennis_league or has_tennis_stat):
+            return False
+    
+    else:
+        # Unknown sport - reject
+        return False
+    
+    return True
+
+
+def render_validated_props_for_sport(props: List[dict], target_sport: str) -> List[dict]:
+    """
+    Apply strict validation before rendering props for a specific sport tab
+    Log any filtered props for debugging
+    """
+    validated_props = []
+    filtered_props = []
+    
+    for prop in props:
+        if _strict_validate_before_render(prop, target_sport):
+            validated_props.append(prop)
+        else:
+            filtered_props.append(prop)
+    
+    # Log filtered props for debugging (can be disabled in production)
+    if filtered_props:
+        print(f"🚫 Filtered {len(filtered_props)} props from {target_sport} tab:")
+        for fp in filtered_props[:3]:  # Show first 3 examples
+            print(f"   - {fp.get('player_name', 'Unknown')} ({fp.get('team', 'No team')}) - {fp.get('stat_type', 'No stat')} - League: {fp.get('league', 'No league')}")
+        # Persist a sample to log for admin triage
+        for fp in filtered_props[:10]:
+            _log_misclassified(fp, target_sport)
+    
+    return validated_props
 
 
 def load_prizepicks_csv_grouped(csv_path: str) -> Dict[str, List[dict]]:
@@ -294,6 +854,39 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
     ev_text = f"[EV +{edge*100:.1f}%]" if edge and edge > 0 else ""
     odds_text = f"[-{abs(int(odds))}]" if isinstance(odds, (int, float)) else ""
 
+    # Datetime display: prefer event_start_time ISO; fall back to ET string
+    when_text = ''
+    try:
+        tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+        from zoneinfo import ZoneInfo  # py3.9+
+        user_tz = ZoneInfo(tz_env)
+        iso = pick.get('event_start_time') or ''
+        if isinstance(iso, str) and iso:
+            # Normalize Z to +00:00 for fromisoformat
+            dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            dt_local = dt.astimezone(user_tz)
+            when_text = dt_local.strftime('%b %d, %I:%M %p %Z')
+        else:
+            # Fallback: combine date/time et
+            d = pick.get('event_date') or ''
+            t = pick.get('event_time_et') or ''
+            if d and t:
+                when_text = f"{d} {t}"
+    except Exception:
+        when_text = pick.get('event_time_et') or ''
+
+    # Last updated display
+    updated_text = ''
+    try:
+        lu = pick.get('last_updated') or ''
+        if lu:
+            dt = datetime.fromisoformat(str(lu).replace('Z', '+00:00'))
+            tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+            from zoneinfo import ZoneInfo
+            updated_text = dt.astimezone(ZoneInfo(tz_env)).strftime('Updated: %I:%M %p %Z')
+    except Exception:
+        pass
+
     reasoning_html = ''
     if st.session_state.get('show_reasoning') and pick.get('detailed_reasoning'):
         dr = pick['detailed_reasoning']
@@ -326,12 +919,14 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
         <span style='flex:1.5;font-weight:600;color:#fff;font-size:12px;'>{player_name}{type_display}</span>
         <span style='flex:1.2;color:#e8e8e8;font-size:11px;'>{bet_label or ''} {line_val if line_val is not None else ''} {stat_label}</span>
         <span style='flex:1;color:#b8b8b8;font-size:10px;'>{matchup}</span>
+        {f"<span style='flex:1;color:#9aa0a6;font-size:10px;'>{when_text}</span>" if when_text else ''}
         {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l5_display}</span>" if l5_display else ''}
         {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l10_display}</span>" if l10_display else ''}
         {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{h2h_display}</span>" if h2h_display else ''}
         <span style='min-width:80px;text-align:right;color:#34a853;font-size:10px;'>{confidence_text}</span>
         <span style='min-width:80px;text-align:right;color:#0f9d58;font-size:10px;'>{ev_text}</span>
         <span style='min-width:60px;text-align:right;color:#1a73e8;font-size:10px;'>{odds_text}</span>
+        {f"<span class='pill' style='margin-left:8px;color:#9aa0a6;'>{updated_text}</span>" if updated_text else ''}
     </div>
     {reasoning_html}
     """
@@ -350,33 +945,146 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
     """, unsafe_allow_html=True)
 
     st.markdown(f"<h2>{title} {sport_emojis.get(sport_key,'')}</h2>", unsafe_allow_html=True)
+    # Fallback auto-refresh using meta tag (60s)
+    st.markdown("<meta http-equiv='refresh' content='60'>", unsafe_allow_html=True)
+
+    # Auto-refresh every minute to pick up new scrapes
+    # If a native autorefresh util is available, use it (optional)
+    try:
+        if hasattr(st, 'autorefresh'):
+            st.autorefresh(interval=60_000, key=f"autorefresh_{sport_key}")
+    except Exception:
+        pass
 
     # Controls
     st.sidebar.header("Live Data")
     csv_path = get_effective_csv_path()
     st.sidebar.write(f"CSV path: `{csv_path}`")
+    # Timezone picker (optional)
+    try:
+        from zoneinfo import available_timezones
+        default_tz = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+        st.session_state['user_timezone'] = st.sidebar.text_input('Timezone', value=default_tz, help='IANA TZ, e.g., America/Chicago')
+        os.environ['USER_TIMEZONE'] = st.session_state['user_timezone']
+    except Exception:
+        pass
+    
+    # Cache controls
+    if st.sidebar.button("🔄 Force Refresh Data"):
+        st.cache_data.clear()
+        st.experimental_rerun()
+    
+    if st.sidebar.button("🧹 Clear All Cache"):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.experimental_rerun()
+    
+    # Debug controls
+    show_debug = st.sidebar.checkbox("🔍 Show Debug Info", False)
 
     # Ensure freshness
     interval = int(os.environ.get('AUTO_SCRAPE_INTERVAL_SEC', '60'))
-    ensure_fresh_csv(csv_path, interval)
+    ensure_fresh_csv(csv_path, interval, target_sport=sport_key)
 
     # Load grouped props
     grouped = load_prizepicks_csv_grouped(csv_path)
     items = grouped.get(sport_key, [])
 
-    if not items:
-        st.warning(f"No prop lines available for {title}.")
+    # Apply STRICT validation before rendering
+    validated_items = render_validated_props_for_sport(items, sport_key)
+
+    # Filter out expired/started events (keep only future or now)
+    def _is_future(prop: dict) -> bool:
+        iso = prop.get('event_start_time') or ''
+        if not iso:
+            # If no time info, keep (can't determine)
+            return True
+        try:
+            dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            return dt >= now
+        except Exception:
+            return True
+    validated_items = [p for p in validated_items if _is_future(p)]
+
+    # NHL-specific safety message if any invalid props were detected
+    if sport_key == 'hockey' and items and len(validated_items) < len(items):
+        st.warning("Invalid prop detected—see admin/log for details.")
+
+    # Show debug info if enabled
+    if show_debug:
+        st.sidebar.markdown("### Debug Info")
+        st.sidebar.write(f"Raw props: {len(items)}")
+        st.sidebar.write(f"Validated props: {len(validated_items)}")
+        st.sidebar.write(f"Filtered out: {len(items) - len(validated_items)}")
+        
+        if len(items) != len(validated_items):
+            with st.sidebar.expander("🚫 Filtered Props"):
+                filtered_props = [p for p in items if p not in validated_items]
+                for i, fp in enumerate(filtered_props[:5]):
+                    st.write(f"{i+1}. {fp.get('player_name', 'Unknown')} - {fp.get('stat_type', 'Unknown')} - {fp.get('league', 'Unknown')}")
+
+    if not validated_items:
+        if items:
+            # Some props existed but all were rejected by safety filters
+            st.error("🚫 Invalid prop detected—see admin/log for details.")
+            st.warning(f"All {len(items)} props for {title} failed strict validation checks to prevent cross-sport contamination.")
+            
+            # Show admin info if debug mode is on
+            if show_debug:
+                with st.expander("🔍 Admin Debug - Why props were rejected"):
+                    for i, item in enumerate(items[:3]):
+                        st.text(f"{i+1}. {item.get('player_name', 'Unknown')} - {item.get('stat_type', 'Unknown')} - League: {item.get('league', 'Unknown')} - Team: {item.get('team', 'Unknown')}")
+        else:
+            # No props pulled for this sport at all — do not use mock/merge
+            if sport_key == 'hockey':
+                st.info("ℹ️ Live Hockey props not available. Please try again later.")
+            else:
+                st.info(f"ℹ️ **No {title} props available right now**")
+                st.write("Please check back later for new prop data.")
         return
+
+    # Show filtering stats if any props were removed
+    if len(items) != len(validated_items):
+        st.info(f"📊 Showing {len(validated_items)} validated props (filtered out {len(items) - len(validated_items)} inconsistent props)")
 
     # Build picks using the agent, without logging
     from sport_agents import SportAgent  # type: ignore
     agent = AgentClass()
-    capped = items[:cap]
+    capped = validated_items[:cap]
     picks = agent.make_picks(props_data=capped, log_to_ledger=False)
+
+    # Header: show last updated for transparency
+    # Try to compute most recent Last_Updated across picks, fallback to CSV mtime
+    last_updated_display = ''
+    try:
+        tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo(tz_env)
+        lus = []
+        for p in capped:
+            lu = p.get('last_updated')
+            if lu:
+                try:
+                    lus.append(datetime.fromisoformat(str(lu).replace('Z', '+00:00')))
+                except Exception:
+                    continue
+        if lus:
+            last_dt = max(lus).astimezone(tz)
+            last_updated_display = last_dt.strftime('%-I:%M %p %Z') if hasattr(last_dt, 'strftime') else ''
+        else:
+            # Fallback to file mtime
+            mtime = os.path.getmtime(csv_path)
+            last_dt = datetime.fromtimestamp(mtime, tz)
+            last_updated_display = last_dt.strftime('%-I:%M %p %Z')
+    except Exception:
+        pass
 
     # Render
     st.markdown(
-        f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span></div>",
+        f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span>"
+        + (f"<span class='pill' style='margin-left:12px;background:#222;color:#9aa0a6;'>Updated: {last_updated_display}</span>" if last_updated_display else '')
+        + "</div>",
         unsafe_allow_html=True,
     )
     for p in picks:

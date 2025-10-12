@@ -12,7 +12,8 @@ import statistics
 import numpy as np
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from typing import Dict, List, Optional, Any, Tuple
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
@@ -98,15 +99,23 @@ class PropValueMLModel:
         Args:
             historical_picks: List of historical picks with outcomes
         """
+        # Cold-start tolerant training
+        is_cold_start = False
         if len(historical_picks) < 10:
-            print("⚠️ Insufficient data for ML training (need at least 10 picks)")
-            return
+            print("ℹ️ ML cold-start: sparse historical data (" + str(len(historical_picks)) + " picks). Using heuristics + incremental learning.")
+            is_cold_start = True
         
         # Filter for completed picks only
         completed_picks = [p for p in historical_picks if p.get('outcome') in ['won', 'lost']]
         
         if len(completed_picks) < 5:
-            print("⚠️ Insufficient completed picks for ML training")
+            # Proceed in heuristic-only mode; keep existing weights, compute default metrics
+            print("ℹ️ ML cold-start: insufficient completed picks; retaining baseline weights.")
+            self.training_sample_size = len(completed_picks)
+            self.feature_importance = {}
+            self.model_accuracy = 0.0
+            # Save current model state for consistency
+            self.save_model()
             return
         
         self.training_sample_size = len(completed_picks)
@@ -138,7 +147,9 @@ class PropValueMLModel:
         # Save updated model
         self.save_model()
         
-        print(f"🤖 ML model trained on {self.training_sample_size} picks (accuracy: {self.model_accuracy:.1%})")
+        # Report training status
+        status = "(cold-start) " if is_cold_start else ""
+        print(f"🤖 ML model {status}trained on {self.training_sample_size} picks (accuracy: {self.model_accuracy:.1%})")
     
     def predict_value(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
         """
@@ -318,7 +329,10 @@ class SportAgent(ABC):
         
         # Load historical insights and train ML model on initialization
         self.learn_from_history()
-        self.train_ml_model()
+        if os.getenv('DISABLE_ML_TRAINING_IN_UI') == '1':
+            print(f"ℹ️ Skipping ML training in UI for {self.agent_type} (DISABLE_ML_TRAINING_IN_UI=1)")
+        else:
+            self.train_ml_model()
     
     def train_ml_model(self) -> None:
         """Train the shared ML model using this agent's historical data"""
@@ -374,7 +388,17 @@ class SportAgent(ABC):
 
         # Flexible column detection
         def _cols(df_):
-            m = {'player': None, 'line': None, 'prop': None, 'sport': None, 'league': None, 'game': None}
+            m = {
+                'player': None,
+                'line': None,
+                'prop': None,
+                'sport': None,
+                'league': None,
+                'game': None,
+                'game_date': None,
+                'game_time': None,
+                'last_updated': None,
+            }
             for c in df_.columns:
                 lc = str(c).strip().lower()
                 if lc in ['name', 'player', 'player_name']:
@@ -389,6 +413,12 @@ class SportAgent(ABC):
                     m['league'] = c
                 elif lc in ['game', 'matchup']:
                     m['game'] = c
+                elif lc == 'game_date':
+                    m['game_date'] = c
+                elif lc == 'game_time':
+                    m['game_time'] = c
+                elif lc == 'last_updated':
+                    m['last_updated'] = c
             return m
 
         cols = _cols(df)
@@ -440,6 +470,21 @@ class SportAgent(ABC):
             except Exception:
                 return None
 
+        def _parse_event_start(game_date: str, game_time_et: str) -> str:
+            try:
+                if not (game_date and game_time_et):
+                    return ''
+                t = str(game_time_et).replace('ET', '').strip()
+                # Prefer 12-hour clock, fallback to 24-hour
+                try:
+                    dt_local = datetime.strptime(f"{game_date} {t}", "%Y-%m-%d %I:%M %p")
+                except Exception:
+                    dt_local = datetime.strptime(f"{game_date} {t}", "%Y-%m-%d %H:%M")
+                dt_et = dt_local.replace(tzinfo=ZoneInfo('America/New_York'))
+                return dt_et.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+            except Exception:
+                return ''
+
         def _map(row):
             player_name = str(row.get(cols['player'], '')).strip()
             line_val = _to_float(row.get(cols['line'])) if cols['line'] else None
@@ -447,6 +492,10 @@ class SportAgent(ABC):
             sport_raw = row.get(cols['sport']) or row.get(cols['league'])
             game_val = str(row.get(cols['game'], '')).strip() if cols['game'] else ''
             sport_norm = _norm_sport(sport_raw)
+            game_date = str(row.get(cols['game_date'], '')).strip() if cols['game_date'] else ''
+            game_time_et = str(row.get(cols['game_time'], '')).strip() if cols['game_time'] else ''
+            last_updated = str(row.get(cols['last_updated'], '')).strip() if cols['last_updated'] else ''
+            event_start = _parse_event_start(game_date, game_time_et)
             return {
                 'game_id': f"pp_{hash((player_name, stat_raw, line_val, game_val)) & 0xffffffff}",
                 'sport': sport_norm,
@@ -454,7 +503,10 @@ class SportAgent(ABC):
                 'stat_type': stat_raw,
                 'line': line_val,
                 'odds': -110,
-                'event_start_time': '',
+                'event_start_time': event_start,
+                'event_date': game_date,
+                'event_time_et': game_time_et,
+                'last_updated': last_updated,
                 'matchup': game_val,
                 'sportsbook': 'PrizePicks',
                 'confidence': 70.0,
@@ -500,9 +552,8 @@ class SportAgent(ABC):
         self.props_data = props_data
         picks = []
         
-        # Update learning insights and retrain ML model before making picks
+        # Update learning insights; training already handled in __init__ or controlled by env
         self.learn_from_history()
-        self.train_ml_model()
         
         for prop in props_data:
             pick = self._analyze_prop_and_make_pick(prop)

@@ -11,6 +11,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from cfb_to_nfl_mapping import get_nfl_info
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 
 API_URL = "https://api.prizepicks.com/projections"
@@ -119,37 +121,80 @@ def fetch_prizepicks_api(sport: str = None, league_id: str = None) -> List[Dict]
                                 if nfl_info:
                                     league, team = nfl_info  # Force to NFL/team
 
-                                    # Extract matchup information from game relationship
-                                    matchup = "TBD vs TBD"
-                                    home_team = ""
-                                    away_team = ""
-                                
-                                    try:
-                                        game_rel = proj.get("relationships", {}).get("game", {}).get("data", {})
-                                        if game_rel and game_rel.get("id"):
-                                            game_id = game_rel["id"]
-                                            game_obj = included.get(game_id)
+                                # Extract matchup information from game relationship
+                                matchup = "TBD vs TBD"
+                                home_team = ""
+                                away_team = ""
+                                game_date = ""
+                                game_time = ""
+                            
+                                try:
+                                    game_rel = proj.get("relationships", {}).get("game", {}).get("data", {})
+                                    if game_rel and game_rel.get("id"):
+                                        game_id = game_rel["id"]
+                                        game_obj = included.get(game_id)
+                                    
+                                        if game_obj and game_obj.get("type") == "game":
+                                            game_info = game_obj.get("attributes", {}).get("metadata", {}).get("game_info", {})
+                                            teams = game_info.get("teams", {})
+                                            # Attempt to parse a start time from attributes or metadata
+                                            start_raw = (
+                                                game_obj.get("attributes", {}).get("start_time")
+                                                or game_obj.get("attributes", {}).get("start_at")
+                                                or game_obj.get("attributes", {}).get("scheduled_for")
+                                                or game_obj.get("attributes", {}).get("commence_time")
+                                                or game_info.get("start_time")
+                                                or game_info.get("game_time")
+                                                or game_info.get("scheduled")
+                                            )
+                                            try:
+                                                dt = None
+                                                if isinstance(start_raw, (int, float)):
+                                                    dt = datetime.fromtimestamp(float(start_raw), tz=timezone.utc)
+                                                elif isinstance(start_raw, str) and start_raw:
+                                                    s = start_raw.strip()
+                                                    if s.endswith('Z'):
+                                                        s = s.replace('Z', '+00:00')
+                                                    try:
+                                                        dt = datetime.fromisoformat(s)
+                                                        if dt.tzinfo is None:
+                                                            dt = dt.replace(tzinfo=timezone.utc)
+                                                    except Exception:
+                                                        dt = None
+                                                if dt is not None:
+                                                    et = dt.astimezone(ZoneInfo('America/New_York'))
+                                                    game_date = et.strftime('%Y-%m-%d')
+                                                    game_time = et.strftime('%-I:%M %p ET')
+                                            except Exception:
+                                                pass
                                         
-                                            if game_obj:
-                                                game_info = game_obj.get("attributes", {}).get("metadata", {}).get("game_info", {})
-                                                teams = game_info.get("teams", {})
-                                            
-                                                home_info = teams.get("home", {})
-                                                away_info = teams.get("away", {})
-                                            
-                                                home_team = home_info.get("name") or home_info.get("abbreviation", "")
-                                                away_team = away_info.get("name") or away_info.get("abbreviation", "")
-                                            
-                                                if home_team and away_team:
-                                                    matchup = f"{away_team} @ {home_team}"
-                                                elif home_team or away_team:
-                                                    # For individual sports like tennis, use vs format
-                                                    player_team = team if team else (home_team or away_team)
-                                                    opponent = away_team if home_team == player_team else home_team
-                                                    if opponent and player_team != opponent:
-                                                        matchup = f"{player_team} vs {opponent}"
-                                    except Exception:
-                                        pass  # Keep default "TBD vs TBD" if extraction fails
+                                            home_info = teams.get("home", {})
+                                            away_info = teams.get("away", {})
+                                        
+                                            home_team = home_info.get("name") or home_info.get("abbreviation", "")
+                                            away_team = away_info.get("name") or away_info.get("abbreviation", "")
+                                        
+                                            if home_team and away_team:
+                                                matchup = f"{away_team} @ {home_team}"
+                                            elif home_team or away_team:
+                                                # For individual sports like tennis, use vs format
+                                                player_team = team if team else (home_team or away_team)
+                                                opponent = away_team if home_team == player_team else home_team
+                                                if opponent and player_team != opponent:
+                                                    matchup = f"{player_team} vs {opponent}"
+                                        else:
+                                            # Game object exists but no team info - fallback
+                                            matchup = "TBD vs TBD"
+                                    else:
+                                        # No game relationship - use team info if available
+                                        if team:
+                                            matchup = f"{team} vs TBD"
+                                except Exception:
+                                    # Fallback: use team info if available
+                                    if team:
+                                        matchup = f"{team} vs TBD"
+                                    else:
+                                        matchup = "TBD vs TBD"
 
                                 items.append({
                                     "Name": player_name,
@@ -160,6 +205,9 @@ def fetch_prizepicks_api(sport: str = None, league_id: str = None) -> List[Dict]
                                         "Matchup": matchup,
                                         "Home_Team": home_team,
                                         "Away_Team": away_team,
+                                        "Game_Date": game_date,
+                                        "Game_Time": game_time,
+                                        "Last_Updated": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace('+00:00','Z'),
                                 })
                             except Exception:
                                 continue
@@ -294,6 +342,8 @@ def fetch_prizepicks_playwright() -> List[Dict]:
                             matchup = "TBD vs TBD"
                             home_team = ""
                             away_team = ""
+                            game_date = ""
+                            game_time = ""
                         
                             try:
                                 game_rel = proj.get("relationships", {}).get("game", {}).get("data", {})
@@ -301,9 +351,39 @@ def fetch_prizepicks_playwright() -> List[Dict]:
                                     game_id = game_rel["id"]
                                     game_obj = included.get(game_id)
                                 
-                                    if game_obj:
+                                    if game_obj and game_obj.get("type") == "game":
                                         game_info = game_obj.get("attributes", {}).get("metadata", {}).get("game_info", {})
                                         teams = game_info.get("teams", {})
+
+                                        start_raw = (
+                                            game_obj.get("attributes", {}).get("start_time")
+                                            or game_obj.get("attributes", {}).get("start_at")
+                                            or game_obj.get("attributes", {}).get("scheduled_for")
+                                            or game_obj.get("attributes", {}).get("commence_time")
+                                            or game_info.get("start_time")
+                                            or game_info.get("game_time")
+                                            or game_info.get("scheduled")
+                                        )
+                                        try:
+                                            dt = None
+                                            if isinstance(start_raw, (int, float)):
+                                                dt = datetime.fromtimestamp(float(start_raw), tz=timezone.utc)
+                                            elif isinstance(start_raw, str) and start_raw:
+                                                s = start_raw.strip()
+                                                if s.endswith('Z'):
+                                                    s = s.replace('Z', '+00:00')
+                                                try:
+                                                    dt = datetime.fromisoformat(s)
+                                                    if dt.tzinfo is None:
+                                                        dt = dt.replace(tzinfo=timezone.utc)
+                                                except Exception:
+                                                    dt = None
+                                            if dt is not None:
+                                                et = dt.astimezone(ZoneInfo('America/New_York'))
+                                                game_date = et.strftime('%Y-%m-%d')
+                                                game_time = et.strftime('%-I:%M %p ET')
+                                        except Exception:
+                                            pass
                                     
                                         home_info = teams.get("home", {})
                                         away_info = teams.get("away", {})
@@ -319,8 +399,19 @@ def fetch_prizepicks_playwright() -> List[Dict]:
                                             opponent = away_team if home_team == player_team else home_team
                                             if opponent and player_team != opponent:
                                                 matchup = f"{player_team} vs {opponent}"
+                                    else:
+                                        # Game object exists but no team info - fallback
+                                        matchup = "TBD vs TBD"
+                                else:
+                                    # No game relationship - use team info if available
+                                    if team:
+                                        matchup = f"{team} vs TBD"
                             except Exception:
-                                pass  # Keep default "TBD vs TBD" if extraction fails
+                                # Fallback: use team info if available
+                                if team:
+                                    matchup = f"{team} vs TBD"
+                                else:
+                                    matchup = "TBD vs TBD"
 
                         items.append({
                             "Name": player_name,
@@ -331,6 +422,9 @@ def fetch_prizepicks_playwright() -> List[Dict]:
                                 "Matchup": matchup,
                                 "Home_Team": home_team,
                                 "Away_Team": away_team,
+                                "Game_Date": game_date,
+                                "Game_Time": game_time,
+                                "Last_Updated": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace('+00:00','Z'),
                         })
                     except Exception:
                         continue
@@ -497,7 +591,11 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
             for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
                 if col not in df.columns:
                     df[col] = ""
-            df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]]
+            # Ensure new columns exist
+            for col in ["Game_Date","Game_Time","Last_Updated"]:
+                if col not in df.columns:
+                    df[col] = ""
+            df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team", "Game_Date", "Game_Time", "Last_Updated"]]
             df.to_csv(output_csv, index=False)
             return True
         return False
@@ -517,12 +615,14 @@ def fallback_to_test_data(output_csv: str) -> bool:
 
 def main():
     output_csv = os.environ.get("PRIZEPICKS_CSV", "prizepicks_props.csv")
+    # Optional sport hint to scope the query tightly
+    sport_hint = os.environ.get("PRIZEPICKS_SPORT_PARAM") or None
     
     print("🎯 Starting PrizePicks scraper with bypass techniques...")
     
     # Strategy 1: Enhanced API approach with multiple endpoints
     print("📡 Trying enhanced API approach...")
-    items = fetch_prizepicks_api()
+    items = fetch_prizepicks_api(sport=sport_hint)
     if items:
         print(f"✅ API success! Found {len(items)} props")
     else:
@@ -575,6 +675,10 @@ def main():
         
         # Write atomically to avoid partial reads while the app is auto-refreshing
         tmp_path = f"{output_csv}.tmp"
+        # Ensure new columns exist
+        for col in ["Game_Date","Game_Time","Last_Updated"]:
+            if col not in df.columns:
+                df[col] = ""
         df.to_csv(tmp_path, index=False)
         try:
             os.replace(tmp_path, output_csv)
