@@ -170,6 +170,7 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
     prop_col = cols.get('prop')
     sport_col = cols.get('sport')
     league_col = cols.get('league')
+    team_col = cols.get('team')
     game_col = cols.get('game')
 
     for _, row in df.iterrows():
@@ -191,7 +192,7 @@ def _load_grouped_cached(csv_path: str, mtime: float) -> Dict[str, List[dict]]:
 
         prop = {
             'player_name': player_name,
-            'team': '',
+            'team': (row.get(team_col, '') if team_col else ''),
             'pick': stat_type,
             'stat_type': stat_type.lower(),
             'line': line,
@@ -243,9 +244,44 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
     confidence = pick.get('confidence', 0)
     edge = pick.get('ml_edge') or pick.get('expected_value', 0) / 100.0
     odds = pick.get('odds', -110)
-    l5_display = f"L5 {pick.get('l5_average','-')}"
-    l10_display = f"L10 {pick.get('avg_l10','-')}"
-    h2h_display = f"H2H {pick.get('h2h','-')}"
+    l5_display = f"L5 {pick.get('l5_average','-')}" if pick.get('l5_average') is not None else ""
+    l10_display = f"L10 {pick.get('avg_l10','-')}" if pick.get('avg_l10') is not None else ""
+    h2h_display = f"H2H {pick.get('h2h','-')}" if pick.get('h2h') is not None else ""
+    
+    # Add PrizePicks classification display
+    prizepicks_class = pick.get('prizepicks_classification', '')
+    classification_text = ''
+    
+    if isinstance(prizepicks_class, dict):
+        # Handle dict format: {'classification': 'DISCOUNT 💰', 'emoji': '💰', ...}
+        classification_text = prizepicks_class.get('classification', '')
+    elif isinstance(prizepicks_class, str):
+        # Handle string format: 'DISCOUNT 💰'
+        classification_text = prizepicks_class
+    else:
+        # Handle any other format by converting to string
+        classification_text = str(prizepicks_class) if prizepicks_class else ''
+    
+    # Clean up any potential HTML encoding issues
+    classification_text = classification_text.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    
+    # Fallback if no classification found - generate one based on confidence
+    if not classification_text:
+        conf = pick.get('confidence', 0)
+        if conf >= 85:
+            classification_text = 'DEMON 👹'
+        elif conf >= 75:
+            classification_text = 'DISCOUNT 💰'
+        elif conf >= 65:
+            classification_text = 'DECENT ✅'
+        else:
+            classification_text = 'GOBLIN 👺'
+    
+    # Use plain text badges instead of HTML to avoid escaping issues
+    type_display = f" [{classification_text}]" if classification_text else ""
+    confidence_text = f"[Conf {confidence:.0f}%]"
+    ev_text = f"[EV +{edge*100:.1f}%]" if edge and edge > 0 else ""
+    odds_text = f"[-{abs(int(odds))}]" if isinstance(odds, (int, float)) else ""
 
     reasoning_html = ''
     if st.session_state.get('show_reasoning') and pick.get('detailed_reasoning'):
@@ -276,15 +312,15 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
     return f"""
     <div class='prop-row' style='display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #222;font-size:11px;'>
         <span style='width:20px;text-align:center;font-size:14px;'>{sport_emoji}</span>
-        <span style='flex:1.5;font-weight:600;color:#fff;font-size:12px;'>{player_name}</span>
+        <span style='flex:1.5;font-weight:600;color:#fff;font-size:12px;'>{player_name}{type_display}</span>
         <span style='flex:1.2;color:#e8e8e8;font-size:11px;'>{bet_label or ''} {line_val if line_val is not None else ''} {stat_label}</span>
         <span style='flex:1;color:#b8b8b8;font-size:10px;'>{matchup}</span>
-        <span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l5_display}</span>
-        <span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l10_display}</span>
-        <span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{h2h_display}</span>
-        <span style='min-width:50px;text-align:right;'><span class='pill badge-high' style='font-size:9px;padding:2px 6px;'>Conf {confidence:.0f}%</span></span>
-        <span style='min-width:50px;text-align:right;'>{f"<span class='pill pill-edge' style='font-size:9px;padding:2px 6px;'>EV +{edge*100:.1f}%</span>" if edge and edge > 0 else ''}</span>
-        <span style='min-width:40px;text-align:right;'>{f"<span class='pill pill-odds' style='font-size:9px;padding:2px 6px;'>-{abs(int(odds))}</span>" if isinstance(odds, (int, float)) else ''}</span>
+        {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l5_display}</span>" if l5_display else ''}
+        {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{l10_display}</span>" if l10_display else ''}
+        {f"<span style='flex:0.6;color:#9aa0a6;font-size:10px;'>{h2h_display}</span>" if h2h_display else ''}
+        <span style='min-width:80px;text-align:right;color:#34a853;font-size:10px;'>{confidence_text}</span>
+        <span style='min-width:80px;text-align:right;color:#0f9d58;font-size:10px;'>{ev_text}</span>
+        <span style='min-width:60px;text-align:right;color:#1a73e8;font-size:10px;'>{odds_text}</span>
     </div>
     {reasoning_html}
     """
@@ -332,7 +368,6 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span></div>",
         unsafe_allow_html=True,
     )
-    rows = []
     for p in picks:
-        rows.append(render_prop_row_html(p, sport_emojis.get(sport_key, '')))
-    st.markdown("\n".join(rows), unsafe_allow_html=True)
+        html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
+        st.markdown(html_row, unsafe_allow_html=True)

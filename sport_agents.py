@@ -354,80 +354,133 @@ class SportAgent(ABC):
     
     def fetch_props(self, max_props: int = 50) -> List[Dict]:
         """
-        Fetch props data for the sport by merging multiple providers.
-        Sources:
-        - Internal mock generator (existing behavior)
-        - PrizePicks provider
-        - Underdog provider
-        - PrizePicks CSV data and automated scraping
+        Fetch props exclusively from PrizePicks board (CSV produced by the scraper).
 
-        Args:
-            max_props (int): Maximum number of props to fetch
-
-        Returns:
-            List[Dict]: Combined props list
+        - No mock props. No alternate providers. Strictly PrizePicks-displayed lines.
+        - Reads CSV from PRIZEPICKS_CSV env var or 'prizepicks_props.csv'.
+        - Returns only rows that map to this agent's sport.
         """
-        # Attempt to import provider fetchers (optional dependency)
+        import os
+        import pandas as pd
+
+        csv_path = os.environ.get('PRIZEPICKS_CSV', 'prizepicks_props.csv')
+        if not os.path.exists(csv_path):
+            return []
+
         try:
-            from props_data_fetcher import fetch_prizepicks_props, fetch_underdog_props
+            df = pd.read_csv(csv_path)
         except Exception:
-            fetch_prizepicks_props = None
-            fetch_underdog_props = None
+            return []
 
-        # Load PrizePicks CSV data directly if available
-        try:
-            from props_data_fetcher import PropsDataFetcher
-            _props_fetcher = PropsDataFetcher()
-        except Exception:
-            _props_fetcher = None
+        # Flexible column detection
+        def _cols(df_):
+            m = {'player': None, 'line': None, 'prop': None, 'sport': None, 'league': None, 'game': None}
+            for c in df_.columns:
+                lc = str(c).strip().lower()
+                if lc in ['name', 'player', 'player_name']:
+                    m['player'] = c
+                elif lc in ['points', 'line', 'value']:
+                    m['line'] = c
+                elif lc in ['prop', 'stat', 'type']:
+                    m['prop'] = c
+                elif lc in ['sport', 'category']:
+                    m['sport'] = c
+                elif lc == 'league':
+                    m['league'] = c
+                elif lc in ['game', 'matchup']:
+                    m['game'] = c
+            return m
 
-        combined: List[Dict] = []
+        cols = _cols(df)
 
-        # 1) Existing mock props
-        try:
-            combined.extend(self._generate_mock_props(max_props))
-        except Exception:
-            pass
+        sport_key = self.sport_name.lower()
 
-        # 2) PrizePicks
-        if fetch_prizepicks_props is not None:
+        # If CSV doesn't carry sport/league metadata, reuse the UI's grouping logic
+        if not cols['sport'] and not cols['league']:
             try:
-                combined.extend(fetch_prizepicks_props(self.sport_name))
+                from page_utils import load_prizepicks_csv_grouped
+                grouped = load_prizepicks_csv_grouped(csv_path)
+                props = grouped.get(sport_key, [])
+                # Ensure standard fields
+                for p in props:
+                    p.setdefault('sportsbook', 'PrizePicks')
+                    p.setdefault('odds', -110)
+                    p.setdefault('confidence', 70.0)
+                    p.setdefault('expected_value', 0.0)
+                if max_props and len(props) > max_props:
+                    props = props[:max_props]
+                return props
             except Exception:
+                # Fall through to stat-only parsing below
                 pass
 
-        # 3) Underdog
-        if fetch_underdog_props is not None:
+        def _norm_sport(val: str) -> str:
+            s = str(val or '').strip().lower()
+            aliases = {
+                'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
+                'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
+                'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
+                'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
+                'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
+                'valorant': 'valorant', 'dota2': 'dota2', 'dota 2': 'dota2',
+                'overwatch': 'overwatch', 'rocket league': 'rocket_league', 'rocket_league': 'rocket_league',
+            }
+            return aliases.get(s, s)
+
+        def _to_float(val):
+            if val is None:
+                return None
             try:
-                combined.extend(fetch_underdog_props(self.sport_name))
+                s = str(val).strip()
+                if not s:
+                    return None
+                # Remove common noise like '+' signs
+                s = s.replace('+', '')
+                return float(s)
             except Exception:
-                pass
+                return None
 
-        # 4) Real props from PrizePicks CSV data
-        if _props_fetcher is not None:
-            try:
-                real_props = _props_fetcher.fetch_all_props(max_props=max(200, max_props))
-                # Filter to this agent's sport
-                sport_lower = self.sport_name.lower()
-                real_props = [p for p in real_props if str(p.get('sport', '')).lower() == sport_lower]
-                combined.extend(real_props)
-            except Exception:
-                pass
+        def _map(row):
+            player_name = str(row.get(cols['player'], '')).strip()
+            line_val = _to_float(row.get(cols['line'])) if cols['line'] else None
+            stat_raw = str(row.get(cols['prop'], '')).strip().lower()
+            sport_raw = row.get(cols['sport']) or row.get(cols['league'])
+            game_val = str(row.get(cols['game'], '')).strip() if cols['game'] else ''
+            sport_norm = _norm_sport(sport_raw)
+            return {
+                'game_id': f"pp_{hash((player_name, stat_raw, line_val, game_val)) & 0xffffffff}",
+                'sport': sport_norm,
+                'player_name': player_name,
+                'stat_type': stat_raw,
+                'line': line_val,
+                'odds': -110,
+                'event_start_time': '',
+                'matchup': game_val,
+                'sportsbook': 'PrizePicks',
+                'confidence': 70.0,
+                'expected_value': 0.0,
+            }
 
-        # Limit to max_props while keeping variety: interleave chunks
-        if max_props and len(combined) > max_props:
-            step = max(1, len(combined) // max_props)
-            combined = [combined[i] for i in range(0, len(combined), step)][:max_props]
+        props = []
+        for _, r in df.iterrows():
+            item = _map(r)
+            # Require a numeric line to avoid downstream issues
+            if item.get('line') is None:
+                continue
+            props.append(item)
+        # Filter by this agent's sport
+        props = [p for p in props if p.get('sport') == sport_key]
+        if max_props and len(props) > max_props:
+            props = props[:max_props]
 
-        return combined
+        return props
     
-    @abstractmethod
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         """
-        Generate mock props data specific to the sport
-        Must be implemented by each sport agent
+        Deprecated: Mock props generation is disabled.
+        Agents must use PrizePicks props via fetch_props().
         """
-        pass
+        return []
     
     def make_picks(self, props_data: Optional[List[Dict]] = None, log_to_ledger: bool = True) -> List[Dict]:
         """
@@ -592,6 +645,7 @@ class SportAgent(ABC):
             'sportsbook': prop.get('sportsbook', 'Multiple'),
             'reasoning': detailed_reasoning['summary'],
             'detailed_reasoning': detailed_reasoning,
+            'prizepicks_classification': detailed_reasoning.get('prizepicks_classification', {}),
             'expected_value': round(expected_value, 2),
             'analysis_factors': analysis_factors,
             'bet_amount': self._calculate_bet_size(confidence, expected_value)
@@ -1014,10 +1068,106 @@ class SportAgent(ABC):
         
         return base_decision
     
+    def _classify_pick_with_prizepicks_terms(self, prop: Dict, confidence: float, line_value_edge: float, over_under: str) -> Dict[str, str]:
+        """
+        Classify picks using PrizePicks terminology (demon, goblin, discount, etc.)
+        
+        Returns:
+            Dict with 'classification', 'emoji', and 'description'
+        """
+        line = prop.get('line', 0)
+        stat = prop.get('stat_type', 'stat')
+        player = prop.get('player_name', 'Player')
+        
+        # PrizePicks classification logic
+        if confidence >= 85:
+            if line_value_edge > 0.15:
+                demon_terms = [
+                    f'Elite play - {player} {over_under} {line} {stat} is a demon lock',
+                    f'Absolute unit - {player} {over_under} {line} {stat} demon mode',
+                    f'Free money - {player} {over_under} {line} {stat} is cooked'
+                ]
+                return {
+                    'classification': 'DEMON 👹',
+                    'emoji': '👹',
+                    'description': random.choice(demon_terms)
+                }
+            else:
+                lock_terms = [
+                    f'High confidence lock on {player} {over_under} {line} {stat}',
+                    f'Bank it - {player} {over_under} {line} {stat} locked',
+                    f'Chalk play - {player} {over_under} {line} {stat} easy'
+                ]
+                return {
+                    'classification': 'LOCK 🔒',
+                    'emoji': '🔒', 
+                    'description': random.choice(lock_terms)
+                }
+        elif confidence >= 75:
+            if line_value_edge > 0.10:
+                discount_terms = [
+                    f'Great value - {player} {over_under} {line} {stat} at a discount',
+                    f'Steal alert - {player} {over_under} {line} {stat} undervalued',
+                    f'Line error - {player} {over_under} {line} {stat} free money'
+                ]
+                return {
+                    'classification': 'DISCOUNT 💰',
+                    'emoji': '💰',
+                    'description': random.choice(discount_terms)
+                }
+            else:
+                solid_terms = [
+                    f'Solid pick on {player} {over_under} {line} {stat}',
+                    f'Good spot - {player} {over_under} {line} {stat}',
+                    f'Core play - {player} {over_under} {line} {stat}'
+                ]
+                return {
+                    'classification': 'SOLID 💪',
+                    'emoji': '💪',
+                    'description': random.choice(solid_terms)
+                }
+        elif confidence >= 65:
+            # Check if it's a Tuesday for "Taco Tuesday" reference
+            is_tuesday = datetime.now().weekday() == 1
+            if is_tuesday:
+                tuesday_terms = [
+                    f'Taco Tuesday special - {player} {over_under} {line} {stat}',
+                    f'Tuesday vibes - {player} {over_under} {line} {stat} hits different',
+                    f'Taco time - {player} {over_under} {line} {stat} spicy play'
+                ]
+                return {
+                    'classification': 'TACO TUESDAY 🌮',
+                    'emoji': '🌮',
+                    'description': random.choice(tuesday_terms)
+                }
+            else:
+                decent_terms = [
+                    f'Decent spot for {player} {over_under} {line} {stat}',
+                    f'Playable - {player} {over_under} {line} {stat}',
+                    f'Worth a look - {player} {over_under} {line} {stat}'
+                ]
+                return {
+                    'classification': 'DECENT ✅',
+                    'emoji': '✅',
+                    'description': random.choice(decent_terms)
+                }
+        else:
+            # Lower confidence picks get goblin treatment
+            goblin_terms = [
+                f'Goblin mode - risky but {player} {over_under} {line} {stat} could hit',
+                f'Sweat play - {player} {over_under} {line} {stat} sketchy but possible',
+                f'Degenerate special - {player} {over_under} {line} {stat} pray'
+            ]
+            return {
+                'classification': 'GOBLIN 👺',
+                'emoji': '👺',
+                'description': random.choice(goblin_terms)
+            }
+
     def _generate_detailed_reasoning(self, prop: Dict, analysis_factors: Dict, 
                                    over_under: str, confidence: float) -> Dict[str, Any]:
         """
-        Generate comprehensive reasoning for the pick
+        Generate comprehensive reasoning for the pick using PrizePicks terminology
         """
         player = prop.get('player_name', 'Player')
         stat = prop.get('stat_type', 'stat')
@@ -1030,44 +1180,58 @@ class SportAgent(ABC):
         injury = analysis_factors.get('injury_impact', {})
         line_value = analysis_factors.get('line_value', {})
         
-        # Build detailed reasoning
+        # Get PrizePicks classification
+        line_edge = line_value.get('edge', 0)
+        pp_classification = self._classify_pick_with_prizepicks_terms(prop, confidence, line_edge, over_under)
+        
+        # Build detailed reasoning with PrizePicks flavor
         summary_parts = []
         
-        # Main pick reasoning
-        if over_under == 'over':
-            summary_parts.append(f"{player} to exceed {line} {stat}")
-        else:
-            summary_parts.append(f"{player} to stay under {line} {stat}")
+        # Start with PrizePicks classification
+        summary_parts.append(pp_classification['description'])
         
-        # Key supporting factors
-        if player_form.get('score', 5) > 6:
-            summary_parts.append(f"Strong form ({player_form.get('form_trend', 'stable')})")
+        # Add supporting factors with PrizePicks terminology
+        if player_form.get('score', 5) > 7:
+            form_terms = ['Player is cooking 🔥', 'This guy is dialed in 🎯', 'Player locked in 💪']
+            summary_parts.append(random.choice(form_terms))
+        elif player_form.get('score', 5) < 4:
+            bad_form_terms = ['Player struggling lately 📉', 'Cold streak vibes ❄️', 'Player not it right now 🚫']
+            summary_parts.append(random.choice(bad_form_terms))
         
-        if matchup.get('score', 5) > 6:
-            summary_parts.append("Favorable matchup")
+        if matchup.get('score', 5) > 7:
+            matchup_terms = ['Smash spot matchup 💥', 'Perfect setup 🎪', 'Get up game 🚀', 'Cupcake matchup 🧁']
+            summary_parts.append(random.choice(matchup_terms))
         elif matchup.get('score', 5) < 4:
-            summary_parts.append("Challenging matchup supports under")
+            tough_terms = ['Tough matchup but fade the public 🚫', 'Chalk spot avoid 🚮', 'Sweat incoming 😰']
+            summary_parts.append(random.choice(tough_terms))
         
         if hist_perf.get('score', 5) > 6:
-            summary_parts.append("Historical trends support pick")
+            hist_terms = ['History backs this play 📊', 'Numbers dont lie 📈', 'Trend is your friend 🤝']
+            summary_parts.append(random.choice(hist_terms))
         
-        if line_value.get('edge', 0) > 0.05:
-            summary_parts.append("Positive expected value")
+        if line_edge > 0.15:
+            value_terms = ['Line is cooked - hammer this 🔨', 'Sportsbook sleeping 😴', 'Max bet territory 💰']
+            summary_parts.append(random.choice(value_terms))
+        elif line_edge > 0.08:
+            decent_terms = ['Nice value here 💎', 'Good number 👍', 'Solid spot 💪']
+            summary_parts.append(random.choice(decent_terms))
         
-        # Confidence qualifier
-        if confidence > 80:
-            confidence_desc = "High confidence"
-        elif confidence > 70:
-            confidence_desc = "Good confidence"
-        else:
-            confidence_desc = "Moderate confidence"
+        # Special day references
+        day_of_week = datetime.now().weekday()
+        if day_of_week == 1:  # Tuesday
+            summary_parts.append("Taco Tuesday vibes 🌮")
+        elif day_of_week == 4:  # Friday  
+            summary_parts.append("Friday night lights energy ⚡")
+        elif day_of_week == 6:  # Sunday
+            summary_parts.append("Sunday slate special 🏈")
         
-        summary = f"{summary_parts[0]}. {'. '.join(summary_parts[1:])}. {confidence_desc} pick."
+        summary = ". ".join(summary_parts)
         
         return {
             'summary': summary,
+            'prizepicks_classification': pp_classification,
             'key_factors': summary_parts[1:] if len(summary_parts) > 1 else [],
-            'confidence_level': confidence_desc,
+            'confidence_level': pp_classification['classification'],
             'analysis_breakdown': {
                 'player_form': player_form.get('reasoning', ''),
                 'matchup': matchup.get('reasoning', ''),
@@ -1453,62 +1617,7 @@ class TennisAgent(SportAgent):
         }
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock tennis props with enhanced data"""
-        players = [
-            "Novak Djokovic", "Carlos Alcaraz", "Daniil Medvedev", "Jannik Sinner",
-            "Stefanos Tsitsipas", "Andrey Rublev", "Alexander Zverev", "Holger Rune"
-        ]
-        
-        stat_types = ["games_won", "sets_won", "aces", "double_faults", "break_points_converted"]
-        surfaces = ["hard", "clay", "grass"]
-        
-        props = []
-        
-        for i in range(min(max_props, 20)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            surface = random.choice(surfaces)
-            
-            # Tennis-specific line ranges
-            if stat_type == "games_won":
-                line = generate_half_increment_line(8.5, 15.5)
-            elif stat_type == "sets_won":
-                line = random.choice([1.5, 2.5])
-            elif stat_type == "aces":
-                line = generate_half_increment_line(3.5, 12.5)
-            elif stat_type == "double_faults":
-                line = generate_half_increment_line(1.5, 4.5)
-            else:  # break_points_converted
-                line = generate_half_increment_line(1.5, 5.5)
-            
-            # Tennis-specific enhancements
-            prop = {
-                'game_id': f"tennis_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(1, 48))).isoformat(),
-                'matchup': f"{player} vs {random.choice(players)}",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM']),
-                'recent_form': random.uniform(5, 9),
-                'matchup_difficulty': random.uniform(3, 8),
-                'injury_status': random.choice(['healthy', 'minor knock']),
-                # Tennis-specific factors
-                'surface': surface,
-                'tournament_round': random.choice(['R1', 'R2', 'R3', 'QF', 'SF', 'F']),
-                'match_format': random.choice(['best_of_3', 'best_of_5']),
-                'head_to_head_record': f"{random.randint(0, 5)}-{random.randint(0, 5)}",
-                'surface_win_rate': random.uniform(0.5, 0.8),
-                'serve_stats': {
-                    'first_serve_percentage': random.uniform(0.55, 0.75),
-                    'ace_rate': random.uniform(0.05, 0.15)
-                }
-            }
-            
-            props.append(prop)
-        
-        return props
+        return []
     
     def _analyze_tennis_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze tennis-specific factors"""
@@ -1575,65 +1684,7 @@ class BasketballAgent(SportAgent):
         }
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock basketball props with advanced NBA analytics"""
-        players = [
-            "LeBron James", "Stephen Curry", "Giannis Antetokounmpo", "Luka Doncic",
-            "Jayson Tatum", "Nikola Jokic", "Joel Embiid", "Damian Lillard",
-            "Kawhi Leonard", "Jimmy Butler", "Anthony Davis", "Devin Booker"
-        ]
-        
-        stat_types = ["points", "rebounds", "assists", "steals", "blocks", "threes_made"]
-        props = []
-        
-        for i in range(min(max_props, 25)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Basketball-specific line ranges
-            if stat_type == "points":
-                line = generate_half_increment_line(18.5, 32.5)
-            elif stat_type == "rebounds":
-                line = generate_half_increment_line(5.5, 13.5)
-            elif stat_type == "assists":
-                line = generate_half_increment_line(3.5, 11.5)
-            elif stat_type == "steals":
-                line = generate_half_increment_line(0.5, 2.5)
-            elif stat_type == "blocks":
-                line = generate_half_increment_line(0.5, 2.5)
-            else:  # threes_made
-                line = generate_half_increment_line(1.5, 5.5)
-            
-            # Enhanced NBA analytics
-            prop = {
-                'game_id': f"basketball_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(2, 72))).isoformat(),
-                'matchup': f"{random.choice(['LAL', 'GSW', 'MIL', 'DAL', 'BOS', 'DEN', 'PHI', 'POR'])} vs {random.choice(['LAC', 'MIA', 'PHX', 'BRK', 'NYK'])}",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM', 'Caesars']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': random.choice(['healthy', 'questionable']),
-                # Basketball-specific analytics
-                'minutes_projection': random.uniform(28, 38),
-                'usage_rate': random.uniform(0.18, 0.35),
-                'team_pace': random.uniform(95, 110),
-                'opponent_defense_rating': random.uniform(105, 118),
-                'back_to_back': random.choice([True, False]),
-                'home_away': random.choice(['home', 'away']),
-                'days_rest': random.randint(0, 4),
-                'opponent_stat_allowed': {
-                    'points': random.uniform(20, 30),
-                    'rebounds': random.uniform(8, 12),
-                    'assists': random.uniform(6, 10)
-                }
-            }
-            
-            props.append(prop)
-        
-        return props
+        return []
     
     def _analyze_basketball_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze basketball-specific factors like pace, usage, matchups"""
@@ -1715,59 +1766,7 @@ class FootballAgent(SportAgent):
         }
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock football props with NFL analytics"""
-        players = [
-            "Josh Allen", "Patrick Mahomes", "Lamar Jackson", "Joe Burrow",
-            "Derrick Henry", "Christian McCaffrey", "Travis Kelce", "Tyreek Hill",
-            "Stefon Diggs", "Cooper Kupp", "Aaron Donald", "T.J. Watt"
-        ]
-        
-        stat_types = ["passing_yards", "rushing_yards", "receiving_yards", "touchdowns", "receptions"]
-        props = []
-        
-        for i in range(min(max_props, 20)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Football-specific line ranges
-            if stat_type == "passing_yards":
-                line = generate_half_increment_line(225.5, 325.5)
-            elif stat_type == "rushing_yards":
-                line = generate_half_increment_line(45.5, 125.5)
-            elif stat_type == "receiving_yards":
-                line = generate_half_increment_line(35.5, 95.5)
-            elif stat_type == "touchdowns":
-                line = generate_half_increment_line(0.5, 2.5)
-            else:  # receptions
-                line = generate_half_increment_line(3.5, 8.5)
-            
-            # Enhanced NFL analytics
-            prop = {
-                'game_id': f"football_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(days=random.randint(1, 7))).isoformat(),
-                'matchup': f"{random.choice(['KC', 'BUF', 'CIN', 'DAL', 'SF', 'PHI'])} vs {random.choice(['MIA', 'NYJ', 'LV', 'DEN'])}",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM', 'PointsBet']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(3, 9),
-                'injury_status': random.choice(['healthy', 'questionable', 'probable']),
-                # Football-specific analytics
-                'target_share': random.uniform(0.15, 0.35) if stat_type in ['receiving_yards', 'receptions'] else None,
-                'red_zone_touches': random.randint(1, 8) if stat_type in ['touchdowns', 'rushing_yards'] else None,
-                'opponent_yards_allowed': random.uniform(180, 280),
-                'game_script': random.choice(['passing_game_script', 'rushing_game_script', 'balanced']),
-                'weather_conditions': random.choice(['dome', 'clear', 'wind', 'rain', 'cold']),
-                'vegas_total': random.uniform(42.5, 55.5),
-                'spread': random.uniform(-14, 14),
-                'snap_count_projection': random.uniform(0.65, 0.95)
-            }
-            
-            props.append(prop)
-        
-        return props
+        return []
     
     def _analyze_football_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze football-specific factors"""
@@ -1863,52 +1862,7 @@ class BaseballAgent(SportAgent):
         super().__init__("baseball")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock baseball props"""
-        players = [
-            "Mike Trout", "Aaron Judge", "Ronald Acuna Jr.", "Mookie Betts",
-            "Juan Soto", "Vladimir Guerrero Jr.", "Fernando Tatis Jr.", "Freddie Freeman"
-        ]
-        
-        stat_types = ["hits", "runs", "rbis", "home_runs", "stolen_bases", "strikeouts"]
-        props = []
-        
-        for i in range(min(max_props, 15)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Baseball-specific line ranges
-            if stat_type == "hits":
-                line = generate_half_increment_line(0.5, 2.5)
-            elif stat_type == "runs":
-                line = generate_half_increment_line(0.5, 1.5)
-            elif stat_type == "rbis":
-                line = generate_half_increment_line(0.5, 2.5)
-            elif stat_type == "home_runs":
-                line = generate_half_increment_line(0.5, 1.5)
-            elif stat_type == "stolen_bases":
-                line = generate_half_increment_line(0.5, 1.5)
-            else:  # strikeouts (for pitchers)
-                line = generate_half_increment_line(4.5, 9.5)
-            
-            props.append({
-                'game_id': f"baseball_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 48))).isoformat(),
-                'matchup': f"Team vs Team",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM']),
-                'recent_form': random.uniform(5, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': random.choice(['healthy', 'day-to-day']),
-                # Baseball-specific factors
-                'ballpark_factor': random.uniform(0.85, 1.15),
-                'pitcher_handedness': random.choice(['L', 'R']),
-                'wind_direction': random.choice(['in', 'out', 'cross', 'calm'])
-            })
-        
-        return props
+        return []
 
 
 class HockeyAgent(SportAgent):
@@ -1918,49 +1872,7 @@ class HockeyAgent(SportAgent):
         super().__init__("hockey")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock hockey props"""
-        players = [
-            "Connor McDavid", "Leon Draisaitl", "Nathan MacKinnon", "Erik Karlsson",
-            "David Pastrnak", "Auston Matthews", "Mikko Rantanen", "Alex Ovechkin"
-        ]
-        
-        stat_types = ["goals", "assists", "points", "shots_on_goal", "penalty_minutes"]
-        props = []
-        
-        for i in range(min(max_props, 15)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Hockey-specific line ranges
-            if stat_type == "goals":
-                line = generate_half_increment_line(0.5, 1.5)
-            elif stat_type == "assists":
-                line = generate_half_increment_line(0.5, 2.5)
-            elif stat_type == "points":
-                line = generate_half_increment_line(0.5, 2.5)
-            elif stat_type == "shots_on_goal":
-                line = generate_half_increment_line(2.5, 5.5)
-            else:  # penalty_minutes
-                line = generate_half_increment_line(0.5, 2.5)
-            
-            props.append({
-                'game_id': f"hockey_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(4, 72))).isoformat(),
-                'matchup': f"Team vs Team",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM']),
-                'recent_form': random.uniform(6, 9),
-                'matchup_difficulty': random.uniform(4, 8),
-                'injury_status': random.choice(['healthy', 'upper-body', 'lower-body']),
-                # Hockey-specific factors
-                'pp_time_projection': random.uniform(2, 6),
-                'line_chemistry': random.uniform(0.7, 1.0)
-            })
-        
-        return props
+        return []
 
 
 class SoccerAgent(SportAgent):
@@ -1970,49 +1882,7 @@ class SoccerAgent(SportAgent):
         super().__init__("soccer")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock soccer props"""
-        players = [
-            "Lionel Messi", "Kylian Mbappe", "Erling Haaland", "Mohamed Salah",
-            "Kevin De Bruyne", "Vinicius Jr.", "Harry Kane", "Karim Benzema"
-        ]
-        
-        stat_types = ["goals", "assists", "shots", "shots_on_target", "cards"]
-        props = []
-        
-        for i in range(min(max_props, 15)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # Soccer-specific line ranges
-            if stat_type == "goals":
-                line = generate_half_increment_line(0.5, 1.5)
-            elif stat_type == "assists":
-                line = generate_half_increment_line(0.5, 1.5)
-            elif stat_type == "shots":
-                line = generate_half_increment_line(2.5, 4.5)
-            elif stat_type == "shots_on_target":
-                line = generate_half_increment_line(1.5, 3.5)
-            else:  # cards
-                line = generate_half_increment_line(0.5, 1.5)
-            
-            props.append({
-                'game_id': f"soccer_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(hours=random.randint(12, 168))).isoformat(),
-                'matchup': f"Team vs Team",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM']),
-                'recent_form': random.uniform(5, 9),
-                'matchup_difficulty': random.uniform(3, 9),
-                'injury_status': random.choice(['healthy', 'minor knock']),
-                # Soccer-specific factors
-                'competition': random.choice(['Premier League', 'Champions League', 'La Liga']),
-                'home_away': random.choice(['home', 'away'])
-            })
-        
-        return props
+        return []
 
 
 class EsportsAgent(SportAgent):
@@ -2043,57 +1913,7 @@ class CSGOAgent(EsportsAgent):
         super().__init__("csgo")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate CSGO-specific props restricted to allowed esports prop types"""
-        players = [
-            "s1mple", "ZywOo", "sh1ro", "electronic", "Ax1Le",
-            "nafany", "jks", "stavn", "blameF", "ropz"
-        ]
-        allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'fantasy_points'
-        ]
-        maps = ["Dust2", "Mirage", "Inferno", "Cache", "Overpass", "Vertigo", "Ancient"]
-
-        # Line ranges for allowed stats
-        line_ranges = {
-            'combined_map_1_2_kills': (24.5, 45.5),
-            'combined_map_1_2_headshots': (8.5, 28.5),
-            'fantasy_points': (45.5, 95.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 30):
-            player = random.choice(players)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = generate_half_increment_line(low, high)
-                props.append({
-                    'game_id': f"csgo_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['NAVI', 'G2', 'FaZe', 'Vitality'])} vs {random.choice(['Astralis', 'FURIA', 'NIP', 'Heroic'])}",
-                    'sportsbook': random.choice(['DraftKings', 'Betway', 'GGBET']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # CSGO-specific factors
-                    'map': random.choice(maps),
-                    'side_preference': random.choice(['T', 'CT', 'balanced']),
-                    'team_chemistry': random.uniform(0.6, 1.0),
-                    'recent_map_performance': random.uniform(0.4, 0.8),
-                    'opponent_map_ban_rate': random.uniform(0.1, 0.4)
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze CSGO-specific factors"""
@@ -2148,58 +1968,7 @@ class LeagueOfLegendsAgent(EsportsAgent):
         super().__init__("league_of_legends")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate League of Legends props restricted to allowed esports prop types"""
-        players = [
-            "Faker", "Caps", "Jankos", "Rekkles", "Perkz", "Bjergsen", 
-            "Canyon", "ShowMaker", "Chovy", "Deft", "Gumayusi", "Keria"
-        ]
-        roles = ["Top", "Jungle", "Mid", "ADC", "Support"]
-        allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'combined_map_1_2_assists',
-            'fantasy_points'
-        ]
-        line_ranges = {
-            'combined_map_1_2_kills': (8.5, 24.5),  # aggregated across games
-            'combined_map_1_2_headshots': (3.5, 12.5),  # synthetic for consistency
-            'combined_map_1_2_assists': (12.5, 28.5),
-            'fantasy_points': (20.5, 60.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 30):
-            player = random.choice(players)
-            role = random.choice(roles)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
-                props.append({
-                    'game_id': f"lol_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['T1', 'DK', 'GEN', 'DRX'])} vs {random.choice(['KT', 'LSB', 'HLE', 'BRO'])}",
-                    'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # LoL-specific factors
-                    'role': role,
-                    'champion_pool': random.choice(['meta', 'off-meta', 'comfort']),
-                    'patch_adaptation': random.uniform(0.6, 1.0),
-                    'team_playstyle': random.choice(['aggressive', 'passive', 'balanced']),
-                    'average_game_time': random.uniform(25, 35)
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze League of Legends specific factors"""
@@ -2263,55 +2032,7 @@ class Dota2Agent(EsportsAgent):
         super().__init__("dota2")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Dota 2 props restricted to allowed esports prop types"""
-        players = [
-            "Topson", "Ceb", "N0tail", "ana", "JerAx",
-            "Puppey", "Nisha", "MATUMBAMAN", "zai", "YapzOr"
-        ]
-        positions = ["Position 1", "Position 2", "Position 3", "Position 4", "Position 5"]
-        allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'fantasy_points'
-        ]
-        line_ranges = {
-            'combined_map_1_2_kills': (7.5, 22.5),
-            'combined_map_1_2_headshots': (2.5, 8.5),
-            'fantasy_points': (25.5, 70.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 30):
-            player = random.choice(players)
-            position = random.choice(positions)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
-                props.append({
-                    'game_id': f"dota2_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['OG', 'Secret', 'EG', 'VP'])} vs {random.choice(['Liquid', 'Alliance', 'Nigma', 'NaVi'])}",
-                    'sportsbook': random.choice(['DraftKings', 'Betway', 'GG.Bet']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # Dota 2 specific factors
-                    'position': position,
-                    'hero_pool': random.choice(['meta', 'comfort', 'versatile']),
-                    'draft_priority': random.uniform(0.3, 0.9),
-                    'team_coordination': random.uniform(0.6, 1.0)
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze Dota 2 specific factors"""
@@ -2348,55 +2069,7 @@ class VALORANTAgent(EsportsAgent):
         super().__init__("valorant")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate VALORANT props restricted to allowed esports prop types"""
-        players = [
-            "TenZ", "Sick", "dapr", "ShahZaM", "zombs",
-            "ScreaM", "Nivera", "Jamppi", "soulcas", "L1NK"
-        ]
-        agents = ["Jett", "Reyna", "Phoenix", "Sage", "Cypher", "Sova", "Breach", "Omen"]
-        maps = ["Bind", "Haven", "Split", "Ascent", "Icebox", "Breeze", "Fracture"]
-        allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'fantasy_points'
-        ]
-        line_ranges = {
-            'combined_map_1_2_kills': (22.5, 42.5),
-            'combined_map_1_2_headshots': (6.5, 24.5),
-            'fantasy_points': (40.5, 90.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 30):
-            player = random.choice(players)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
-                props.append({
-                    'game_id': f"valorant_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['SEN', 'TSM', 'C9', 'NV'])} vs {random.choice(['100T', 'FaZe', 'XSET', 'LG'])}",
-                    'sportsbook': random.choice(['DraftKings', 'FanDuel', 'Betway']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # VALORANT specific factors
-                    'agent_pool': random.choice(agents),
-                    'map': random.choice(maps),
-                    'role': random.choice(['Duelist', 'Controller', 'Initiator', 'Sentinel']),
-                    'team_strategy': random.choice(['aggressive', 'tactical', 'adaptive'])
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze VALORANT specific factors"""
@@ -2438,54 +2111,7 @@ class OverwatchAgent(EsportsAgent):
         super().__init__("overwatch")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Overwatch props restricted to allowed esports prop types"""
-        players = [
-            "Profit", "Gesture", "Bdosin", "Fury", "Fleta",
-            "Carpe", "Alarm", "Poko", "EQO", "FunnyAstro"
-        ]
-        roles = ["Tank", "Damage", "Support"]
-        allowed_stats = [
-            'combined_map_1_2_kills',
-            'combined_map_1_2_headshots',
-            'fantasy_points'
-        ]
-        line_ranges = {
-            'combined_map_1_2_kills': (18.5, 38.5),
-            'combined_map_1_2_headshots': (5.5, 18.5),
-            'fantasy_points': (35.5, 85.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 24):
-            player = random.choice(players)
-            role = random.choice(roles)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
-                props.append({
-                    'game_id': f"overwatch_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['London', 'Seoul', 'Philly'])} vs {random.choice(['Dallas', 'SF', 'Boston'])}",
-                    'sportsbook': random.choice(['DraftKings', 'Betway']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # Overwatch specific factors
-                    'role': role,
-                    'hero_flexibility': random.uniform(0.6, 1.0),
-                    'team_synergy': random.uniform(0.7, 1.0)
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze Overwatch specific factors"""
@@ -2521,54 +2147,7 @@ class GolfAgent(SportAgent):
         super().__init__("golf")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate Golf props"""
-        players = [
-            "Tiger Woods", "Rory McIlroy", "Jon Rahm", "Scottie Scheffler", "Viktor Hovland",
-            "Collin Morikawa", "Justin Thomas", "Xander Schauffele", "Patrick Cantlay", "Dustin Johnson"
-        ]
-        allowed_stats = [
-            'total_strokes',
-            'birdies',
-            'eagles',
-            'pars'
-        ]
-        line_ranges = {
-            'total_strokes': (65.5, 75.5),
-            'birdies': (2.5, 8.5),
-            'eagles': (0.5, 2.5),
-            'pars': (8.5, 14.5)
-        }
-
-        props: List[Dict] = []
-        i = 0
-        while len(props) < min(max_props, 24):
-            player = random.choice(players)
-            for stat_type in allowed_stats:
-                if len(props) >= max_props:
-                    break
-                low, high = line_ranges[stat_type]
-                line = round(random.uniform(low, high), 1)
-                props.append({
-                    'game_id': f"golf_{i}",
-                    'player_name': player,
-                    'stat_type': stat_type,
-                    'line': line,
-                    'odds': random.choice([-110, -105, -115, +100, +105]),
-                    'event_start_time': (datetime.now() + timedelta(hours=random.randint(6, 72))).isoformat(),
-                    'matchup': f"{random.choice(['Masters', 'US Open', 'PGA Championship', 'The Open'])}",
-                    'sportsbook': random.choice(['DraftKings', 'Betway']),
-                    'recent_form': random.uniform(6, 9),
-                    'matchup_difficulty': random.uniform(4, 8),
-                    'injury_status': 'healthy',
-                    # Golf specific factors
-                    'driving_accuracy': random.uniform(0.6, 0.9),
-                    'putting_average': random.uniform(1.7, 2.1),
-                    'course_history': random.uniform(0.5, 1.0)
-                })
-                i += 1
-            if len(props) >= max_props:
-                break
-        return props
+        return []
     
     def _analyze_golf_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze Golf specific factors"""
@@ -2611,49 +2190,7 @@ class CollegeFootballAgent(SportAgent):
         super().__init__("college_football")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        """Generate mock college football props"""
-        players = [
-            "Caleb Williams", "Drake Maye", "Bo Nix", "Michael Penix Jr.",
-            "Rome Odunze", "Marvin Harrison Jr.", "Malik Nabers", "Brock Bowers"
-        ]
-        
-        stat_types = ["passing_yards", "rushing_yards", "receiving_yards", "touchdowns", "receptions"]
-        props = []
-        
-        for i in range(min(max_props, 12)):
-            player = random.choice(players)
-            stat_type = random.choice(stat_types)
-            
-            # College football-specific line ranges (generally lower than NFL)
-            if stat_type == "passing_yards":
-                line = generate_half_increment_line(185.5, 285.5)
-            elif stat_type == "rushing_yards":
-                line = generate_half_increment_line(35.5, 105.5)
-            elif stat_type == "receiving_yards":
-                line = generate_half_increment_line(25.5, 85.5)
-            elif stat_type == "touchdowns":
-                line = generate_half_increment_line(0.5, 2.5)
-            else:  # receptions
-                line = generate_half_increment_line(2.5, 7.5)
-            
-            props.append({
-                'game_id': f"college_football_{i}",
-                'player_name': player,
-                'stat_type': stat_type,
-                'line': line,
-                'odds': random.choice([-110, -105, -115, +100, +105]),
-                'event_start_time': (datetime.now() + timedelta(days=random.randint(1, 14))).isoformat(),
-                'matchup': f"University vs University",
-                'sportsbook': random.choice(['DraftKings', 'FanDuel', 'BetMGM']),
-                'recent_form': random.uniform(5, 9),
-                'matchup_difficulty': random.uniform(3, 9),
-                'injury_status': random.choice(['healthy', 'questionable']),
-                # College-specific factors
-                'conference_game': random.choice([True, False]),
-                'rivalry_game': random.choice([True, False])
-            })
-        
-        return props
+        return []
 
 
 # Factory function to create agents

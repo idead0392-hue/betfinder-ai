@@ -210,16 +210,22 @@ def display_sport_picks(sport_name, picks, sport_emoji, sport_key=None):
         
         # Display all rows in a container
         if rows_html:
+            # Check if any picks have historical data to determine if we should show L5/L10/H2H columns
+            has_historical = any(pick.get('l5_average') or pick.get('avg_l10') or pick.get('h2h') for pick in picks[:12] if isinstance(pick, dict))
+            
+            historical_headers = """
+                    <span style='flex:0.6;'>L5</span>
+                    <span style='flex:0.6;'>L10</span>
+                    <span style='flex:0.6;'>H2H</span>""" if has_historical else ""
+            
             full_html = f"""
             <div style='background:#1a1a1a;border-radius:6px;padding:8px;margin:8px 0;'>
                 <div style='display:flex;align-items:center;padding:4px 0;border-bottom:2px solid #333;font-weight:600;color:#aaa;font-size:10px;'>
                     <span style='width:20px;'></span>
                     <span style='flex:1.5;'>PLAYER</span>
                     <span style='flex:1.2;'>BET</span>
-                    <span style='flex:1;'>MATCHUP</span>
-                    <span style='flex:0.6;'>L5</span>
-                    <span style='flex:0.6;'>L10</span>
-                    <span style='flex:0.6;'>H2H</span>
+                    <span style='flex:1;'>MATCHUP</span>{historical_headers}
+                    <span style='min-width:60px;text-align:right;'>TYPE</span>
                     <span style='min-width:50px;text-align:right;'>CONF</span>
                     <span style='min-width:50px;text-align:right;'>EV</span>
                     <span style='min-width:40px;text-align:right;'>ODDS</span>
@@ -427,6 +433,9 @@ else:
 
 # =============== Live Props JSON server (polling by client) ===============
 
+# Bind host is where the HTTP server listens; client host is what we use for in-app probes
+PROPS_BIND_HOST = os.environ.get('PROPS_BIND_HOST', '0.0.0.0')
+PROPS_CLIENT_HOST = os.environ.get('PROPS_CLIENT_HOST', '127.0.0.1')
 PROPS_ENDPOINT_PORT = int(os.environ.get('PROPS_ENDPOINT_PORT', '8765'))
 
 _last_props_payload = {"mtime": 0, "by_sport": {}}
@@ -468,7 +477,7 @@ def _start_props_server():
         return
     def _serve():
         try:
-            httpd = ThreadingHTTPServer(('127.0.0.1', PROPS_ENDPOINT_PORT), PropsRequestHandler)
+            httpd = ThreadingHTTPServer((PROPS_BIND_HOST, PROPS_ENDPOINT_PORT), PropsRequestHandler)
             httpd.serve_forever()
         except Exception:
             pass
@@ -499,7 +508,8 @@ tabs = st.tabs(tab_names)
 def _is_today_pick(pick):
     """Check if a pick is for today's games"""
     try:
-        start_time = pick.get('start_time', '')
+        # Check both 'start_time' and 'event_start_time' fields
+        start_time = pick.get('start_time') or pick.get('event_start_time', '')
         if not start_time:
             return True  # Include picks without explicit time (likely today)
         
@@ -507,10 +517,18 @@ def _is_today_pick(pick):
         from datetime import datetime
         today = datetime.now().date()
         
+        # Handle ISO format first (most common from agents)
+        try:
+            if 'T' in str(start_time):
+                pick_date = datetime.fromisoformat(str(start_time).replace('Z', '+00:00')).date()
+                return pick_date == today
+        except:
+            pass
+        
         # Try common formats
         for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%m/%d/%Y', '%m-%d-%Y']:
             try:
-                pick_date = datetime.strptime(start_time.split()[0], fmt).date()
+                pick_date = datetime.strptime(str(start_time).split()[0], fmt).date()
                 return pick_date == today
             except:
                 continue
@@ -583,13 +601,15 @@ with tabs[0]:
                 stat = fav.get('stat_type', '').title()
                 line = fav.get('line', 'N/A')
                 conf = fav.get('confidence', 0)
-                st.write(f"{emoji} {player} — {stat} {line} • {conf}%")
+                st.markdown(f"{emoji} {player} — {stat} {line} • {conf}%", unsafe_allow_html=True)
     if shown == 0:
-        st.info("No picks available for today's games yet. Agents will contribute their favorites as games are scheduled.")
+        from datetime import datetime
+        today_str = datetime.now().strftime("%B %d, %Y")
+        st.warning(f"⚠️ No props available for today's matchups ({today_str}). All agents are configured to show only today's games.")
     st.markdown("---")
     from datetime import datetime
     today_str = datetime.now().strftime("%B %d, %Y")
-    st.caption(f"Showing today's picks ({today_str}) • Favorites auto-select the highest-confidence pick per agent • Toggle reasoning in sidebar for analysis")
+    st.caption(f"Showing today's picks only ({today_str}) • Favorites auto-select the highest-confidence pick per agent for today's games • Toggle reasoning in sidebar for analysis")
 
 # Load PrizePicks CSV and group props by sport/esport (cached for 5 minutes)
 def load_prizepicks_csv_cached(csv_path: str) -> dict:
@@ -628,7 +648,11 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
         aliases = {
             # Core traditional sports
             'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-            'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
+            'nfl': 'football',
+            # College football aliases
+            'cfb': 'college_football', 'ncaa football': 'college_football', 'ncaaf': 'college_football',
+            'ncaa': 'college_football', 'college football': 'college_football', 'college-football': 'college_football',
+            'ncaa fb': 'college_football', 'ncaa-fb': 'college_football',
             'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
             # Esports titles
             'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
@@ -667,9 +691,9 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             'odds': -110,
             'confidence': 50.0,
             'expected_value': 0.0,
-            'avg_l10': row.get('Avg_L10') or row.get('L10') or 0.0,
-            'l5_average': row.get('L5') or 0.0,
-            'h2h': row.get('H2H') or row.get('h2h') or '',
+            'avg_l10': row.get('Avg_L10') or row.get('L10') or None,
+            'l5_average': row.get('L5') or None,
+            'h2h': row.get('H2H') or row.get('h2h') or None,
             'start_time': '',
             'sport': sport_val or '',
             'league': (league_val or game_val or sport_raw).strip(),
@@ -690,7 +714,11 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             s = str(p['sport']).lower()
             aliases = {
                 'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-                'nfl': 'football', 'cfb': 'college_football',
+                'nfl': 'football',
+                # College football aliases
+                'cfb': 'college_football', 'ncaa football': 'college_football', 'ncaaf': 'college_football',
+                'ncaa': 'college_football', 'college football': 'college_football', 'college-football': 'college_football',
+                'ncaa fb': 'college_football', 'ncaa-fb': 'college_football',
                 'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer',
                 # Esports aliases
                 'lol': 'league_of_legends', 'league of legends': 'league_of_legends', 'league_of_legends': 'league_of_legends',
@@ -707,12 +735,11 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
 
         # 2) NBA/Basketball check
         nba_players = [
-            'stephen curry', 'kevin durant', 'lebron james', 'giannis antetokounmpo', 'james harden',
-            'luka doncic', 'nikola jokic', 'joel embiid', 'jayson tatum', 'anthony davis',
-            'kawhi leonard', 'paul george', 'damian lillard', 'russell westbrook', 'kyrie irving',
-            'jimmy butler', 'bam adebayo', 'donovan mitchell', 'darius garland', 'evan mobley',
-            'karl-anthony towns', 'anthony edwards', 'ja morant', 'jaren jackson jr', 'desmond bane',
-            'shai gilgeous-alexander', 'josh giddey', 'victor wembanyama', 'devin vassell', 'keldon johnson'
+            'stephen curry', 'kevin durant', 'lebron james', 'giannis antetokounmpo', 'luka doncic',
+            'jayson tatum', 'nikola jokic', 'joel embiid', 'anthony edwards', 'victor wembanyama',
+            'shai gilgeous-alexander', 'anthony davis', 'devin booker', 'ja morant', 'paolo banchero',
+            'scottie barnes', 'franz wagner', 'cade cunningham', 'evan mobley', 'jalen green',
+            'alperen sengun', 'tyrese haliburton', 'donovan mitchell', 'darius garland', 'jarrett allen'
         ]
         basketball_stats = [
             'points', 'rebounds', 'assists', 'blocks', 'steals', '3pt made', 'pts+rebs+asts',
@@ -725,10 +752,10 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
 
     # 3) College football vs NFL
         college_players = [
-            'caleb wiliams', 'caleb williams', 'drake maye', 'bo nix', 'michael penix jr', 'rome odunze',
-            'marvin harrison jr', 'malik nabers', 'brock bowers', 'jayden daniels', 'jj mccarthy',
-            'quinn ewers', 'carson beck', 'cam ward', 'dillon gabriel', 'travis hunter',
-            'tetairoa mcmillan', 'ryan williams', 'will howard', 'diego pavia'
+            'quinn ewers', 'carson beck', 'cam ward', 'dillon gabriel', 'jalen milroe',
+            'tyler van dyke', 'travis hunter', 'tetairoa mcmillan', 'ryan williams',
+            'luther burden iii', 'tre harris', 'ashton jeanty', 'will howard',
+            'diego pavia', 'kurtis rourke', 'nico iamaleava', 'garrett nussmeier'
         ]
         football_stats = [
             'pass yards', 'passing yards', 'rush yards', 'rushing yards', 'receiving yards', 'receptions',
@@ -744,20 +771,30 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
         # 4) Esports detection BEFORE hockey/soccer to avoid misclassification
         # Prefer player-name detection across titles, then fall back to stat keywords
         csgo_players = [
-            's1mple', 'niko', 'zywoo', 'm0nesy', 'ropz', 'broky', 'sh1ro', 'device', 'blamef', 'cadian',
-            'twistzz', 'yekindar', 'rain', 'karrigan', 'b1t', 'electroNic', 'jame', 'mir', 'chopper'
+            'zywoo', 'sh1ro', 'donk', 'ax1le', 'jl', 'ropz', 'frozen', 'siuhy', 'jimpphat',
+            'aleksib', 'niko', 'm0nesy', 'jks', 'hunter', 'nexa', 'electronic', 'nafany'
         ]
         dota_players = [
-            'sumail', 'munkushi', 'tobi', 'no!ob', 'omar', 'gh', 'miracle', 'yatoro', 'ame', 'psg', 'notail', 'ana'
+            'yatoro', 'torontotokyo', 'collapse', 'mira', 'miposhka', 'pure', 'malr1ne',
+            'larl', 'wisper', 'akbar', 'crystallis', 'bzm', 'ammar_the_f', 'ceb', 'jerax'
         ]
         lol_players = [
-            'faker', 'ruler', 'chovy', 'knight', 'caps', 'showmaker', 'gumayusi', 'bin', 'xayah', 'keria', 'ucal'
+            'faker', 'zeus', 'oner', 'gumayusi', 'keria', 'chovy', 'canyon', 'showmaker',
+            'ruler', 'lehends', 'caps', 'razork', 'humanoid', 'noah', 'mikyx', 'jankos'
         ]
         valorant_players = [
-            'tenz', 'scream', 'aspas', 'derke', 'yay', 'nats', 'f0rsakeN', 'keen', 'leo', 'boaster'
+            'aspas', 'less', 'saadhak', 'cauanzin', 'tuyz', 'demon1', 'jawgemo', 'ethan',
+            'boostio', 'c0m', 'tenz', 'zekken', 'sacy', 'pancada', 'johnqt', 'f0rsaken'
         ]
-        overwatch_players = ['profit', 'fleta', 'carpe', 'jjonak', 'rascal', 'kuriko', 'ryujehong']
-        golf_players = ['tiger woods', 'rory mcilroy', 'jon rahm', 'scottie scheffler', 'viktor hovland', 'collin morikawa', 'justin thomas', 'xander schauffele', 'patrick cantlay', 'dustin johnson']
+        overwatch_players = [
+            'proper', 'coluge', 'violet', 's9mm', 'chiyou', 'kevster', 'happy', 'space',
+            'skewed', 'ultraviolet', 'kai', 'hanbin', 'edison', 'fearless', 'lip', 'shu'
+        ]
+        golf_players = [
+            'scottie scheffler', 'xander schauffele', 'ludvig aberg', 'viktor hovland',
+            'collin morikawa', 'wyndham clark', 'patrick cantlay', 'sahith theegala',
+            'rory mcilroy', 'jon rahm', 'bryson dechambeau', 'justin thomas', 'max homa'
+        ]
 
         if any(n in player for n in dota_players):
             return 'dota2'
@@ -805,10 +842,10 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
 
         # 5) NHL/Hockey before Soccer to avoid overlap on 'goals/assists/saves'
         nhl_players = [
-            'connor mcdavid', 'leon draisaitl', 'nathan mackinnon', 'david pastrnak', 'erik karlsson',
-            'sidney crosby', 'alexander ovechkin', 'auston matthews', 'mitch marner', 'brad marchand',
-            'patrick kane', 'nikita kucherov', 'victor hedman', 'cale makar', 'quinn hughes',
-            'jack hughes', 'kirill kaprizov', 'william nylander', 'artemi panarin', 'igor shesterkin'
+            'connor mcdavid', 'leon draisaitl', 'nathan mackinnon', 'david pastrnak', 'auston matthews',
+            'mitch marner', 'nikita kucherov', 'cale makar', 'quinn hughes', 'jack hughes',
+            'kirill kaprizov', 'erik karlsson', 'artemi panarin', 'igor shesterkin', 'sidney crosby',
+            'alexander ovechkin', 'brad marchand', 'mikko rantanen', 'victor hedman', 'william nylander'
         ]
         if any(n in player for n in nhl_players):
             return 'hockey'
@@ -917,7 +954,7 @@ try:
     # Endpoint probe
     endpoint_ok = False
     try:
-        resp = requests.get(f"http://127.0.0.1:{PROPS_ENDPOINT_PORT}/props.json", timeout=0.5)
+        resp = requests.get(f"http://{PROPS_CLIENT_HOST}:{PROPS_ENDPOINT_PORT}/props.json", timeout=0.5)
         endpoint_ok = (resp.status_code == 200)
     except Exception:
         endpoint_ok = False

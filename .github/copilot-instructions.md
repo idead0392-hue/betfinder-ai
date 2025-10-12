@@ -55,9 +55,9 @@ This workspace contains a comprehensive Model Context Protocol (MCP) server for 
 - Supports both autonomous and human-in-the-loop betting workflows
 
 ## Documentation References
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
-- [MCP Specification](https://modelcontextprotocol.io/specification/2025-06-18/)
-- [OpenAI Agent Builder](https://platform.openai.com/docs/agent-builder)
+- **MCP Python SDK**: Model Context Protocol Python SDK for development
+- **MCP Specification**: Model Context Protocol specification version 2025-06-18
+- **OpenAI Agent Builder**: OpenAI platform documentation for agent development
 
 ## Architecture Notes
 The MCP server acts as a bridge between OpenAI Agent Builder and BetFinder AI's sports betting analysis capabilities, enabling automated workflows while maintaining professional-grade risk management and data integrity.

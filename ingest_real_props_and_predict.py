@@ -62,11 +62,7 @@ try:
 except Exception:
     ud_fetch = None
 
-try:
-    import csv_data as csv_data  # noqa: F401
-    csv_data_available = True
-except Exception:
-    csv_data_available = False
+# csv_data is already initialized as None above - no import needed
 
 
 def american_to_prob(odds: int) -> float:
@@ -147,7 +143,11 @@ def load_all_real_props(max_props: int = 250) -> Tuple[Dict[str, List[Dict]], Di
     # Source 2: PrizePicks (if available)
     if pp_fetch:
         try:
-     Loads real props from PrizePicks CSV data and optional provider fetchers if present
+            # Loads real props from PrizePicks CSV data and optional provider fetchers if present
+            sports_to_pull = ['basketball', 'football', 'baseball', 'hockey', 'soccer']
+            pp_total = 0
+            for s in sports_to_pull:
+                try:
                     data = pp_fetch(s)
                     if isinstance(data, list):
                         all_props.extend(data)
@@ -193,8 +193,7 @@ def run_agent_pipeline(sport_key: str, props: List[Dict]) -> Dict[str, Any]:
         'agent': None,
         'training_status': None,
         'picks_count': 0,
-        'top_picks': [],
-        'ml_samples': []
+        'top_picks': []
     }
 
     try:
@@ -207,20 +206,11 @@ def run_agent_pipeline(sport_key: str, props: List[Dict]) -> Dict[str, Any]:
         report['training_status'] = f"trained with historical picks; model v{ml_model.model_version}"
 
         # If no real props for this sport, fall back to agent's own fetch (which may include mocks/providers)
-        used_fallback = False
-        run_props = props
-        if not run_props:
-            try:
-                run_props = agent.fetch_props(max_props=60)
-                used_fallback = True
-            except Exception:
-                run_props = []
+        run_props = props  # Only use real PrizePicks props, no fallback/sample
 
         # Make picks using provided real props or fallback
         picks = agent.make_picks(props_data=run_props)
         report['picks_count'] = len(picks)
-        if used_fallback:
-            report['note'] = 'used_fallback_props_due_to_empty_real_feed'
         # Summarize top 5 picks
         report['top_picks'] = [
             {
@@ -237,18 +227,6 @@ def run_agent_pipeline(sport_key: str, props: List[Dict]) -> Dict[str, Any]:
             }
             for p in (picks[:5] if picks else [])
         ]
-
-        # Create a few direct ML predictions from sample props
-        for sample in run_props[:3]:
-            ml_pred = agent.get_ml_prediction(sample)
-            report['ml_samples'].append({
-                'player': sample.get('player_name') or sample.get('pick'),
-                'stat': sample.get('stat_type'),
-                'line': sample.get('line'),
-                'odds': sample.get('odds'),
-                'ml': ml_pred
-            })
-
         return report
     except Exception as e:
         report['training_status'] = f"error: {e}"
@@ -296,11 +274,7 @@ def main():
         else:
             print("  (no picks)")
 
-        # Print ML sample predictions
-        print("ML samples:")
-        for s in report['ml_samples']:
-            ml = s['ml']
-            print(f"  {s['player']} [{s['stat']}] line={s['line']} odds={s['odds']} -> conf={ml.get('confidence')}% edge={ml.get('edge')} roi={ml.get('expected_roi')}")
+        # Disabled: no sample ML predictions
 
         print(f"Training/learning: {report['training_status']}")
         print(f"Total picks generated: {report['picks_count']}")

@@ -40,6 +40,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 picks_engine_available = False
 bankroll_manager_available = False
 
+# Strict mode: when true, never emit mock data; return empty/error structures instead
+PRIZEPICKS_ONLY = os.environ.get("PRIZEPICKS_ONLY", "true").lower() in ("1", "true", "yes")
+picks_engine_available = False
+bankroll_manager_available = False
+
 try:
     from picks_engine import PicksEngine
     picks_engine_available = True
@@ -97,8 +102,12 @@ class BetFinderMCPServer:
         try:
             import pandas as pd
             import os
-            
-            csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'prizepicks_props.csv')
+
+            # Allow override via environment variable for consistency with the app/scraper
+            csv_path = os.environ.get(
+                'PRIZEPICKS_CSV',
+                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'prizepicks_props.csv')
+            )
             if os.path.exists(csv_path):
                 df = pd.read_csv(csv_path)
                 
@@ -138,9 +147,28 @@ class BetFinderMCPServer:
                     "total_props": len(props_data)
                 }
             else:
+                if PRIZEPICKS_ONLY:
+                    return {
+                        "status": "no-data",
+                        "data": [],
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "PrizePicks Data",
+                        "note": "No PrizePicks CSV available and strict mode is enabled; mock odds disabled",
+                        "total_props": 0
+                    }
                 return self._get_mock_odds_data(sport, market)
                 
         except Exception as e:
+            if PRIZEPICKS_ONLY:
+                logger.warning(f"Error reading PrizePicks data: {e}; strict mode prevents mock odds")
+                return {
+                    "status": "error",
+                    "message": f"PrizePicks read error and strict mode enabled: {e}",
+                    "data": [],
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "PrizePicks Data",
+                    "total_props": 0
+                }
             logger.warning(f"Error reading PrizePicks data: {e}, using mock data")
             return self._get_mock_odds_data(sport, market)
     
@@ -200,7 +228,15 @@ class BetFinderMCPServer:
                     "source": "AI Picks Engine"
                 }
             else:
-                # Fallback to mock picks
+                # Fallback behavior when engine missing
+                if PRIZEPICKS_ONLY:
+                    return {
+                        "status": "no-engine",
+                        "picks": [],
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "AI Picks Engine",
+                        "note": "AI Picks Engine not available and strict mode is enabled; mock picks disabled"
+                    }
                 return self._get_mock_ai_picks(sport, confidence_threshold)
         except Exception as e:
             logger.error(f"Error generating AI picks: {e}")
@@ -321,7 +357,16 @@ class BetFinderMCPServer:
                     "source": "Bankroll Manager"
                 }
             else:
-                # Mock performance metrics
+                # In strict mode, do not emit mock performance metrics
+                if PRIZEPICKS_ONLY:
+                    return {
+                        "status": "no-manager",
+                        "metrics": {},
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "Bankroll Manager",
+                        "note": "Bankroll Manager not available and strict mode is enabled; mock metrics disabled"
+                    }
+                # Mock performance metrics (non-strict/dev mode)
                 return {
                     "status": "success",
                     "metrics": {

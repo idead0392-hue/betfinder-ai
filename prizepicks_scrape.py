@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from cfb_to_nfl_mapping import get_nfl_info
 
 
 API_URL = "https://api.prizepicks.com/projections"
@@ -110,10 +111,20 @@ def fetch_prizepicks_api(sport: str = None, league_id: str = None) -> List[Dict]
                                 player = included.get(player_id) if player_id else None
                                 player_name = (player or {}).get("attributes", {}).get("name") or "Unknown"
 
+                                # Default league/team (may be missing from API); patch via mapping
+                                league = (player or {}).get("attributes", {}).get("league", "") if isinstance(player, dict) else ""
+                                team = (player or {}).get("attributes", {}).get("team", "") if isinstance(player, dict) else ""
+
+                                nfl_info = get_nfl_info(player_name)
+                                if nfl_info:
+                                    league, team = nfl_info  # Force to NFL/team
+
                                 items.append({
                                     "Name": player_name,
                                     "Points": line_val,
-                                    "Prop": projection_type
+                                    "Prop": projection_type,
+                                    "League": league,
+                                    "Team": team,
                                 })
                             except Exception:
                                 continue
@@ -237,10 +248,19 @@ def fetch_prizepicks_playwright() -> List[Dict]:
                         player = included.get(player_id) if player_id else None
                         player_name = (player or {}).get("attributes", {}).get("name") or "Unknown"
 
+                        league = (player or {}).get("attributes", {}).get("league", "") if isinstance(player, dict) else ""
+                        team = (player or {}).get("attributes", {}).get("team", "") if isinstance(player, dict) else ""
+
+                        nfl_info = get_nfl_info(player_name)
+                        if nfl_info:
+                            league, team = nfl_info
+
                         items.append({
                             "Name": player_name,
                             "Points": line_val,
-                            "Prop": projection_type
+                            "Prop": projection_type,
+                            "League": league,
+                            "Team": team,
                         })
                     except Exception:
                         continue
@@ -375,7 +395,13 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
                                     continue
                             
                             if name != "Unknown" and pts != "0":
-                                rows.append({"Name": name, "Points": pts, "Prop": ptype})
+                                # Apply mapping for NFL rookies or miscategorized players
+                                league = ""
+                                team = ""
+                                nfl_info = get_nfl_info(name)
+                                if nfl_info:
+                                    league, team = nfl_info
+                                rows.append({"Name": name, "Points": pts, "Prop": ptype, "League": league, "Team": team})
                                 
                         except Exception:
                             continue
@@ -387,7 +413,13 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
                 continue
 
         if rows:
-            pd.DataFrame(rows).to_csv(output_csv, index=False)
+            df = pd.DataFrame(rows)
+            # Ensure consistent columns
+            for col in ["Name", "Points", "Prop", "League", "Team"]:
+                if col not in df.columns:
+                    df[col] = ""
+            df = df[["Name", "Points", "Prop", "League", "Team"]]
+            df.to_csv(output_csv, index=False)
             return True
         return False
         
@@ -400,23 +432,8 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
 
 
 def fallback_to_test_data(output_csv: str) -> bool:
-    """Generate realistic test data as final fallback"""
-    try:
-        from generate_test_props import generate_realistic_props
-        df = generate_realistic_props()
-        df.to_csv(output_csv, index=False)
-        return True
-    except Exception:
-        # Minimal fallback data
-        basic_props = [
-            {"Name": "LeBron James", "Points": 26.5, "Prop": "Points", "Sport": "nba"},
-            {"Name": "Patrick Mahomes", "Points": 285.5, "Prop": "Passing Yards", "Sport": "nfl"},
-            {"Name": "Connor McDavid", "Points": 3.5, "Prop": "Shots on Goal", "Sport": "nhl"},
-            {"Name": "Lionel Messi", "Points": 0.5, "Prop": "Goals", "Sport": "epl"},
-        ]
-        df = pd.DataFrame(basic_props)
-        df.to_csv(output_csv, index=False)
-        return True
+    """Stub: Disabled. No sample/test data will be generated or written."""
+    return False
 
 
 def main():
@@ -452,14 +469,19 @@ def main():
         else:
             print("❌ Selenium blocked/failed")
     
-    # Strategy 4: Fallback to realistic test data
+    # Strategy 4: Fallback to realistic test data (gated)
     if not items:
-        print("📋 Using realistic test data as fallback...")
-        success = fallback_to_test_data(output_csv)
-        if success:
-            print("✅ Test data generated successfully!")
-            print(f"Props saved to: {output_csv}")
-            return
+        PRIZEPICKS_ONLY = os.environ.get("PRIZEPICKS_ONLY", "true").lower() in ("1", "true", "yes")
+        if PRIZEPICKS_ONLY:
+            # Strict mode: do NOT generate any test data. Leave CSV untouched.
+            print("🚫 Strict mode (PRIZEPICKS_ONLY) enabled — skipping test-data fallback. No props written.")
+        else:
+            print("📋 Using realistic test data as fallback...")
+            success = fallback_to_test_data(output_csv)
+            if success:
+                print("✅ Test data generated successfully!")
+                print(f"Props saved to: {output_csv}")
+                return
 
     # Process successful API/Playwright results
     if items:
@@ -486,8 +508,12 @@ def main():
         print("\n🎯 Sample props:")
         print(df.head(10).to_string(index=False))
     else:
-        print("❌ All scraping methods failed, using fallback data")
-        fallback_to_test_data(output_csv)
+        PRIZEPICKS_ONLY = os.environ.get("PRIZEPICKS_ONLY", "true").lower() in ("1", "true", "yes")
+        if PRIZEPICKS_ONLY:
+            print("❌ All scraping methods failed and strict mode is enabled — no fallback data will be written.")
+        else:
+            print("❌ All scraping methods failed, using fallback data")
+            fallback_to_test_data(output_csv)
 
 
 if __name__ == "__main__":
