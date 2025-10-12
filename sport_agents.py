@@ -2168,12 +2168,30 @@ class CSGOAgent(EsportsAgent):
         }
     
     def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
-        """Enhanced analysis including CSGO-specific factors"""
+        """Enhanced analysis including CSGO-specific factors and CS2 context"""
+        # Try to enrich prop with CS2 live context (best-effort)
+        try:
+            from cs2_data import enrich_csgo_prop_with_cs2
+            enrich_csgo_prop_with_cs2(prop)
+        except Exception:
+            pass
+
         # Get base analysis
         factors = super()._perform_detailed_analysis(prop)
         
         # Add CSGO-specific analysis
         factors['csgo_specific'] = self._analyze_esports_specific_factors(prop)
+
+        # Incorporate CS2 context factor
+        try:
+            status = prop.get('cs2_match_status')
+            if status == 'live':
+                # Slight boost if match is live (more volatility/volume for certain props)
+                factors['cs2_context'] = {'status': status, 'score': 0.5, 'reasoning': 'Live match context via cs2api'}
+            elif status:
+                factors['cs2_context'] = {'status': status, 'score': 0.0, 'reasoning': 'Scheduled match context via cs2api'}
+        except Exception:
+            pass
         
         # Recalculate overall score
         factor_scores = [f['score'] for f in factors.values() if isinstance(f, dict) and 'score' in f]
