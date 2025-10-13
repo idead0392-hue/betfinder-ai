@@ -124,7 +124,7 @@ class AgentServeAdapter:
                 'sport': getattr(self._agent, 'sport_name', 'unknown'),
                 'count': len(picks),
                 'picks': picks,
-                'note': 'Set PRIZEPICKS_CSV for live data; provide {"props": [...]} to analyze custom payloads.'
+                'note': 'Development/testing endpoint. For production, use main BetFinder UI. Set PRIZEPICKS_CSV for live data.'
             }
         except Exception as e:
             return {'success': False, 'error': str(e)}

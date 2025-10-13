@@ -1,4 +1,9 @@
-"""Minimal client to test agentserve endpoints for NBA and others."""
+"""
+Demo client for testing agentserve endpoints - NOT for production prop analysis.
+
+This is a development/testing tool only. For real prop analysis, use the 
+main BetFinder UI or integrate directly with your production systems.
+"""
 from __future__ import annotations
 
 import argparse
@@ -22,12 +27,13 @@ def call_invoke(url: str, text: str, stream: bool = False):
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Demo client for testing agent endpoints - NOT for production use")
     ap.add_argument("--url", default="http://localhost:9001/invoke", help="Agent endpoint URL")
-    ap.add_argument("--text", default="Show today's top NBA prop picks")
+    ap.add_argument("--text", default="Test query for development purposes only")
     ap.add_argument("--stream", action="store_true")
     args = ap.parse_args()
 
+    print("⚠️  DEMO ONLY - Not for real prop analysis or production use")
     call_invoke(args.url, args.text, stream=args.stream)
 
 
