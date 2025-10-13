@@ -40,6 +40,14 @@ except ImportError:
     PROVIDER_AVAILABLE = False
     st.error("❌ SportbexProvider not available. Please ensure api_providers.py is properly configured.")
 
+# Import PrizePicks integration
+try:
+    from prizepicks_provider import PrizePicksProvider
+    from props_data_fetcher import PropsDataFetcher, props_fetcher
+    PRIZEPICKS_AVAILABLE = True
+except ImportError:
+    PRIZEPICKS_AVAILABLE = False
+
 # Page configuration
 st.set_page_config(
     page_title="Player Prop Predictor",
@@ -101,6 +109,10 @@ if 'last_fetch_time' not in st.session_state:
     st.session_state.last_fetch_time = None
 if 'provider' not in st.session_state:
     st.session_state.provider = None
+if 'prizepicks_provider' not in st.session_state:
+    st.session_state.prizepicks_provider = None
+if 'data_source' not in st.session_state:
+    st.session_state.data_source = 'mock'  # 'mock', 'sportbex', or 'prizepicks'
 
 # Provider initialization
 @st.cache_resource
@@ -277,6 +289,97 @@ def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
         return data, f"Error fetching data: {str(e)}. Using mock data."
 
 
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def fetch_prizepicks_props(max_props: int = 100) -> Tuple[List[Dict], Optional[str]]:
+    """Fetch props data from PrizePicks using props_data_fetcher."""
+    if not PRIZEPICKS_AVAILABLE:
+        return [], "PrizePicks integration not available"
+    
+    try:
+        # Fetch props from PrizePicks directly without time filtering
+        # Use fetch_prizepicks_props instead of fetch_all_props to skip time validation
+        props = props_fetcher.fetch_prizepicks_props(max_items=max_props)
+        
+        if not props:
+            return [], "No props data available from PrizePicks"
+        
+        # Filter esports props
+        props = _filter_esports_props(props)
+        
+        return props, None
+            
+    except Exception as e:
+        return [], f"Error fetching PrizePicks data: {str(e)}"
+
+
+def render_props(props: List[Dict], max_display: int = 50):
+    """
+    Render a list of props in a clean, non-HTML format using Streamlit.
+    
+    Args:
+        props: List of prop dictionaries
+        max_display: Maximum number of props to display
+    """
+    if not props:
+        st.info("No props available to display")
+        return
+    
+    # Limit display
+    display_props = props[:max_display]
+    
+    # Convert to DataFrame for better display
+    df_data = []
+    for prop in display_props:
+        row = {
+            'Player': prop.get('player_name', 'N/A'),
+            'Sport': prop.get('sport', 'N/A'),
+            'League': prop.get('league', 'N/A'),
+            'Stat': prop.get('stat_type', 'N/A'),
+            'Line': prop.get('line', 0),
+            'Team': prop.get('team', 'N/A'),
+            'Matchup': prop.get('matchup', 'N/A'),
+            'Over/Under': prop.get('over_under', 'N/A'),
+            'Confidence': f"{prop.get('confidence', 0):.1f}%",
+            'Odds': prop.get('odds', -110),
+        }
+        df_data.append(row)
+    
+    # Create DataFrame
+    df = pd.DataFrame(df_data)
+    
+    # Display summary
+    st.markdown(f"### Displaying {len(display_props)} of {len(props)} props")
+    
+    # Show sports breakdown
+    if 'sport' in props[0]:
+        sports_count = {}
+        for prop in props:
+            sport = prop.get('sport', 'Unknown')
+            sports_count[sport] = sports_count.get(sport, 0) + 1
+        
+        st.markdown("#### Sports Breakdown:")
+        cols = st.columns(min(len(sports_count), 5))
+        for idx, (sport, count) in enumerate(sports_count.items()):
+            with cols[idx % len(cols)]:
+                st.metric(sport, count)
+    
+    # Display the data
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            'Player': st.column_config.TextColumn('Player', width='medium'),
+            'Sport': st.column_config.TextColumn('Sport', width='small'),
+            'League': st.column_config.TextColumn('League', width='small'),
+            'Stat': st.column_config.TextColumn('Stat', width='medium'),
+            'Line': st.column_config.NumberColumn('Line', format='%.1f'),
+            'Confidence': st.column_config.TextColumn('Confidence', width='small'),
+            'Odds': st.column_config.NumberColumn('Odds', format='%d'),
+        }
+    )
+
+
 def _filter_esports_props(data: List[Dict]) -> List[Dict]:
     """Filter a list of prop dicts so that esports entries only include allowed stat types.
 
@@ -330,6 +433,16 @@ def main():
     
     # Sidebar filters
     st.sidebar.header("🔍 Filters")
+    
+    # Data source selection
+    st.sidebar.subheader("📊 Data Source")
+    data_sources = ['Mock Data']
+    if PROVIDER_AVAILABLE:
+        data_sources.append('SportbexProvider')
+    if PRIZEPICKS_AVAILABLE:
+        data_sources.append('PrizePicks')
+    
+    selected_data_source = st.sidebar.selectbox("Data Source", data_sources)
     
     # Sport selection
     sport_options = ['Basketball', 'Football', 'Baseball', 'Tennis', 'Soccer', 'Hockey']
@@ -385,12 +498,14 @@ def main():
         else:
             st.metric("Status", "Ready to load")
     with col4:
-        provider_status = "Connected" if st.session_state.provider else "Mock Data"
-        st.metric("Data Source", provider_status)
+        st.metric("Data Source", selected_data_source)
     
-    # Load data
+    # Load data based on selected source
     with st.spinner(f"Loading {selected_sport.lower()} props data..."):
-        props_data, fetch_error = fetch_props_data(selected_sport, st.session_state.provider)
+        if selected_data_source == 'PrizePicks':
+            props_data, fetch_error = fetch_prizepicks_props(max_props=200)
+        else:
+            props_data, fetch_error = fetch_props_data(selected_sport, st.session_state.provider)
     
     if fetch_error:
         st.warning(f"⚠️ {fetch_error}")
@@ -399,6 +514,37 @@ def main():
         st.error("❌ No props data available. Please try again later.")
         st.stop()
     
+    # For PrizePicks data, use the render_props function
+    if selected_data_source == 'PrizePicks':
+        st.subheader(f"📊 PrizePicks Props ({len(props_data)} total)")
+        
+        # Apply basic filters for PrizePicks data
+        filtered_props = props_data
+        
+        # Sport filter (if sport field exists)
+        if selected_sport != 'All':
+            sport_lower = selected_sport.lower()
+            filtered_props = [p for p in filtered_props if sport_lower in str(p.get('sport', '')).lower() or sport_lower in str(p.get('league', '')).lower()]
+        
+        # Stat type filter
+        if selected_stat_type != 'All':
+            filtered_props = [p for p in filtered_props if selected_stat_type.lower() in str(p.get('stat_type', '')).lower()]
+        
+        # Team search filter
+        if team_search:
+            filtered_props = [p for p in filtered_props if team_search.lower() in str(p.get('team', '')).lower() or team_search.lower() in str(p.get('matchup', '')).lower()]
+        
+        # Player search filter
+        if player_search:
+            filtered_props = [p for p in filtered_props if player_search.lower() in str(p.get('player_name', '')).lower()]
+        
+        st.info(f"Showing {len(filtered_props)} props after filters")
+        
+        # Render PrizePicks props
+        render_props(filtered_props, max_display=100)
+        st.stop()
+    
+    # For other data sources (Mock/Sportbex), use the original display logic
     # Convert to DataFrame
     df = pd.DataFrame(props_data)
     
