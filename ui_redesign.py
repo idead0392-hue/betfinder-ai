@@ -231,6 +231,7 @@ def render_header():
     """, unsafe_allow_html=True)
 
 def render_pick_card(pick, sport_emoji="🏈"):
+    print(f"[CHECKPOINT] Rendering pick card for {pick.get('player_name','Unknown')}")
     """Render individual pick as clean card with visual badges"""
     
     # Extract pick data
@@ -254,71 +255,43 @@ def render_pick_card(pick, sport_emoji="🏈"):
     # Clean classification text
     classification = classification.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
     
-    # Use Streamlit columns for clean layout
+    # Use Streamlit containers and markdown for layout, emojis, and badges
     with st.container():
-        # Header row with player and classification
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col1:
-            st.markdown(f"<div style='font-size: 1.2rem; text-align: center;'>{sport_emoji}</div>", unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"**{player_name}**")
-        with col3:
-            # Visual badge using Streamlit
-            if "DEMON" in classification.upper():
-                st.markdown("<span style='background: #dc2626; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>👹 DEMON</span>", unsafe_allow_html=True)
-            elif "DISCOUNT" in classification.upper():
-                st.markdown("<span style='background: #059669; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>💰 DISCOUNT</span>", unsafe_allow_html=True)
-            elif "DECENT" in classification.upper():
-                st.markdown("<span style='background: #0891b2; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>✅ DECENT</span>", unsafe_allow_html=True)
-            elif "GOBLIN" in classification.upper():
-                st.markdown("<span style='background: #7c2d12; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>👺 GOBLIN</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span style='background: #6b7280; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;'>🎯 PICK</span>", unsafe_allow_html=True)
-            # Over-only badge for demon/forbidden under props
-            allow_under = pick.get('allow_under', True)
-            if allow_under is False:
-                st.markdown("<div style='margin-top: 6px;'><span style='background: #b45309; color: white; padding: 3px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;'>OVER-ONLY</span></div>", unsafe_allow_html=True)
-        # Bet details with event time
-        local_time_str = ''
+        # Title and player
+        st.markdown(f"### {sport_emoji} {pick.get('agent_title', pick.get('sport', ''))}")
+        rating_emoji = ''
+        classification = pick.get('prizepicks_classification', '')
+        if isinstance(classification, dict):
+            classification = classification.get('classification', '')
+        if 'SOLID' in str(classification).upper():
+            rating_emoji = '�'
+        elif 'DECENT' in str(classification).upper():
+            rating_emoji = '✅'
+        elif 'GOBLIN' in str(classification).upper():
+            rating_emoji = '👺'
+        elif 'DEMON' in str(classification).upper():
+            rating_emoji = '👹'
+        st.markdown(f"**{pick.get('player_name', 'Unknown')}** {rating_emoji}")
+        # Pick details
+        st.markdown(f"*{pick.get('stat_type', pick.get('pick_type', ''))}*: {pick.get('line', pick.get('pick_value', ''))} {pick.get('pick_desc', '')}")
+        st.markdown(f"Teams: {pick.get('teams', pick.get('matchup', ''))}")
+        # Metrics row
+        st.markdown(f":green[Conf: {pick.get('confidence', 0)}%] | :blue[EV: {pick.get('expected_value', 0)}%] | :red[Odds: {pick.get('odds', '-')}]")
+        # Last updated
+        last_updated = pick.get('last_updated', '')
+        update_time = ''
         try:
-            if isinstance(event_start_iso, str) and event_start_iso:
-                dt = datetime.fromisoformat(event_start_iso.replace('Z', '+00:00'))
-                tz_env = st.session_state.get('user_timezone') or 'America/Chicago'
-                local_time_str = dt.astimezone(ZoneInfo(tz_env)).strftime('%b %d, %I:%M %p %Z')
-        except Exception:
-            # Removed unused variable: local_time_str
-            pass
-    # Removed unused variable: when_display
-    # Metrics row
-    metric_col1, metric_col2, metric_col3 = st.columns(3)
-    with metric_col1:
-        conf_color = "#10b981" if confidence >= 75 else "#6b7280"
-        conf_html = f"<div style='text-align: center;'><div style='color: #9ca3af; font-size: 0.8rem;'>Confidence</div><div style='color: {conf_color}; font-weight: 600;'>{confidence:.0f}%</div></div>"
-        conf_html = conf_html.replace("</div>\n</div>", "")
-        st.markdown(conf_html, unsafe_allow_html=True)
-    with metric_col2:
-        ev_color = "#10b981" if expected_value > 0 else "#ef4444"
-        ev_sign = "+" if expected_value > 0 else ""
-        ev_html = f"<div style='text-align: center;'><div style='color: #9ca3af; font-size: 0.8rem;'>Expected Value</div><div style='color: {ev_color}; font-weight: 600;'>{ev_sign}{expected_value:.1f}%</div></div>"
-        ev_html = ev_html.replace("</div>\n</div>", "")
-        st.markdown(ev_html, unsafe_allow_html=True)
-    with metric_col3:
-        odds_html = f"<div style='text-align: center;'><div style='color: #9ca3af; font-size: 0.8rem;'>Odds</div><div style='color: #1a73e8; font-weight: 600;'>{odds}</div></div>"
-        odds_html = odds_html.replace("</div>\n</div>", "")
-        st.markdown(odds_html, unsafe_allow_html=True)
-        # Last updated pill
-        if last_updated:
-            try:
+            if last_updated:
                 dt = datetime.fromisoformat(str(last_updated).replace('Z', '+00:00'))
                 tz_env = st.session_state.get('user_timezone') or 'America/Chicago'
-                lu_str = dt.astimezone(ZoneInfo(tz_env)).strftime('Updated: %I:%M %p %Z')
-                st.markdown(f"<div style='color:#9ca3af;font-size:0.75rem;'>⏱️ {lu_str}</div>", unsafe_allow_html=True)
-            except Exception:
-                pass
-        # Add separator
-        st.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #374151;'>", unsafe_allow_html=True)
+                update_time = dt.astimezone(ZoneInfo(tz_env)).strftime('%b %d, %I:%M %p %Z')
+        except Exception:
+            pass
+        st.markdown(f"**Updated:** {update_time}")
+        st.button("Copy to clipboard", key=f"copy_{pick.get('player_name','')}_{pick.get('stat_type','')}")
 
 def render_sport_section(sport_name, picks, sport_emoji="🏈"):
+    print(f"[CHECKPOINT] Rendering sport section: {sport_name} with {len(picks)} picks")
     """Render sport section with picks using clean Streamlit components"""
     
     if not picks:

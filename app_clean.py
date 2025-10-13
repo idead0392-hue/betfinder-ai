@@ -222,25 +222,18 @@ with tabs[6]:
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style="text-align: center; color: #666; margin-top: 30px;">
-        <p>🤖 Powered by AI Sport Agents with ML Prediction Engine</p>
-        <p>📊 Real-time prop analysis with confidence scoring and edge calculation</p>
-</div>
-""", unsafe_allow_html=True)
 
-# Failsafe: Remove any literal stray </div> tags from the DOM
-st.components.v1.html('''
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Remove any text nodes containing only stray </div>
-    Array.from(document.querySelectorAll('body *')).forEach(function(el) {
-        el.childNodes.forEach(function(node) {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "</div>") {
-                node.remove();
-            }
-        });
-    });
-});
-</script>
-''', height=0)
+with st.container():
+    st.markdown("---")
+    st.markdown(
+        "🤖 Powered by AI Sport Agents with ML Prediction Engine\n\n"
+        "📊 Real-time prop analysis with confidence scoring and edge calculation",
+        help="Footer: AI and real-time prop analysis info."
+    )
+
+import streamlit as st
+def sanitize_stray_html(text):
+    return text.replace("</div>", "")
+
+# Apply failsafe to all markdown output if needed
+# Example usage: st.markdown(sanitize_stray_html(html), unsafe_allow_html=True)

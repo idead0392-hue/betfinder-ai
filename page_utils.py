@@ -1126,19 +1126,19 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
             label = d.get('label', '•')
             score = d.get('score')
             reason = d.get('reason', '')
-            lines.append(f"<div>• <strong>{label}</strong> {f'({score:.1f}/10)' if isinstance(score,(int,float)) else ''} – {reason}</div>")
+            lines.append(f"• <strong>{label}</strong> {f'({score:.1f}/10)' if isinstance(score,(int,float)) else ''} – {reason}")
         details_html = f"""
         <details style='margin-left:24px;'>
             <summary style='color:#8ab4f8;font-size:10px;cursor:pointer;'>Show details</summary>
             <div style='color:#9aa0a6;font-size:10px;margin-top:4px;'>
                 {''.join(lines)}
-            </div>
+            # Removed stray </div>
         </details>
         """ if lines else ''
         reasoning_html = f"""
         <div style='color:#9aa0a6;font-size:10px;margin-left:20px;padding:3px 0 6px;border-bottom:1px solid #222;'>
             💡 {summary}
-        </div>
+    # Removed stray </div>
         {details_html}
         """
 
@@ -1156,7 +1156,7 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
         <span style='min-width:80px;text-align:right;color:#0f9d58;font-size:10px;'>{ev_text}</span>
         <span style='min-width:60px;text-align:right;color:#1a73e8;font-size:10px;'>{odds_text}</span>
         {f"<span class='pill' style='margin-left:8px;color:#9aa0a6;'>{updated_text}</span>" if updated_text else ''}
-    </div>
+    # Removed stray </div>
     {reasoning_html}
     """
 
@@ -1318,12 +1318,11 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         pass
 
     # Render
-    st.markdown(
-        f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span>"
-        + (f"<span class='pill' style='margin-left:12px;background:#222;color:#9aa0a6;'>Updated: {last_updated_display}</span>" if last_updated_display else '')
-        + "</div>",
-        unsafe_allow_html=True,
-    )
+    # Use markdown and emojis for formatting, no raw HTML
+    section_title = f"### {title}  ({len(picks)} shown)"
+    if last_updated_display:
+        section_title += f"  **Updated:** {last_updated_display}"
+    st.markdown(section_title)
     for p in picks:
         html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
         st.markdown(html_row, unsafe_allow_html=True)

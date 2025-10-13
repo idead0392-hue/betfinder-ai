@@ -8,6 +8,16 @@ numpy>=1.24.0
 plotly>=5.17.0
 scikit-learn>=1.0.0
 PyYAML
+matplotlib
+scipy
+beautifulsoup4
+selenium
+openpyxl
+sqlalchemy
+pytest
+ruff
+black
+autoflake
 # ============================================================================
 # DEPLOYMENT-OPTIMIZED REQUIREMENTS
 # ============================================================================
