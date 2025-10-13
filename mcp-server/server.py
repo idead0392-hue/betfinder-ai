@@ -69,17 +69,22 @@ class BetFinderMCPServer:
         """Initialize the BetFinder MCP server"""
         self.picks_engine = None
         self.bankroll_manager = None
-        
+        self.prizepicks_provider = None
         try:
             # Initialize providers based on availability            
             if picks_engine_available:
                 self.picks_engine = PicksEngine()
                 logger.info("✅ PicksEngine initialized")
-                
             if bankroll_manager_available:
                 self.bankroll_manager = BankrollManager()
                 logger.info("✅ BankrollManager initialized")
-                
+            # PrizePicksProvider integration
+            try:
+                from prizepicks_provider import PrizePicksProvider
+                self.prizepicks_provider = PrizePicksProvider()
+                logger.info("✅ PrizePicksProvider initialized")
+            except Exception as e:
+                logger.warning(f"⚠️  PrizePicksProvider not available: {e}")
             logger.info("✅ BetFinder AI MCP Server initialized successfully")
         except Exception as e:
             logger.warning(f"⚠️  Could not initialize all components: {e}")
@@ -89,88 +94,33 @@ class BetFinderMCPServer:
             logger.info("Running with limited functionality")
     
     async def get_live_odds(self, sport: str = None, market: str = None) -> Dict[str, Any]:
-        """Get live betting odds for specified sport/market"""
+        """Get live betting odds for specified sport/market using PrizePicksProvider"""
         try:
-            # Use PrizePicks data directly from CSV
-            return await self._get_prizepicks_odds_data(sport, market)
+            if self.prizepicks_provider:
+                resp = self.prizepicks_provider.get_props(sport=sport, market=market)
+                if hasattr(resp, 'success') and resp.success:
+                    # Normalize to MCP format
+                    props = resp.data.get('data') if isinstance(resp.data, dict) and 'data' in resp.data else resp.data
+                    return {
+                        "status": "success",
+                        "data": props,
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "PrizePicksProvider",
+                        "total_props": len(props) if props else 0
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "message": getattr(resp, 'error_message', 'Unknown error'),
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "PrizePicksProvider",
+                        "total_props": 0
+                    }
+            else:
+                return self._get_mock_odds_data(sport, market)
         except Exception as e:
             logger.error(f"Error getting live odds: {e}")
             return {"status": "error", "message": str(e)}
-    
-    async def _get_prizepicks_odds_data(self, sport: str = None, market: str = None) -> Dict[str, Any]:
-        """Get PrizePicks odds data from CSV file"""
-        try:
-            import pandas as pd
-            import os
-
-            # Allow override via environment variable for consistency with the app/scraper
-            csv_path = os.environ.get(
-                'PRIZEPICKS_CSV',
-                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'prizepicks_props.csv')
-            )
-            if os.path.exists(csv_path):
-                df = pd.read_csv(csv_path)
-                
-                # Filter by sport if specified
-                if sport:
-                    sport_mapping = {
-                        'basketball': ['Points', 'Rebounds', 'Assists', 'Steals', 'Blocks'],
-                        'football': ['Receiving Yards', 'Rush Yards', 'Passing Yards', 'Touchdowns'],
-                        'soccer': ['Goals', 'Shots On Goal', 'Assists', 'Cards'],
-                        'tennis': ['Aces', 'Games Won', 'Sets Won'],
-                        'baseball': ['Hits', 'RBIs', 'Home Runs', 'Strikeouts'],
-                        'hockey': ['Goals', 'Assists', 'Saves', 'Shots']
-                    }
-                    
-                    if sport in sport_mapping:
-                        df = df[df['Prop'].isin(sport_mapping[sport])]
-                
-                # Convert to odds format
-                props_data = []
-                for _, row in df.head(50).iterrows():  # Limit to first 50 for performance
-                    props_data.append({
-                        "event_id": f"pp_{len(props_data)}",
-                        "player": row['Name'],
-                        "prop_type": row['Prop'],
-                        "line": float(row['Points']),
-                        "over_odds": 1.90,  # Standard PrizePicks odds
-                        "under_odds": 1.90,
-                        "sport": sport or "general",
-                        "market": market or "props"
-                    })
-                
-                return {
-                    "status": "success",
-                    "data": props_data,
-                    "timestamp": datetime.now().isoformat(),
-                    "source": "PrizePicks Data",
-                    "total_props": len(props_data)
-                }
-            else:
-                if PRIZEPICKS_ONLY:
-                    return {
-                        "status": "no-data",
-                        "data": [],
-                        "timestamp": datetime.now().isoformat(),
-                        "source": "PrizePicks Data",
-                        "note": "No PrizePicks CSV available and strict mode is enabled; mock odds disabled",
-                        "total_props": 0
-                    }
-                return self._get_mock_odds_data(sport, market)
-                
-        except Exception as e:
-            if PRIZEPICKS_ONLY:
-                logger.warning(f"Error reading PrizePicks data: {e}; strict mode prevents mock odds")
-                return {
-                    "status": "error",
-                    "message": f"PrizePicks read error and strict mode enabled: {e}",
-                    "data": [],
-                    "timestamp": datetime.now().isoformat(),
-                    "source": "PrizePicks Data",
-                    "total_props": 0
-                }
-            logger.warning(f"Error reading PrizePicks data: {e}, using mock data")
-            return self._get_mock_odds_data(sport, market)
     
     def _get_mock_odds_data(self, sport: str = None, market: str = None) -> Dict[str, Any]:
         """Generate mock odds data for testing"""
