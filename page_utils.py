@@ -184,8 +184,8 @@ def hockey_strict_filter(prop: dict) -> bool:
     return True
 
 
-def _log_misclassified(prop: dict, sport: str) -> None:
-    """Append misclassified prop details to a per-sport log file for admin review."""
+def _log_misclassified(prop: dict, sport: str, reason: str = "") -> None:
+    """Append misclassified prop details to a per-sport log file for admin review, including reason."""
     try:
         log_dir = os.path.join(os.getcwd(), 'logs')
         os.makedirs(log_dir, exist_ok=True)
@@ -197,6 +197,7 @@ def _log_misclassified(prop: dict, sport: str) -> None:
             'stat': prop.get('stat_type'),
             'league': prop.get('league'),
             'matchup': prop.get('matchup'),
+            'reason': reason,
             'timestamp': datetime.now().isoformat()
         }
         with open(log_path, 'a', encoding='utf-8') as f:
@@ -851,7 +852,7 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
         csgo_leagues = ['cs2', 'csgo', 'cs:go', 'counter-strike', 'counter strike']
         csgo_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'headshots', 'kd ratio', 'adr', 'rating']
         
-        has_csgo_league = any(cl in league.lower() for cl in csgo_leagues)
+        has_csgo_league = any(cl in league.lower() for cl in csgo_leagues) or ('esports' in league.lower())
         has_csgo_stat = any(cs in stat_type.lower() for cs in csgo_stats)
         
         if not (has_csgo_league or has_csgo_stat):
@@ -863,7 +864,7 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
         lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score', 
                     'kda', 'towers', 'dragons', 'barons', 'inhibitors', 'games', 'maps']
         
-        has_lol_league = any(ll in league.lower() for ll in lol_leagues)
+        has_lol_league = any(ll in league.lower() for ll in lol_leagues) or ('esports' in league.lower())
         has_lol_stat = any(ls in stat_type.lower() for ls in lol_stats)
         
         if not (has_lol_league or has_lol_stat):
@@ -875,7 +876,7 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
         dota_stats = ['kills', 'deaths', 'assists', 'last hits', 'denies', 'gpm', 'xpm', 'networth',
                      'damage', 'healing', 'tower damage', 'roshan', 'games', 'maps', 'duration']
         
-        has_dota_league = any(dl in league.lower() for dl in dota_leagues)
+        has_dota_league = any(dl in league.lower() for dl in dota_leagues) or ('esports' in league.lower())
         has_dota_stat = any(ds in stat_type.lower() for ds in dota_stats)
         
         if not (has_dota_league or has_dota_stat):
@@ -883,7 +884,7 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
     
     elif target_sport in ['valorant', 'overwatch', 'rocket_league', 'apex']:
         # Allow other esports content - less strict validation for now
-        esports_leagues = ['lol', 'league of legends', 'dota2', 'dota 2', 'valorant', 'overwatch', 'rocket league', 'apex', 'apex legends']
+        esports_leagues = ['lol', 'league of legends', 'dota2', 'dota 2', 'valorant', 'overwatch', 'rocket league', 'apex', 'apex legends', 'esports']
         esports_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'damage', 'objectives', 'cs', 'gold', 'saves', 'goals', 'shots']
         
         has_esports_league = any(el in league.lower() for el in esports_leagues)
@@ -908,28 +909,91 @@ def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
     return True
 
 
+def compute_rejection_reason(p: dict, sport: str) -> tuple[bool, str]:
+    """Return (ok, reason) for strict validation results, with human-friendly reasons."""
+    try:
+        ok = _strict_validate_before_render(p, sport)
+        if ok:
+            return True, "ok"
+    except Exception:
+        pass
+
+    player_name = str(p.get('player_name', '')).lower()
+    team = str(p.get('team', '')).lower()
+    matchup = str(p.get('matchup', '')).lower()
+    stat_type = str(p.get('stat_type', '')).lower()
+    league = str(p.get('league', '')).lower()
+    all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
+
+    forbidden_map = {
+        'basketball': ['nfl','mlb','nhl','passing','rushing','home run','pitcher','goalie'],
+        'football': ['nba','mlb','nhl','rebounds','assists','3pt','goalie','home run'],
+        'baseball': ['nfl','nba','nhl','passing','rebounds','goals','goalie'],
+        'hockey': ['nfl','nba','mlb','passing','rebounds','home run'],
+        'soccer': ['nfl','nba','mlb','nhl','rebounds','passing','home run'],
+    }
+    forbid = forbidden_map.get(sport, [])
+    if any(x in all_text for x in forbid):
+        return False, 'forbidden keyword for target sport'
+
+    # Esports special cases
+    if sport in ['csgo','league_of_legends','dota2','valorant','overwatch','rocket_league','apex']:
+        if any(x in all_text for x in ['nfl','nba','mlb','nhl']):
+            return False, 'looks like traditional sport'
+        if (
+            not any(k in league for k in ['lol','league of legends','dota','valorant','overwatch','rocket league','apex','apex legends','csgo','cs:go','cs2','counter-strike','esports'])
+            and not any(k in stat_type for k in ['kill','kills','deaths','assists','maps','rounds','adr','kda','creep score','cs','gpm','xpm'])
+        ):
+            return False, 'no esports indicators'
+
+    # Missing essentials
+    if not player_name or not stat_type:
+        return False, 'missing player/stat'
+
+    # Stat/league mismatch generic
+    if sport in ['basketball','football','baseball','hockey','soccer','tennis'] and not league:
+        return False, 'missing league for traditional sport'
+
+    return False, 'no expected stat/league for sport'
+
+
 def render_validated_props_for_sport(props: List[dict], target_sport: str) -> List[dict]:
     """
     Apply strict validation before rendering props for a specific sport tab
     Log any filtered props for debugging
     """
     validated_props = []
-    filtered_props = []
+    filtered_props: List[tuple] = []  # (prop, reason)
     
+    # Check each prop and collect reasons
+    show_debug_flag = False
+    try:
+        import streamlit as st  # type: ignore
+        show_debug_flag = bool(st.session_state.get('show_debug_info', False))
+    except Exception:
+        show_debug_flag = False
+
     for prop in props:
-        if _strict_validate_before_render(prop, target_sport):
+        ok, reason = compute_rejection_reason(prop, target_sport)
+        if ok:
             validated_props.append(prop)
         else:
-            filtered_props.append(prop)
+            # In debug mode, allow soft failures to pass through for visual inspection
+            if show_debug_flag and reason in ['missing player/stat', 'missing league for traditional sport', 'no expected stat/league for sport', 'no esports indicators']:
+                # Mark preview so UI could distinguish later if needed
+                prop['_debug_preview'] = True
+                validated_props.append(prop)
+            else:
+                filtered_props.append((prop, reason))
     
     # Log filtered props for debugging (can be disabled in production)
     if filtered_props:
         print(f"🚫 Filtered {len(filtered_props)} props from {target_sport} tab:")
-        for fp in filtered_props[:3]:  # Show first 3 examples
-            print(f"   - {fp.get('player_name', 'Unknown')} ({fp.get('team', 'No team')}) - {fp.get('stat_type', 'No stat')} - League: {fp.get('league', 'No league')}")
+        for fp, reason in filtered_props[:5]:  # Show first 5 examples with reasons
+            print(f"   - {fp.get('player_name', 'Unknown')} ({fp.get('team', 'No team')}) - {fp.get('stat_type', 'No stat')} - League: {fp.get('league', 'No league')} | Reason: {reason}")
         # Persist a sample to log for admin triage
-        for fp in filtered_props[:10]:
-            _log_misclassified(fp, target_sport)
+        for fp, reason in filtered_props[:25]:
+            _log_misclassified(fp, target_sport, reason)
     
     return validated_props
 
@@ -1121,8 +1185,12 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         st.cache_resource.clear()
         st.experimental_rerun()
     
-    # Debug controls
-    show_debug = st.sidebar.checkbox("🔍 Show Debug Info", False)
+    # Debug controls (default ON to surface triage info)
+    show_debug = st.sidebar.checkbox("🔍 Show Debug Info", True)
+    try:
+        st.session_state['show_debug_info'] = bool(show_debug)
+    except Exception:
+        pass
 
     # Ensure freshness
     interval = int(os.environ.get('AUTO_SCRAPE_INTERVAL_SEC', '60'))
@@ -1162,9 +1230,15 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         
         if len(items) != len(validated_items):
             with st.sidebar.expander("🚫 Filtered Props"):
-                filtered_props = [p for p in items if p not in validated_items]
-                for i, fp in enumerate(filtered_props[:5]):
-                    st.write(f"{i+1}. {fp.get('player_name', 'Unknown')} - {fp.get('stat_type', 'Unknown')} - {fp.get('league', 'Unknown')}")
+                # Recompute with reasons for display
+                reasons = []
+                for p in items:
+                    if p not in validated_items:
+                        ok, r = compute_rejection_reason(p, sport_key)
+                        if not ok:
+                            reasons.append((p, r))
+                for i, (fp, r) in enumerate(reasons[:10]):
+                    st.write(f"{i+1}. {fp.get('player_name', 'Unknown')} - {fp.get('stat_type', 'Unknown')} - League: {fp.get('league', 'Unknown')} — Reason: {r}")
 
     if not validated_items:
         if items:

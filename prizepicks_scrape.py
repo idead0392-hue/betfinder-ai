@@ -214,12 +214,43 @@ def fetch_prizepicks_api(sport: str = None, league_id: str = None) -> List[Dict]
                         desc = str(attr.get("description") or "")
                         allow_under = not is_demon_prop(projection_type, desc)
 
+                        # Attempt to derive a normalized sport from league/labels for better downstream mapping
+                        league_lc = (league or "").strip().lower()
+                        sport_norm = ''
+                        aliases = {
+                            'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
+                            'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
+                            'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
+                            'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
+                            'valorant': 'valorant', 'valo': 'valorant',
+                            'dota 2': 'dota2', 'dota2': 'dota2',
+                            'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
+                            'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
+                            'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
+                            'apex': 'apex', 'apex legends': 'apex', 'apexlegends': 'apex'
+                        }
+                        sport_norm = aliases.get(league_lc, '')
+                        if not sport_norm:
+                            # Try to infer from projection type text for esports
+                            proj_lc = str(projection_type or '').lower()
+                            if any(k in proj_lc for k in ['kda','creep','vision score','cs ']):
+                                sport_norm = 'league_of_legends'
+                            elif any(k in proj_lc for k in ['gpm','xpm','last hits','denies','roshan']):
+                                sport_norm = 'dota2'
+                            elif 'adr' in proj_lc or 'headshot' in proj_lc or ('map' in proj_lc and 'kills' in proj_lc):
+                                sport_norm = 'csgo'
+                            elif any(k in proj_lc for k in ['acs','first blood','spike','defuse']):
+                                sport_norm = 'valorant'
+                            elif any(k in proj_lc for k in ['knockdowns','revives','placement']):
+                                sport_norm = 'apex'
+
                         items.append(
                             {
                                 "Name": player_name,
                                 "Points": line_val,
                                 "Prop": projection_type,
                                 "League": league,
+                                "Sport": sport_norm,
                                 "Team": team,
                                 "Matchup": matchup,
                                 "Home_Team": home_team,
@@ -630,14 +661,14 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
         if rows:
             df = pd.DataFrame(rows)
             # Ensure consistent columns
-            for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
+            for col in ["Name", "Points", "Prop", "League", "Sport", "Team", "Matchup", "Home_Team", "Away_Team"]:
                 if col not in df.columns:
                     df[col] = ""
             # Ensure new columns exist
             for col in ["Game_Date","Game_Time","Last_Updated"]:
                 if col not in df.columns:
                     df[col] = ""
-            df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team", "Game_Date", "Game_Time", "Last_Updated"]]
+            df = df[["Name", "Points", "Prop", "League", "Sport", "Team", "Matchup", "Home_Team", "Away_Team", "Game_Date", "Game_Time", "Last_Updated"]]
             df.to_csv(output_csv, index=False)
             return True
         return False
@@ -718,7 +749,7 @@ def main():
         # Write atomically to avoid partial reads while the app is auto-refreshing
         tmp_path = f"{output_csv}.tmp"
         # Ensure new columns exist
-        for col in ["Game_Date","Game_Time","Last_Updated","Allow_Under"]:
+        for col in ["Game_Date","Game_Time","Last_Updated","Allow_Under","Sport"]:
             if col not in df.columns:
                 df[col] = ""
         df.to_csv(tmp_path, index=False)

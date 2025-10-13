@@ -17,3 +17,7 @@ scikit-learn
 PyYAML
 auto-machine-learning
 mem0ai
+wsba-hockey>=1.2.3
+openai-agentserve==0.1.4
+fastapi>=0.110.0
+uvicorn[standard]>=0.24.0
