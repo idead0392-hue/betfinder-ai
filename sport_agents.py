@@ -12,11 +12,15 @@ import statistics
 import numpy as np
 import json
 import os
+import logging
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Optional, Any, Tuple
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Import the picks ledger for logging and analytics
 
@@ -386,6 +390,9 @@ class SportAgent(ABC):
         self.picks = []
         self.learning_insights = {}
         self.performance_metrics = {}
+        
+        # Set up logging
+        self.logger = logging.getLogger(f"{self.__class__.__name__}")
         
         # Initialize memory manager for personalization and learning
         try:
@@ -2268,13 +2275,164 @@ class BaseballAgent(SportAgent):
 
 
 class HockeyAgent(SportAgent):
-    """Hockey-specific agent for analyzing hockey props"""
+    """Hockey-specific agent for analyzing hockey props with advanced NHL analytics"""
     
     def __init__(self):
         super().__init__("hockey")
+        self.nhl_analytics = None
+        self._init_nhl_analytics()
+    
+    def _init_nhl_analytics(self):
+        """Initialize NHL analytics engine"""
+        try:
+            from nhl_analytics import NHLAnalyticsEngine
+            self.nhl_analytics = NHLAnalyticsEngine()
+            self.logger.info("🏒 NHL Analytics Engine initialized")
+        except Exception as e:
+            self.logger.warning(f"⚠️ NHL Analytics not available: {e}")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
-        return []
+        """Generate mock hockey props for testing"""
+        mock_props = [
+            {
+                'player_name': 'Connor McDavid',
+                'team': 'EDM',
+                'stat_type': 'Goals',
+                'line': 0.5,
+                'over_odds': 2.1,
+                'under_odds': 1.8,
+                'league': 'NHL'
+            },
+            {
+                'player_name': 'Leon Draisaitl',
+                'team': 'EDM',
+                'stat_type': 'Points',
+                'line': 1.5,
+                'over_odds': 1.9,
+                'under_odds': 1.9,
+                'league': 'NHL'
+            },
+            {
+                'player_name': 'Erik Karlsson',
+                'team': 'PIT',
+                'stat_type': 'Shots on Goal',
+                'line': 2.5,
+                'over_odds': 2.0,
+                'under_odds': 1.8,
+                'league': 'NHL'
+            },
+            {
+                'player_name': 'David Pastrnak',
+                'team': 'BOS',
+                'stat_type': 'Assists',
+                'line': 0.5,
+                'over_odds': 2.2,
+                'under_odds': 1.7,
+                'league': 'NHL'
+            }
+        ]
+        return mock_props[:max_props]
+    
+    def _analyze_hockey_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+        """Analyze hockey-specific factors using NHL analytics"""
+        analysis = {
+            'nhl_analytics': False,
+            'recent_form': 'unknown',
+            'team_strength': 'average',
+            'opponent_analysis': 'unknown',
+            'score': 5.0,
+            'reasoning': 'Standard hockey analysis'
+        }
+        
+        try:
+            if self.nhl_analytics:
+                # Use NHL analytics for enhanced analysis
+                enhanced_prop = self.nhl_analytics.enhance_prop_prediction(prop)
+                nhl_data = enhanced_prop.get('nhl_analytics', {})
+                
+                if nhl_data:
+                    analysis.update({
+                        'nhl_analytics': True,
+                        'wsba_prediction': nhl_data.get('wsba_prediction'),
+                        'wsba_confidence': nhl_data.get('wsba_confidence'),
+                        'wsba_factors': nhl_data.get('wsba_factors', []),
+                        'score': min(10.0, max(1.0, nhl_data.get('wsba_confidence', 0.5) * 10)),
+                        'reasoning': f"NHL Analytics: {', '.join(nhl_data.get('wsba_factors', []))}"
+                    })
+            
+            # Traditional hockey analysis
+            player_name = prop.get('player_name', '')
+            stat_type = prop.get('stat_type', '').lower()
+            team = prop.get('team', '')
+            line = prop.get('line', 0)
+            
+            # Player role analysis
+            elite_players = ['connor mcdavid', 'leon draisaitl', 'david pastrnak', 
+                           'auston matthews', 'nikita kucherov', 'erik karlsson']
+            is_elite = any(elite in player_name.lower() for elite in elite_players)
+            
+            if is_elite:
+                analysis['recent_form'] = 'elite'
+                analysis['score'] = min(10.0, analysis['score'] + 1.5)
+            
+            # Stat type analysis
+            if 'goal' in stat_type:
+                # Goals are harder to predict
+                analysis['score'] = max(1.0, analysis['score'] - 0.5)
+                if line >= 1.0:
+                    analysis['score'] = max(1.0, analysis['score'] - 1.0)
+                    
+            elif 'shot' in stat_type:
+                # Shots are more predictable
+                analysis['score'] = min(10.0, analysis['score'] + 1.0)
+                if is_elite and line <= 3.0:
+                    analysis['score'] = min(10.0, analysis['score'] + 1.0)
+                    
+            elif 'assist' in stat_type:
+                # Assists vary by player role
+                if is_elite:
+                    analysis['score'] = min(10.0, analysis['score'] + 0.5)
+                    
+            elif 'point' in stat_type:
+                # Points combine goals + assists
+                if is_elite and line <= 2.0:
+                    analysis['score'] = min(10.0, analysis['score'] + 1.0)
+            
+            # Team strength analysis (simplified)
+            strong_teams = ['EDM', 'BOS', 'TOR', 'FLA', 'COL', 'CAR']
+            if team in strong_teams:
+                analysis['team_strength'] = 'strong'
+                analysis['score'] = min(10.0, analysis['score'] + 0.5)
+            
+        except Exception as e:
+            self.logger.error(f"❌ Error in hockey analysis: {e}")
+            
+        return analysis
+    
+    def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
+        """Perform comprehensive hockey analysis using NHL analytics"""
+        factors = {
+            'player_form': self._analyze_player_form(prop),
+            'matchup': self._analyze_matchup(prop),
+            'injury_impact': self._analyze_injury_impact(prop),
+            'historical_performance': self._analyze_historical_performance(prop),
+            'situational_factors': self._analyze_situational_factors(prop),
+            'line_value': self._analyze_line_value(prop),
+            'team_dynamics': self._analyze_team_dynamics(prop),
+        }
+        
+        # Add hockey-specific analysis with NHL analytics
+        factors['hockey_specific'] = self._analyze_hockey_specific_factors(prop)
+        
+        # Calculate overall score from all factors
+        factor_scores = []
+        for factor_name, factor_data in factors.items():
+            if isinstance(factor_data, dict) and 'score' in factor_data:
+                factor_scores.append(factor_data['score'])
+        
+        factors['overall_score'] = statistics.mean(factor_scores) if factor_scores else 5.0
+        
+        return factors
 
 
 class SoccerAgent(SportAgent):
