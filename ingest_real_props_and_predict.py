@@ -4,7 +4,7 @@ Ingest real props and stats, feed to agents, retrain ML, and print predictions.
 Usage: python3 ingest_real_props_and_predict.py
 
 This script:
-- Loads real props from PropsDataFetcher (PrizePicks CSV data) and optional PrizePicks/Underdog fetchers if present
+- Loads real props from PropsDataFetcher (PrizePicks CSV data) and optional PrizePicks/Underdog fetchers if present (no SportBex)
 - Groups props by sport
 - Feeds them to all sport agents (NBA, NFL, MLB, NHL, Soccer, CFB, plus CS2 where applicable)
 - Triggers learn_from_history and make_picks on each agent with the real data
