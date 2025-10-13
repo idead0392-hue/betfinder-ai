@@ -24,6 +24,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Disable auto-refresh
+st.config.set_option('server.runOnSave', False)
+st.config.set_option('server.fileWatcherType', 'none')
+
 # Initialize session state for caching
 if 'data_cache' not in st.session_state:
     st.session_state.data_cache = {}
@@ -97,7 +101,7 @@ def load_sports_data_with_agents():
             from sport_agents import (
                 BasketballAgent, FootballAgent, TennisAgent, 
                 BaseballAgent, HockeyAgent, SoccerAgent, EsportsAgent, CollegeFootballAgent,
-                CSGOAgent, LeagueOfLegendsAgent, Dota2Agent, VALORANTAgent, OverwatchAgent, GolfAgent
+                CSGOAgent, LeagueOfLegendsAgent, Dota2Agent, VALORANTAgent, ApexAgent, GolfAgent
             )
             
             # Load data using sport agents
@@ -113,7 +117,7 @@ def load_sports_data_with_agents():
                 (LeagueOfLegendsAgent(), "league_of_legends"),
                 (Dota2Agent(), "dota2"),
                 (VALORANTAgent(), "valorant"),
-                (OverwatchAgent(), "overwatch"),
+                (ApexAgent(), "apex"),
                 (GolfAgent(), "golf")
             ]
             
@@ -136,242 +140,309 @@ def load_sports_data_with_agents():
                 set_cached_data(f"{sport}_props", {"data": []})
 
 def display_sport_picks(sport_name, picks, sport_emoji, sport_key=None):
-    """Display picks for a specific sport with row-based layout"""
+    """Display picks for a specific sport with sleek compact layout"""
     count = len(picks) if isinstance(picks, list) else 0
+    
+    # Compact header with live props count
     st.markdown(
-        f'<div class="section-title">{sport_name}'
-        f'<span class="time">Live & Upcoming</span>'
-        f'<span class="time" style="margin-left:8px;opacity:0.8;">{count} shown</span>'
-        f'</div>',
+        f"""<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);border-radius:8px;margin:4px 0;border:1px solid #333;'>
+            <div style='display:flex;align-items:center;gap:8px;'>
+                <span style='font-size:18px;'>{sport_emoji}</span>
+                <span style='font-weight:600;color:#fff;font-size:14px;'>{sport_name}</span>
+            </div>
+            <div style='display:flex;align-items:center;gap:12px;'>
+                <span style='background:#0f9d58;color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;'>{count} LIVE</span>
+                <span style='color:#9aa0a6;font-size:10px;'>Updated: {datetime.now().strftime("%H:%M")}</span>
+            </div>
+        </div>""",
         unsafe_allow_html=True
     )
     
     if picks:
-        # Per-tab compact filters (esports examples)
+        # Compact filters for specific sports
         original_picks = picks
         if sport_key in ('csgo', 'valorant'):
-            # Map filters
-            map_opts = ['Any', 'Map 1', 'Map 2', 'Map 3']
-            choice = st.selectbox('Filter by map', map_opts, index=0, key=f"{sport_key}_map_filter")
-            if choice != 'Any':
-                needle = choice.lower()
-                picks = [p for p in picks if needle in str(p.get('stat_type','')).lower()]
+            map_filter = st.selectbox('📍 Map Filter', ['All Maps', 'Map 1', 'Map 2', 'Map 3'], key=f"{sport_key}_map")
+            if map_filter != 'All Maps':
+                picks = [p for p in picks if map_filter.lower().replace(' ', '') in str(p.get('stat_type','')).lower()]
         elif sport_key == 'league_of_legends':
-            # Role/stat filters
-            stat_opts = ['Any', 'Kills+Assists', 'KDA', 'Creep Score']
-            choice = st.selectbox('Filter by stat', stat_opts, index=0, key=f"{sport_key}_stat_filter")
-            if choice != 'Any':
-                needles = {
-                    'Kills+Assists': ['kills+assists', 'kills + assists'],
-                    'KDA': ['kda', 'k/d/a'],
-                    'Creep Score': ['creep score', ' cs ']
-                }[choice]
+            stat_filter = st.selectbox('⚔️ Stat Filter', ['All Stats', 'Kills+Assists', 'KDA', 'Creep Score'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {'Kills+Assists': ['kills+assists'], 'KDA': ['kda'], 'Creep Score': ['creep', 'cs']}
+                needles = stat_map.get(stat_filter, [])
                 picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
-        elif sport_key == 'golf':
-            stat_opts = ['Any', 'Strokes', 'Birdies', 'Eagles', 'Pars']
-            choice = st.selectbox('Filter by stat', stat_opts, index=0, key=f"{sport_key}_stat_filter")
-            if choice != 'Any':
-                needles = choice.lower()
-                picks = [p for p in picks if needles in str(p.get('stat_type','')).lower()]
-        # Update count after filters
-        count = len(picks)
-        st.markdown(
-            f"<div style='margin-top:-6px;color:#9aa0a6;font-size:11px;'>Showing {count} of {len(original_picks)} picks</div>",
-            unsafe_allow_html=True
-        )
-        # Compact top-factor badges (aggregate strongest signals across shown picks)
-        factor_scores = {}
-        for p in picks[:12]:
-            af = p.get('analysis_factors') or {}
-            for k, v in af.items():
-                # skip meta keys
-                if k == 'overall_score':
-                    continue
-                score = v.get('score') if isinstance(v, dict) else None
-                if isinstance(score, (int, float)):
-                    factor_scores[k] = factor_scores.get(k, 0.0) + float(score)
-        top = sorted(factor_scores.items(), key=lambda x: x[1], reverse=True)[:3]
-        if top:
-            badges = []
-            rename = {
-                'player_form': 'Form', 'matchup_analysis': 'Matchup', 'historical_performance': 'History',
-                'injury_impact': 'Injuries', 'situational_factors': 'Situational', 'line_value': 'Line Value',
-                'weather_conditions': 'Weather', 'team_dynamics': 'Team'
-            }
-            for name, total in top:
-                label = rename.get(name, name.replace('_',' ').title())
-                badges.append(f"<span class='pill' style='background:#263238;color:#bfefff;border:1px solid #335;padding:2px 6px;font-size:10px;margin-right:6px;'>{label}</span>")
-            st.markdown(f"<div style='margin-bottom:4px;'>{''.join(badges)}</div>", unsafe_allow_html=True)
-        # Display picks as rows
-        rows_html = []
-        for pick in picks[:12]:  # Show top 12 picks post-filter
-            if isinstance(pick, dict):
-                rows_html.append(render_prop_row_html(pick, sport_emoji))
         
-        # Display all rows in a container
+        # Display filtered count
+        if len(picks) != len(original_picks):
+            st.markdown(f"<div style='color:#9aa0a6;font-size:11px;padding:0 12px;'>Showing {len(picks)} of {len(original_picks)} props</div>", unsafe_allow_html=True)
+        
+        # Render props in ultra-compact grid
+        rows_html = []
+        for i, pick in enumerate(picks[:24]):  # Show up to 24 props per tab
+            if isinstance(pick, dict):
+                rows_html.append(render_compact_prop_row(pick, sport_emoji, i))
+        
         if rows_html:
-            # Check if any picks have historical data to determine if we should show L5/L10/H2H columns
-            has_historical = any(pick.get('l5_average') or pick.get('avg_l10') or pick.get('h2h') for pick in picks[:12] if isinstance(pick, dict))
-            
-            historical_headers = """
-                    <span style='flex:0.6;'>L5</span>
-                    <span style='flex:0.6;'>L10</span>
-                    <span style='flex:0.6;'>H2H</span>""" if has_historical else ""
-            
+            # Sleek table container with compact headers
             full_html = f"""
-            <div style='background:#1a1a1a;border-radius:6px;padding:8px;margin:8px 0;'>
-                <div style='display:flex;align-items:center;padding:4px 0;border-bottom:2px solid #333;font-weight:600;color:#aaa;font-size:10px;'>
-                    <span style='width:20px;'></span>
-                    <span style='flex:1.5;'>PLAYER</span>
-                    <span style='flex:1.2;'>BET</span>
-                    <span style='flex:1;'>MATCHUP</span>{historical_headers}
-                    <span style='min-width:60px;text-align:right;'>TYPE</span>
-                    <span style='min-width:50px;text-align:right;'>CONF</span>
-                    <span style='min-width:50px;text-align:right;'>EV</span>
-                    <span style='min-width:40px;text-align:right;'>ODDS</span>
+            <div style='background:#111;border-radius:8px;padding:6px;margin:8px 0;border:1px solid #333;'>
+                <div style='display:grid;grid-template-columns:20px 1.8fr 1.4fr 1fr 80px 60px 60px 50px;gap:8px;padding:6px 8px;border-bottom:1px solid #333;color:#9aa0a6;font-size:9px;font-weight:600;text-transform:uppercase;'>
+                    <span></span>
+                    <span>PLAYER • BET</span>
+                    <span>MATCHUP</span>
+                    <span>TYPE</span>
+                    <span>CONF</span>
+                    <span>EDGE</span>
+                    <span>ODDS</span>
+                    <span>TIME</span>
                 </div>
-                {"".join(rows_html)}
+                <div style='max-height:600px;overflow-y:auto;'>
+                    {"".join(rows_html)}
+                </div>
             </div>
             """
             st.markdown(full_html, unsafe_allow_html=True)
             
-        # Show additional statistics
-        st.markdown("---")
-        st.markdown(f"### 📊 {sport_name} Analytics")
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            total_picks = len(picks)
-            st.metric("Total Picks", total_picks)
-        
-        with col2:
-            high_conf_picks = len([p for p in picks if p.get('confidence', 0) >= 80])
-            st.metric("High Confidence", high_conf_picks)
-        
-        with col3:
-            avg_confidence = sum(p.get('confidence', 0) for p in picks) / len(picks) if picks else 0
-            st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
-            
     else:
-        st.info(f"{sport_emoji} Loading {sport_name.lower()} props...")
-        st.button(f"Refresh {sport_name} Data", key=f"refresh_{sport_name.lower()}")
+        st.markdown(f"""<div style='text-align:center;padding:40px;color:#666;'>
+            <div style='font-size:24px;margin-bottom:8px;'>{sport_emoji}</div>
+            <div>Loading {sport_name.lower()} props...</div>
+            <div style='font-size:10px;color:#999;margin-top:4px;'>Fresh data incoming...</div>
+        </div>""", unsafe_allow_html=True)
+
+
+def render_compact_prop_row(pick: dict, sport_emoji: str, index: int) -> str:
+    """Render ultra-compact prop row for dense display"""
+    player_name = pick.get('player_name', 'Unknown')[:18]  # Truncate long names
+    stat_label = pick.get('stat_type', '')
+    line_val = pick.get('line', '')
+    bet_label = pick.get('bet_label', pick.get('over_under', ''))
+    matchup = pick.get('matchup', '')[:15]  # Truncate long matchups
+    confidence = pick.get('confidence', 0)
+    edge = (pick.get('ml_edge') or pick.get('expected_value', 0) / 100.0) * 100
+    odds = pick.get('odds', -110)
+    
+    # Get classification for styling
+    classification = pick.get('prizepicks_classification', '')
+    if isinstance(classification, dict):
+        classification = classification.get('classification', '')
+    
+    # Color coding based on confidence/classification
+    if confidence >= 85 or '👹' in str(classification):
+        row_bg = '#2d1b2d'  # Dark purple for demon picks
+        conf_color = '#ff6b9d'
+    elif confidence >= 75 or '💰' in str(classification):
+        row_bg = '#1b2d1b'  # Dark green for discount picks
+        conf_color = '#4ade80'
+    elif confidence >= 65:
+        row_bg = '#1b1b2d'  # Dark blue for decent picks  
+        conf_color = '#60a5fa'
+    else:
+        row_bg = '#2d1b1b'  # Dark red for goblin picks
+        conf_color = '#f87171'
+    
+    # Format time compactly
+    time_display = ''
+    try:
+        event_time = pick.get('event_time_et', '')
+        if event_time:
+            # Extract just hour:minute if possible
+            if 'PM' in event_time or 'AM' in event_time:
+                time_display = event_time.split()[-2] if len(event_time.split()) >= 2 else event_time[:5]
+            else:
+                time_display = event_time[:5]
+    except:
+        time_display = ''
+    
+    # Hover effect and zebra striping
+    zebra_bg = '#161616' if index % 2 == 0 else '#1a1a1a'
+    
+    return f"""
+    <div style='display:grid;grid-template-columns:20px 1.8fr 1.4fr 1fr 80px 60px 60px 50px;gap:8px;padding:6px 8px;border-bottom:1px solid #222;background:{zebra_bg};font-size:11px;transition:all 0.2s;' 
+         onmouseover="this.style.background='{row_bg}'" 
+         onmouseout="this.style.background='{zebra_bg}'">
+        <span style='font-size:12px;text-align:center;'>{sport_emoji}</span>
+        <div style='color:#fff;'>
+            <div style='font-weight:600;font-size:12px;line-height:1.2;'>{player_name}</div>
+            <div style='color:#bbb;font-size:10px;line-height:1.1;'>{bet_label} {line_val} {stat_label[:20]}</div>
+        </div>
+        <span style='color:#ccc;font-size:10px;line-height:1.3;'>{matchup}</span>
+        <span style='color:#888;font-size:9px;'>{str(classification)[:8] if classification else '—'}</span>
+        <span style='color:{conf_color};font-weight:600;text-align:right;'>{confidence:.0f}%</span>
+        <span style='color:#0f9d58;text-align:right;font-size:10px;'>+{edge:.1f}%</span>
+        <span style='color:#1a73e8;text-align:right;font-size:10px;'>{int(abs(odds)) if isinstance(odds, (int, float)) else odds}</span>
+        <span style='color:#666;text-align:center;font-size:9px;'>{time_display}</span>
+    </div>
+    """
 
 st.markdown("""
 <style>
-    /* Make overall UI more compact */
+    /* Modern dark theme with enhanced density */
     .stApp {
-        background-color: #0a0a0a;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        color: #ffffff;
     }
     
-    /* Reduce tab spacing and make tabs more compact */
+    /* Ultra-compact tabs for more space */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2px;
+        gap: 1px;
         flex-wrap: wrap;
         justify-content: flex-start;
-        max-width: 100%;
-        overflow-x: auto;
+        background: #1a1a1a;
+        border-radius: 6px;
+        padding: 2px;
+        border: 1px solid #333;
     }
     
     .stTabs [data-baseweb="tab"] {
-        font-size: 10px;
-        padding: 4px 6px;
-        height: 22px;
+        font-size: 9px;
+        padding: 3px 8px;
+        height: 20px;
         min-width: auto;
         white-space: nowrap;
         border-radius: 4px;
-        margin: 1px;
+        margin: 0;
         flex-shrink: 0;
+        background: transparent;
+        transition: all 0.2s ease;
     }
     
-    /* Make tab text more compact */
+    .stTabs [data-baseweb="tab"]:hover {
+        background: #333;
+        transform: translateY(-1px);
+    }
+    
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+    }
+    
+    /* Compact tab text */
     .stTabs [data-baseweb="tab"] div {
-        line-height: 1.1;
+        line-height: 1;
         font-weight: 500;
     }
     
-    /* Ensure tabs container doesn't overflow */
-    .stTabs {
-        width: 100%;
-        overflow: visible;
-    }
-    
-    /* Compact section titles */
-    .section-title {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .time {
-        font-size: 11px;
-        opacity: 0.8;
-    }
-    
-    /* Compact pills */
-    .pill { 
-        display: inline-block; 
-        padding: 2px 6px; 
-        border-radius: 999px; 
-        font-size: 9px; 
-        font-weight: 700; 
-        color: #fff; 
-        border: 1px solid transparent; 
-    }
-    .badge-high { background: rgba(32,201,151,0.18); border-color: #20c997; }
-    .badge-medium { background: rgba(240,173,78,0.18); border-color: #f0ad4e; }
-    .badge-low { background: rgba(220,53,69,0.18); border-color: #dc3545; }
-    .pill-edge { background: rgba(0,255,136,0.16); border-color: #00ff88; color: #b7ffd8; }
-    .pill-odds { background: rgba(0,123,255,0.16); border-color: #0d6efd; color: #b8d7ff; }
-    
-    /* Compact metrics */
-    .stMetric {
-        padding: 4px 0;
-    }
-    
-    .stMetric > div {
-        font-size: 12px;
-    }
-    
-    .stMetric [data-testid="metric-value"] {
-        font-size: 16px;
-    }
-    
-    /* Reduce header spacing */
-    .stMarkdown h1 {
+    /* Reduce overall padding and margins */
+    .stMarkdown {
         margin-bottom: 0.5rem;
-        font-size: 2rem;
+    }
+    
+    /* Sleek headers */
+    .stMarkdown h1 {
+        margin: 0.5rem 0;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
     .stMarkdown h3 {
-        color: white !important;
-        font-size: 1.2rem;
-        margin: 8px 0;
+        color: #fff !important;
+        font-size: 1.1rem;
+        margin: 8px 0 4px 0;
+        font-weight: 600;
     }
     
     /* Compact containers */
     .stContainer {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
     
-    /* Reduce sidebar spacing */
-    .stSidebar .stMarkdown {
-        padding: 0.5rem 0;
+    /* Sidebar enhancements */
+    .stSidebar {
+        background: #111;
+        border-right: 1px solid #333;
     }
-</style>
-""", unsafe_allow_html=True)
+    
+    .stSidebar .stMarkdown {
+        padding: 0.25rem 0;
+    }
+    
+    /* Button improvements */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 11px;
+        padding: 4px 12px;
+        height: 28px;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Selectbox enhancements */
+    .stSelectbox > div > div {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+    
+    /* Remove excess spacing */
+    .element-container {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Metric styling */
+    .stMetric {
+        background: #1a1a1a;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #333;
+    }
+    
+    .stMetric [data-testid="metric-value"] {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4ade80;
+    }
+    
+    .stMetric [data-testid="metric-label"] {
+        font-size: 10px;
+        color: #9aa0a6;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #666;
+        border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #888;
+    }
+</style>""", unsafe_allow_html=True)
 
-# Header
+# Sleek header
 st.markdown("""
-<div style="text-align: center; margin-bottom: 20px;">
-    <h1>🎯 BetFinder AI</h1>
-    <p style="font-size: 16px; color: #666;">Advanced Sports Betting Analysis with ML Predictions</p>
+<div style="text-align: center; margin: 8px 0 16px 0; padding: 12px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 12px; border: 1px solid #333;">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 700;">🎯 BetFinder AI</h1>
+    <p style="margin: 4px 0 0 0; font-size: 12px; color: #9aa0a6; font-weight: 500;">Real-time Sports Betting Intelligence • ML-Powered Predictions</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -499,7 +570,7 @@ tab_names = [
     "🧙 LoL",
     "🐉 Dota 2",
     "🎯 Valorant",
-    "🛡️ Overwatch",
+    "� Apex",
     "⛳ Golf",
 ]
 tabs = st.tabs(tab_names)
@@ -575,8 +646,8 @@ with tabs[0]:
         ("CS:GO Agent", "🔫", "csgo_props", "csgo"),
         ("League of Legends Agent", "🧙", "league_of_legends_props", "league_of_legends"),
         ("Dota 2 Agent", "🐉", "dota2_props", "dota2"),
-        ("Valorant Agent", "🎯", "valorant_props", "valorant"),
-        ("Overwatch Agent", "🛡️", "overwatch_props", "overwatch"),
+    ("Valorant Agent", "🎯", "valorant_props", "valorant"),
+    ("Apex Agent", "🔺", "apex_props", "apex"),
         ("Golf Agent", "⛳", "golf_props", "golf"),
     ]
     cols = st.columns(3)  # Use 3 columns to accommodate more agents
@@ -627,7 +698,7 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
     except Exception:
         empty = {k: [] for k in [
             'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
-            'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'golf']}
+            'csgo', 'league_of_legends', 'dota2', 'valorant', 'apex', 'golf']}
         set_cached_data(cache_key, empty)
         return empty
     
@@ -648,19 +719,24 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
         aliases = {
             # Core traditional sports
             'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-            'nfl': 'football',
+            'nbaszn': 'basketball', 'nbap': 'basketball', 'bbl': 'basketball',
+            'nfl': 'football', 'nfl1h': 'football', 'nfl1q': 'football', 'nfl2h': 'football',
             # College football aliases
             'cfb': 'college_football', 'ncaa football': 'college_football', 'ncaaf': 'college_football',
             'ncaa': 'college_football', 'college football': 'college_football', 'college-football': 'college_football',
             'ncaa fb': 'college_football', 'ncaa-fb': 'college_football',
-            'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
+            'mlb': 'baseball', 'mlblive': 'baseball', 'kbo': 'baseball',
+            'nhl': 'hockey', 'nhl1p': 'hockey',
+            'epl': 'soccer', 'soccer': 'soccer',
+            'tennis': 'tennis',
             # Esports titles
             'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
             'valorant': 'valorant', 'valo': 'valorant',
             'dota 2': 'dota2', 'dota2': 'dota2',
-            'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
+            'apex': 'apex', 'apex legends': 'apex',
             'golf': 'golf', 'pga': 'golf', 'masters': 'golf', 'tour': 'golf',
-            'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
+            'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
+            'r6': 'valorant'  # Rainbow Six Siege - group with tactical FPS
         }
         return aliases.get(s, s)
     
@@ -697,13 +773,21 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             'start_time': '',
             'sport': sport_val or '',
             'league': (league_val or game_val or sport_raw).strip(),
-            'over_under': None
+            'over_under': None,
+            # Additional fields for proper display
+            'matchup': row.get('Matchup', ''),
+            'bet_label': 'Over' if str(row.get('Allow_Under', '')).lower() != 'false' else '',
+            'ml_edge': 0.05,  # Default 5% edge for CSV props
+            'event_time_et': row.get('Game_Time', ''),
+            'event_date': row.get('Game_Date', ''),
+            'last_updated': row.get('Last_Updated', ''),
+            'prizepicks_classification': 'DECK 📊',  # Default classification for CSV props
         }
         props.append(prop)
     
     grouped = {k: [] for k in [
         'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
-        'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'golf']}
+        'csgo', 'league_of_legends', 'dota2', 'valorant', 'apex', 'golf']}
     
     def map_to_sport(p: dict) -> str:
         player = str(p.get('player_name', '')).lower()
@@ -714,17 +798,21 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             s = str(p['sport']).lower()
             aliases = {
                 'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-                'nfl': 'football',
+                'nbaszn': 'basketball', 'nbap': 'basketball', 'bbl': 'basketball',
+                'nfl': 'football', 'nfl1h': 'football', 'nfl1q': 'football', 'nfl2h': 'football',
                 # College football aliases
                 'cfb': 'college_football', 'ncaa football': 'college_football', 'ncaaf': 'college_football',
                 'ncaa': 'college_football', 'college football': 'college_football', 'college-football': 'college_football',
                 'ncaa fb': 'college_football', 'ncaa-fb': 'college_football',
-                'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer',
+                'mlb': 'baseball', 'mlblive': 'baseball', 'kbo': 'baseball',
+                'nhl': 'hockey', 'nhl1p': 'hockey',
+                'epl': 'soccer', 'soccer': 'soccer',
+                'tennis': 'tennis',
                 # Esports aliases
                 'lol': 'league_of_legends', 'league of legends': 'league_of_legends', 'league_of_legends': 'league_of_legends',
                 'dota2': 'dota2', 'dota 2': 'dota2',
-                'valorant': 'valorant', 'valo': 'valorant',
-                'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
+                'valorant': 'valorant', 'valo': 'valorant', 'r6': 'valorant',
+                'apex': 'apex', 'apex legends': 'apex',
                 'golf': 'golf', 'pga': 'golf', 'masters': 'golf', 'tour': 'golf',
                 'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo'
             }
@@ -786,9 +874,9 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             'aspas', 'less', 'saadhak', 'cauanzin', 'tuyz', 'demon1', 'jawgemo', 'ethan',
             'boostio', 'c0m', 'tenz', 'zekken', 'sacy', 'pancada', 'johnqt', 'f0rsaken'
         ]
-        overwatch_players = [
-            'proper', 'coluge', 'violet', 's9mm', 'chiyou', 'kevster', 'happy', 'space',
-            'skewed', 'ultraviolet', 'kai', 'hanbin', 'edison', 'fearless', 'lip', 'shu'
+        apex_players = [
+            'imperialhal', 'reps', 'verhulst', 'genburten', 'noyou', 'zera', 'skittlecakes', 'sweet',
+            'nokokopuffs', 'tsm', 'ascend', 'optic', 'furia', 'phony', 'staynaughtyy'
         ]
         golf_players = [
             'scottie scheffler', 'xander schauffele', 'ludvig aberg', 'viktor hovland',
@@ -802,8 +890,8 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
             return 'league_of_legends'
         if any(n in player for n in valorant_players):
             return 'valorant'
-        if any(n in player for n in overwatch_players):
-            return 'overwatch'
+        if any(n in player for n in apex_players):
+            return 'apex'
         if any(n in player for n in golf_players):
             return 'golf'
         if any(n in player for n in csgo_players):
@@ -829,9 +917,9 @@ def load_prizepicks_csv_cached(csv_path: str) -> dict:
         valorant_keywords = ['acs', 'first bloods', 'first kills', 'spike', 'plant', 'defuse']
         if any(k in stat for k in valorant_keywords):
             return 'valorant'
-        overwatch_keywords = ['eliminations', 'final blows', 'objective', 'healing', 'damage done']
-        if any(k in stat for k in overwatch_keywords):
-            return 'overwatch'
+        apex_keywords = ['knockdowns', 'revives', 'placement', 'legends', 'ring damage', 'finishers']
+        if any(k in stat for k in apex_keywords):
+            return 'apex'
         golf_keywords = ['strokes', 'birdies', 'eagles', 'pars', 'bogeys', 'fairways', 'greens in regulation', 'putts']
         if any(k in stat for k in golf_keywords):
             return 'golf'
@@ -908,13 +996,13 @@ csv_props = load_prizepicks_csv_cached(effective_csv_path)
 if not isinstance(csv_props, dict):
     csv_props = {k: [] for k in [
         'basketball', 'football', 'tennis', 'baseball', 'hockey', 'soccer', 'college_football',
-        'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'golf']}
+        'csgo', 'league_of_legends', 'dota2', 'valorant', 'apex', 'golf']}
 
 # Debug: sidebar summary of grouped counts to verify routing
 try:
     st.sidebar.subheader("Props by sport (debug)")
     for k in ['basketball', 'football', 'college_football', 'hockey', 'soccer', 'tennis', 'baseball',
-              'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'golf']:
+              'csgo', 'league_of_legends', 'dota2', 'valorant', 'apex', 'golf']:
         items = csv_props.get(k, []) or []
         if items:
             sample = str(items[0].get('stat_type', ''))[:28]
@@ -1012,51 +1100,73 @@ _start_props_server()
 # Sport tabs
 with tabs[1]:
     picks = (get_cached_data("basketball_props") or {}).get('data', [])
-    display_sport_picks("Basketball", picks, "🏀", sport_key="basketball")
+    csv_picks = csv_props.get('basketball', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Basketball", combined_picks, "🏀", sport_key="basketball")
 
 with tabs[2]:
     picks = (get_cached_data("football_props") or {}).get('data', [])
-    display_sport_picks("NFL", picks, "🏈", sport_key="football")
+    csv_picks = csv_props.get('football', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("NFL", combined_picks, "🏈", sport_key="football")
 
 with tabs[3]:
     picks = (get_cached_data("college_football_props") or {}).get('data', [])
-    display_sport_picks("College Football", picks, "🎓", sport_key="college_football")
+    csv_picks = csv_props.get('college_football', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("College Football", combined_picks, "🎓", sport_key="college_football")
 
 with tabs[4]:
     picks = (get_cached_data("tennis_props") or {}).get('data', [])
-    display_sport_picks("Tennis", picks, "🎾", sport_key="tennis")
+    csv_picks = csv_props.get('tennis', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Tennis", combined_picks, "🎾", sport_key="tennis")
 
 with tabs[5]:
     picks = (get_cached_data("baseball_props") or {}).get('data', [])
-    display_sport_picks("Baseball", picks, "⚾", sport_key="baseball")
+    csv_picks = csv_props.get('baseball', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Baseball", combined_picks, "⚾", sport_key="baseball")
 
 with tabs[6]:
     picks = (get_cached_data("hockey_props") or {}).get('data', [])
-    display_sport_picks("Hockey", picks, "🏒", sport_key="hockey")
+    csv_picks = csv_props.get('hockey', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Hockey", combined_picks, "🏒", sport_key="hockey")
 
 with tabs[7]:
     picks = (get_cached_data("soccer_props") or {}).get('data', [])
-    display_sport_picks("Soccer", picks, "⚽", sport_key="soccer")
+    csv_picks = csv_props.get('soccer', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Soccer", combined_picks, "⚽", sport_key="soccer")
 
 with tabs[8]:
     picks = (get_cached_data("csgo_props") or {}).get('data', [])
-    display_sport_picks("CS:GO", picks, "🔫", sport_key="csgo")
+    csv_picks = csv_props.get('csgo', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("CS:GO", combined_picks, "🔫", sport_key="csgo")
 
 with tabs[9]:
     picks = (get_cached_data("league_of_legends_props") or {}).get('data', [])
-    display_sport_picks("League of Legends", picks, "🧙", sport_key="league_of_legends")
+    csv_picks = csv_props.get('league_of_legends', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("League of Legends", combined_picks, "🧙", sport_key="league_of_legends")
 
 with tabs[10]:
     picks = (get_cached_data("dota2_props") or {}).get('data', [])
-    display_sport_picks("Dota 2", picks, "🐉", sport_key="dota2")
+    csv_picks = csv_props.get('dota2', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Dota 2", combined_picks, "🐉", sport_key="dota2")
 
 with tabs[11]:
     picks = (get_cached_data("valorant_props") or {}).get('data', [])
-    display_sport_picks("Valorant", picks, "�", sport_key="valorant")
+    csv_picks = csv_props.get('valorant', [])
+    combined_picks = picks + csv_picks
+    display_sport_picks("Valorant", combined_picks, "🎯", sport_key="valorant")
 
 with tabs[12]:
-    picks = (get_cached_data("overwatch_props") or {}).get('data', [])
-    display_sport_picks("Overwatch", picks, "🛡️", sport_key="overwatch")
+    picks = (get_cached_data("apex_props") or {}).get('data', [])
+    display_sport_picks("Apex Legends", picks, "�", sport_key="apex")
 
 with tabs[13]:
     picks = (get_cached_data("golf_props") or {}).get('data', [])
