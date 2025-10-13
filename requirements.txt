@@ -3,21 +3,28 @@ pandas>=2.0.0
 requests>=2.31.0
 lxml>=4.9.0
 pyarrow
-pydfs-lineup-optimizer-enhanced
-nfl_data_py
-lxml>=4.9.0
 python-dotenv>=1.0.0
 numpy>=1.24.0
 plotly>=5.17.0
-nbastatpy>=0.1.0
-cs2api>=0.3.0
-leaguepedia_parser_thomasbarrepitous
-flashscore-scraper
-scikit-learn
+scikit-learn>=1.0.0
 PyYAML
-auto-machine-learning
-mem0ai
-wsba-hockey>=1.2.3
-openai-agentserve==0.1.4
-fastapi>=0.110.0
-uvicorn[standard]>=0.24.0
+# ============================================================================
+# DEPLOYMENT-OPTIMIZED REQUIREMENTS
+# ============================================================================
+# This requirements.txt contains only stable, well-maintained packages that 
+# work reliably across different deployment environments. Optional packages
+# with complex dependency chains are commented out to prevent deployment issues.
+# The application gracefully handles missing optional dependencies.
+
+# Optional packages - commented out to avoid deployment issues:
+# cs2api>=0.1.0                         # CS:GO data integration (optional)  
+# wsba-hockey>=1.2.3                    # NHL analytics (graceful fallback)
+# pydfs-lineup-optimizer-enhanced        # DFS lineup optimization
+# nfl_data_py                           # NFL statistical data
+# nbastatpy>=0.1.0                      # NBA statistics
+# leaguepedia_parser_thomasbarrepitous   # League of Legends data
+# flashscore-scraper                    # Live sports scores
+# mem0ai                                # Memory/AI features
+# openai-agentserve>=0.0.1              # OpenAI agent serving
+# fastapi>=0.100.0                     # API framework
+# uvicorn[standard]>=0.23.0             # ASGI server
