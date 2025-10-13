@@ -564,7 +564,7 @@ def _validate_sport_category_match(prop: dict, assigned_sport: str) -> bool:
     # League of Legends validation
     elif assigned_sport == 'league_of_legends':
         lol_leagues = ['lol', 'league of legends', 'lcs', 'lec', 'lck', 'lpl', 'worlds', 'msi']
-        lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score',
+        lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score', 
                     'kda', 'towers', 'dragons', 'barons', 'inhibitors', 'games', 'maps']
         
         has_lol_league = any(ll in league.lower() for ll in lol_leagues)
@@ -1178,12 +1178,12 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
     # Cache controls
     if st.sidebar.button("🔄 Force Refresh Data"):
         st.cache_data.clear()
-        st.experimental_rerun()
+        st.rerun()
     
     if st.sidebar.button("🧹 Clear All Cache"):
         st.cache_data.clear()
         st.cache_resource.clear()
-        st.experimental_rerun()
+        st.rerun()
     
     # Debug controls (default ON to surface triage info)
     show_debug = st.sidebar.checkbox("🔍 Show Debug Info", True)

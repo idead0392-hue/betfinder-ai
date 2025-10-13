@@ -27,8 +27,7 @@ class UIErrorType(Enum):
     """Types of UI errors"""
     AGENT_FAILURE = "agent_failure"
     DATA_LOADING = "data_loading"
-    NETWORK_ISSUE = "network_issue"
-    CONFIGURATION = "configuration"
+    NETWORK_ISSUE = "configuration"
     RATE_LIMIT = "rate_limit"
     TIMEOUT = "timeout"
     INVALID_INPUT = "invalid_input"
@@ -313,7 +312,7 @@ class UIErrorHandler:
         with col3:
             if st.button("ℹ️ Show Details", key=f"details_{context}_{time.time()}"):
                 st.session_state[f"show_details_{context}"] = True
-                st.experimental_rerun()
+                st.rerun()
         
         # Handle retry
         if retry_clicked:
@@ -531,7 +530,7 @@ class UIErrorHandler:
                 st.sidebar.warning("🔧 Fallback Mode Active")
                 if st.sidebar.button("Exit Fallback Mode"):
                     st.session_state.ui_fallback_mode = False
-                    st.experimental_rerun()
+                    st.rerun()
         
         except Exception as e:
             st.sidebar.error("❌ Status Check Failed")
@@ -558,7 +557,7 @@ class UIErrorHandler:
             
             if st.button("Clear Error History"):
                 st.session_state.ui_error_history = []
-                st.experimental_rerun()
+                st.rerun()
     
     def create_error_boundary(self, component_name: str, session_id: str = None):
         """Create an error boundary context manager for Streamlit components"""
