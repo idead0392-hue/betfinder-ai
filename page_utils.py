@@ -1,12 +1,35 @@
 import os
 import time
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 from typing import Dict, List
 
 import pandas as pd
 import streamlit as st
-import requests
+from streamlit.components.v1 import html as components_html
+
+# Failsafe: Remove any rendered literal </div> text from the DOM
+components_html("""
+<script>
+function removeStrayDivText() {
+    // Remove any text nodes with stray closing tags
+    const container = document.querySelector('[data-testid=\"stAppViewContainer\"]');
+    if (!container) return;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    let n;
+    while (n = walker.nextNode()) {
+        if (n.textContent && n.textContent.trim().includes("</div>")) {
+            nodes.push(n);
+        }
+    }
+    nodes.forEach(t => {
+        if (t.parentNode) t.parentNode.removeChild(t);
+    });
+}
+// Run repeatedly for dynamic content (covers tabs)
+setInterval(removeStrayDivText, 400);
+</script>
+""", height=0)
 from functools import lru_cache
 
 
@@ -1168,7 +1191,6 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
     st.sidebar.write(f"CSV path: `{csv_path}`")
     # Timezone picker (optional)
     try:
-        from zoneinfo import available_timezones
         default_tz = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
         st.session_state['user_timezone'] = st.sidebar.text_input('Timezone', value=default_tz, help='IANA TZ, e.g., America/Chicago')
         os.environ['USER_TIMEZONE'] = st.session_state['user_timezone']
@@ -1265,7 +1287,6 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         st.info(f"📊 Showing {len(validated_items)} validated props (filtered out {len(items) - len(validated_items)} inconsistent props)")
 
     # Build picks using the agent, without logging
-    from sport_agents import SportAgent  # type: ignore
     agent = AgentClass()
     capped = validated_items[:cap]
     picks = agent.make_picks(props_data=capped, log_to_ledger=False)

@@ -16,9 +16,7 @@ This script:
 """
 from __future__ import annotations
 
-import sys
-import json
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Tuple
 from collections import defaultdict
 from datetime import datetime
 

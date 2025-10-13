@@ -1,13 +1,9 @@
 import streamlit as st
 import pandas as pd
 import requests
-import os
 import time
 import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 # requests is used for custom API calls below
-from lxml import etree
 
 # Page configuration
 st.set_page_config(
@@ -1253,7 +1249,7 @@ with tabs[8]:
                 if isinstance(data, dict) and 'data' in data:
                     return data['data']
             return []
-        except Exception as e:
+        except Exception:
             return []
     
     # Load all soccer competitions

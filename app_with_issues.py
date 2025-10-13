@@ -129,28 +129,26 @@ def create_competition_distribution_chart(competitions_data, sport_name):
     fig = go.Figure(data=[go.Pie(
         labels=list(region_counts.keys()),
         values=list(region_counts.values()),
-        hole=0.3
-    )])
-    
-    fig.update_layout(
-        title=f"{sport_name} Competitions by Region",
-        height=400,
-        template="plotly_white"
-    )
-    
-    return fig
+        else:
+            st.info("💡 Initialize your bankroll above to start using AI picks with professional money management")
+            for pick in daily_picks:
+                # Risk level
+                if pick['unit_size'] <= 1:
+                    risk_level = "🟢 Low Risk"
+                elif pick['unit_size'] <= 2:
+                    risk_level = "🟡 Medium Risk"
+                else:
+                    risk_level = "🔴 High Risk"
+                st.markdown(f"⚠️ **Risk Level:** {risk_level}")
 
-def create_market_activity_gauge(total_markets):
-    """Create a gauge chart for market activity"""
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number+delta",
-        value = total_markets,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Total Markets Available"},
-        delta = {'reference': 50},
-        gauge = {
-            'axis': {'range': [None, 200]},
-            'bar': {'color': "darkblue"},
+                # Reasoning
+                st.markdown("**🧠 AI Analysis:**")
+                st.markdown(pick['reasoning'])
+
+                # Market analysis details
+                if pick['market_analysis']:
+                    market = pick['market_analysis']
+                    st.markdown("**📊 Market Intelligence:**")
             'steps': [
                 {'range': [0, 50], 'color': "lightgray"},
                 {'range': [50, 100], 'color': "gray"},
@@ -567,78 +565,64 @@ with tabs[1]:
                                     st.success("🟢 Low Risk")
                             else:
                                 st.markdown("*Bet not recommended due to risk limits*")
-                        
-                        # Detailed reasoning
-                        st.markdown("**🧠 AI Analysis:**")
-                        st.markdown(pick['reasoning'])
-                        
-                        # Market analysis details
-                        if pick['market_analysis']:
-                            market = pick['market_analysis']
-                            st.markdown("**📊 Market Intelligence:**")
-                            col_x, col_y = st.columns(2)
-                            with col_x:
-                                st.caption(f"Line Movement: {market['line_movement'].title()}")
-                                st.caption(f"Public Bias: {market['public_bias'].title()}")
-                            with col_y:
-                                st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
-                                st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
-                
-                # Summary action buttons
-                st.markdown("---")
-                col_x, col_y, col_z = st.columns(3)
-                
-                with col_x:
-                    if bettable_picks and st.button("📊 Place All Recommended Bets", type="secondary"):
-                        placed_count = 0
-                        for pick in bettable_picks:
-                            success = bankroll_manager.add_bet(
-                                pick_id=pick['game_id'],
-                                sport=pick['sport'],
-                                matchup=pick['matchup'],
-                                pick_type=pick['pick_type'],
-                                odds=pick['odds'],
-                                bet_amount=pick['recommended_bet'],
-                                confidence=pick['confidence'],
-                                expected_value=pick['expected_value']
-                            )
-                            if success:
-                                placed_count += 1
-                        
-                        if placed_count > 0:
-                            st.success(f"✅ Tracked {placed_count} bets!")
-                            st.balloons()
-                            st.rerun()
-                
-                with col_y:
-                    if st.button("⚠️ Skip All Picks Today", type="secondary"):
-                        st.session_state.picks_skipped = True
-                        st.info("All picks skipped for today")
-                
-                with col_z:
-                    if st.button("🔄 Refresh Risk Assessment", type="secondary"):
-                        st.rerun()
-                
-                # Responsible gambling reminder
-                st.markdown("---")
-                st.warning("⚠️ **Responsible Gambling & Risk Management**")
-                col_warn1, col_warn2 = st.columns(2)
-                with col_warn1:
-                    st.markdown("""
-                    **Bankroll Protection:**
-                    - All bet sizes calculated using Kelly Criterion
-                    - Daily risk limits enforced automatically
-                    - Stop-loss triggers at 20% drawdown
-                    - Maximum 5% of bankroll per single bet
-                    """)
-                with col_warn2:
-                    st.markdown("""
-                    **Remember:**
-                    - These are AI suggestions, not guarantees
-                    - Past performance doesn't predict future results
-                    - Only bet what you can afford to lose
-                    - Seek help if gambling becomes a problem
-                    """)
+                                # Risk level
+                                if pick['unit_size'] <= 1:
+                                    risk_level = "🟢 Low Risk"
+                                elif pick['unit_size'] <= 2:
+                                    risk_level = "🟡 Medium Risk"
+                                else:
+                                    risk_level = "🔴 High Risk"
+                                st.markdown(f"⚠️ **Risk Level:** {risk_level}")
+
+                                # Reasoning
+                                st.markdown("**🧠 AI Analysis:**")
+                                st.markdown(pick['reasoning'])
+
+                                # Market analysis details
+                                if pick['market_analysis']:
+                                    market = pick['market_analysis']
+                                    st.markdown("**📊 Market Intelligence:**")
+                                    col_x, col_y = st.columns(2)
+                                    with col_x:
+                                        st.caption(f"Line Movement: {market['line_movement'].title()}")
+                                        st.caption(f"Public Bias: {market['public_bias'].title()}")
+                                    with col_y:
+                                        st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
+                                        st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
+                                # Responsible gambling reminder
+                                st.markdown("---")
+                                st.warning("⚠️ **Responsible Gambling Reminder**")
+                                st.markdown("""
+                                - Never bet more than you can afford to lose
+                                - These are AI-generated suggestions, not guarantees
+                                - Consider your bankroll and risk tolerance
+                                - Gambling should be for entertainment only
+                                - Seek help if gambling becomes a problem
+                                """)
+                                # Risk level
+                                if pick['unit_size'] <= 1:
+                                    risk_level = "🟢 Low Risk"
+                                elif pick['unit_size'] <= 2:
+                                    risk_level = "🟡 Medium Risk"
+                                else:
+                                    risk_level = "🔴 High Risk"
+                                st.markdown(f"⚠️ **Risk Level:** {risk_level}")
+
+                                # Reasoning
+                                st.markdown("**🧠 AI Analysis:**")
+                                st.markdown(pick['reasoning'])
+
+                                # Market analysis details
+                                if pick['market_analysis']:
+                                    market = pick['market_analysis']
+                                    st.markdown("**📊 Market Intelligence:**")
+                                    col_x, col_y = st.columns(2)
+                                    with col_x:
+                                        st.caption(f"Line Movement: {market['line_movement'].title()}")
+                                        st.caption(f"Public Bias: {market['public_bias'].title()}")
+                                    with col_y:
+                                        st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
+                                        st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
             
             else:
                 st.info(f"🤖 No picks found meeting your criteria (min {min_confidence}% confidence)")
@@ -655,53 +639,32 @@ with tabs[1]:
         else:
             st.info("💡 Initialize your bankroll above to start using AI picks with professional money management")
                         
-                        # Risk level
-                        if pick['unit_size'] <= 1:
-                            risk_level = "🟢 Low Risk"
-                        elif pick['unit_size'] <= 2:
-                            risk_level = "🟡 Medium Risk"
-                        else:
-                            risk_level = "🔴 High Risk"
-                        st.markdown(f"⚠️ **Risk Level:** {risk_level}")
+            # Risk level
+            if pick['unit_size'] <= 1:
+                risk_level = "🟢 Low Risk"
+            elif pick['unit_size'] <= 2:
+                risk_level = "🟡 Medium Risk"
+            else:
+                risk_level = "🔴 High Risk"
+            st.markdown(f"⚠️ **Risk Level:** {risk_level}")
+
+            # Reasoning
+            st.markdown("**🧠 AI Analysis:**")
+            st.markdown(pick['reasoning'])
                     
-                    # Reasoning
-                    st.markdown("**🧠 AI Analysis:**")
-                    st.markdown(pick['reasoning'])
-                    
-                    # Market analysis details
-                    if pick['market_analysis']:
-                        market = pick['market_analysis']
-                        st.markdown("**📊 Market Intelligence:**")
-                        col_x, col_y = st.columns(2)
-                        with col_x:
-                            st.caption(f"Line Movement: {market['line_movement'].title()}")
-                            st.caption(f"Public Bias: {market['public_bias'].title()}")
-                        with col_y:
-                            st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
-                            st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
+            # Market analysis details
+            if pick['market_analysis']:
+                market = pick['market_analysis']
+                st.markdown("**📊 Market Intelligence:**")
+                col_x, col_y = st.columns(2)
+                with col_x:
+                    st.caption(f"Line Movement: {market['line_movement'].title()}")
+                    st.caption(f"Public Bias: {market['public_bias'].title()}")
+                with col_y:
+                    st.caption(f"Sharp Action: {'Yes' if market['sharp_action'] else 'No'}")
+                    st.caption(f"Reverse Line: {'Yes' if market['reverse_line_movement'] else 'No'}")
             
             # Responsible gambling reminder
-            st.markdown("---")
-            st.warning("⚠️ **Responsible Gambling Reminder**")
-            st.markdown("""
-            - Never bet more than you can afford to lose
-            - These are AI-generated suggestions, not guarantees
-            - Consider your bankroll and risk tolerance
-            - Gambling should be for entertainment only
-            - Seek help if gambling becomes a problem
-            """)
-            
-        else:
-            st.info(f"🤖 No picks found meeting your criteria (min {min_confidence}% confidence)")
-            st.markdown("""
-            **Possible reasons:**
-            - Market conditions don't meet our quality thresholds
-            - All current picks fall below your confidence minimum
-            - Limited live games available right now
-            
-            Try lowering the minimum confidence or check back later for new opportunities.
-            """)
-        
         # Bet History Modal
         if st.session_state.get('show_bet_history', False):
             st.markdown("---")

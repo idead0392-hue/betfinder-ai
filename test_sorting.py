@@ -5,10 +5,9 @@ Tests various scenarios including missing times, different formats, and confiden
 """
 
 import sys
-import os
 sys.path.append('/workspaces/betfinder-ai')
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict
 
 # Import the sorting function from app.py
@@ -49,7 +48,7 @@ def sort_props_by_time_and_confidence(props: List[Dict]) -> List[Dict]:
                 parsed_time = datetime.fromisoformat(time_part.replace('Z', '+00:00'))
                 time_sort_key = parsed_time.timestamp()
                 
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError):
                 # If parsing fails, create a deterministic sort order based on string
                 try:
                     # Try to extract just time portion for ordering
@@ -61,7 +60,7 @@ def sort_props_by_time_and_confidence(props: List[Dict]) -> List[Dict]:
                     else:
                         # Use hash for non-time strings but keep it consistent
                         time_sort_key = hash(event_time) % 86400
-                except:
+                except Exception:
                     time_sort_key = 99999  # Put invalid times at the end
         elif isinstance(event_time, (int, float)):
             # Already a timestamp

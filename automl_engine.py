@@ -28,7 +28,7 @@ DISABLE = os.getenv("DISABLE_AUTOML", "0") == "1"
 try:
     from auto_machine_learning.supervised import SupervisedLearning
     _HAS_AUTOML = True
-except Exception as e:
+except Exception:
     SupervisedLearning = None  # type: ignore
     _HAS_AUTOML = False
 

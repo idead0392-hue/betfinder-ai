@@ -1,6 +1,6 @@
 # api_server.py - refactor to use SportbexProvider
 # api_server.py - refactor to use SportbexProvider with comprehensive monitoring
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 import time
 import logging
 import traceback
@@ -8,7 +8,7 @@ import sqlite3
 import os
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict, deque
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from threading import Lock
 import functools
 import pandas as pd

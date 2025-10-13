@@ -6,11 +6,10 @@ Handles API failures, timeouts, invalid responses, and implements retry logic
 import asyncio
 import time
 import random
-from typing import Dict, Any, Optional, List, Callable, Union, Tuple
+from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass
 from enum import Enum
 import functools
-import traceback
 from datetime import datetime, timedelta
 
 from agent_logger import get_logger, LogLevel, AgentEvent

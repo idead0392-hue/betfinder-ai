@@ -6,7 +6,7 @@ Tracks betting history, calculates ROI, manages risk, and provides insights
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 import pandas as pd
 
 class BankrollManager:

@@ -4,10 +4,7 @@ Tests routing, data formatting, integration, and error handling
 """
 
 import unittest
-import json
-import os
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+from unittest.mock import Mock, patch
 import sys
 
 # Add project root to path
@@ -15,7 +12,7 @@ sys.path.append('/workspaces/betfinder-ai')
 
 # Import modules to test
 from openai_agent_router import (
-    OpenAIAgentRouter, PropData, StatsData, ContextData, create_agent_router
+    OpenAIAgentRouter, PropData, StatsData, ContextData
 )
 from sport_data_formatters import (
     SportFormatterFactory, format_props_for_sport, extract_prop_insights,

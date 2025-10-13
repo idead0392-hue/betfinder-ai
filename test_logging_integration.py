@@ -4,17 +4,13 @@ Test script to verify the comprehensive logging and monitoring integration
 Tests the complete workflow with OpenAI Agent Router and Enhanced Sport Agent
 """
 
-import os
-import json
 import logging
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List
 
 # Import the integrated components
 from agent_integration import EnhancedSportAgent
-from openai_agent_router import OpenAIAgentRouter, PropData
-from agent_logger import AgentLogger
-from agent_monitor import AgentMonitor
+from openai_agent_router import OpenAIAgentRouter
 from agent_analytics_tracker import AgentAnalyticsTracker
 
 # Configure logging
@@ -159,7 +155,7 @@ def test_openai_agent_router():
         }
         
         detected_sport = router.detect_sport(test_prop_data)
-        print(f"🎯 Sport Detection Test:")
+        print("🎯 Sport Detection Test:")
         print(f"   Input: {test_prop_data['prop']} for {test_prop_data['player']}")
         print(f"   Detected sport: {detected_sport}")
         print()

@@ -10,8 +10,8 @@ import json
 import os
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from collections import defaultdict, Counter
+from typing import Dict, List, Optional, Any
+from collections import defaultdict
 import statistics
 
 
@@ -42,7 +42,7 @@ class PicksLedger:
                     print(f"Loaded {len(self.picks)} picks from {self.ledger_file}")
             else:
                 self.picks = []
-                print(f"No existing ledger file found. Starting fresh.")
+                print("No existing ledger file found. Starting fresh.")
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error loading picks ledger: {e}")
             self.picks = []

@@ -7,7 +7,7 @@ import os
 import json
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 import logging
 
 # Configure logging

@@ -12,7 +12,7 @@ import sys
 import os
 sys.path.append('/workspaces/betfinder-ai')
 
-from memory_manager import AgentMemoryManager, global_memory
+from memory_manager import global_memory
 from sport_agents import BasketballAgent, CSGOAgent
 
 def demo_memory_integration():

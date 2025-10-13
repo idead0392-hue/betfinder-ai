@@ -459,11 +459,11 @@ def maybe_scrape_with_selenium(output_csv: str) -> bool:
         if rows:
             df = pd.DataFrame(rows)
             # Ensure consistent columns
-                for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
-                    if col not in df.columns:
-                        df[col] = ""
-                df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]]
-                df.to_csv(output_csv, index=False)
+            for col in ["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]:
+                if col not in df.columns:
+                    df[col] = ""
+            df = df[["Name", "Points", "Prop", "League", "Team", "Matchup", "Home_Team", "Away_Team"]]
+            df.to_csv(output_csv, index=False)
             return True
         return False
         

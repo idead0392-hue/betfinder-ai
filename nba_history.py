@@ -18,33 +18,24 @@ def get_player_history(player_query: str, season: str = "2023", playoffs: bool =
     season: season year string, e.g., "2023"
     playoffs: True for playoff stats/logs
     """
-    if os.getenv('DISABLE_NBA_HISTORY', '0') == '1':
-        return {"career_stats": None, "awards": None, "game_logs": None}
-
+    import time
     from nbastatpy.player import Player
-
-    # nbastatpy expects 'season_year' not 'season'
-    p = Player(player_query, season_year=season, playoffs=playoffs)
-    out = {
-        "career_stats": None,
-        "awards": None,
-        "game_logs": None,
-    }
-    try:
-        # Available in current nbastatpy: season/ career totals
-        out["career_stats"] = p.get_season_career_totals()
-    except Exception:
-        pass
-    try:
-        out["awards"] = p.get_awards()
-    except Exception:
-        pass
-    try:
-        # Use league game finder backed method
-        out["game_logs"] = p.get_games_boxscore()
-    except Exception:
-        pass
-    return out
+    MAX_RETRIES = 10
+    RETRY_DELAY = 2.0
+    for attempt in range(MAX_RETRIES):
+        try:
+            p = Player(player_query, season_year=season, playoffs=playoffs)
+            out = {
+                "career_stats": p.get_season_career_totals(),
+                "awards": p.get_awards(),
+                "game_logs": p.get_games_boxscore(),
+            }
+            if all(out.values()):
+                return out
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+        time.sleep(RETRY_DELAY)
+    raise RuntimeError("Cannot fetch NBA player history with real data - aborting.")
 
 
 @lru_cache(maxsize=256)
@@ -57,28 +48,42 @@ def get_team_history(team_query: str, season: str = "2023") -> Dict[str, Any]:
         "team_stats": None,
         "roster": None,
     }
-    try:
-        # Player stats for the team this season
-        out["team_stats"] = t.get_player_stats()
-    except Exception:
-        pass
-    try:
-        out["roster"] = t.get_roster()
-    except Exception:
-        pass
-    return out
+    import time
+    MAX_RETRIES = 10
+    RETRY_DELAY = 2.0
+    for attempt in range(MAX_RETRIES):
+        try:
+            t = Team(team_query, season_year=season)
+            out = {
+                "team_stats": t.get_player_stats(),
+                "roster": t.get_roster(),
+            }
+            if all(out.values()):
+                return out
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+        time.sleep(RETRY_DELAY)
+    raise RuntimeError("Cannot fetch NBA team history with real data - aborting.")
 
 
 def get_season_league_stats(season: str = "2023"):
     # nbastatpy Season API may vary; keep best-effort import
     if os.getenv('DISABLE_NBA_HISTORY', '0') == '1':
         return None
-    try:
-        from nbastatpy.season import Season
-        s = Season(season_year=season)
-        return s.get_league_stats()
-    except Exception:
-        return None
+    import time
+    MAX_RETRIES = 10
+    RETRY_DELAY = 2.0
+    for attempt in range(MAX_RETRIES):
+        try:
+            from nbastatpy.season import Season
+            s = Season(season_year=season)
+            stats = s.get_league_stats()
+            if stats:
+                return stats
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+        time.sleep(RETRY_DELAY)
+    raise RuntimeError("Cannot fetch NBA league stats with real data - aborting.")
 
 
 def enrich_prop_data_with_history(prop: Dict[str, Any], season: Optional[str] = None, playoffs: bool = False) -> Dict[str, Any]:

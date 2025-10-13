@@ -1,20 +1,55 @@
 import streamlit as st
+st.markdown("""
+<style>
+/* Target the Streamlit app container and hide the last child (generic fallback) */
+[data-testid="stAppViewContainer"] > div > div:last-child {
+    display: none !important;
+}
+
+/* Optional: a safer overlay that covers any stray text without removing DOM nodes.
+     Uses pointer-events:none so it doesn't block UI interactions. */
+.fixed-bottom-overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 80px;
+    background: rgba(17, 17, 17, 0.95);
+    z-index: 9999;
+    pointer-events: none;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Optionally, overlay element for visual coverage
+# st.markdown("<div class='fixed-bottom-overlay'></div>", unsafe_allow_html=True)
+st.markdown(
+        """
+        <style>
+        #custom-footer { 
+            position: fixed; 
+            left: 0; right: 0; bottom: 0; 
+            height: 100px; 
+            background: #111; 
+            z-index: 10000; 
+            pointer-events: none;
+        }
+        </style>
+        <div id="custom-footer"></div>
+        """,
+        unsafe_allow_html=True
+)
+st.markdown('<div style="margin-bottom: 100px"></div>', unsafe_allow_html=True)
 import pandas as pd
 import requests
 import os
 import time
 import threading
-import importlib
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-from lxml import etree
 import json
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
-from page_utils import render_prop_row_html
 
 # Page configuration
 st.set_page_config(
@@ -100,7 +135,7 @@ def load_sports_data_with_agents():
             # Import sport agents
             from sport_agents import (
                 BasketballAgent, FootballAgent, TennisAgent, 
-                BaseballAgent, HockeyAgent, SoccerAgent, EsportsAgent, CollegeFootballAgent,
+                BaseballAgent, HockeyAgent, SoccerAgent, CollegeFootballAgent,
                 CSGOAgent, LeagueOfLegendsAgent, Dota2Agent, VALORANTAgent, ApexAgent, GolfAgent
             )
             
@@ -147,34 +182,170 @@ def display_sport_picks(sport_name, picks, sport_emoji, sport_key=None):
     st.markdown(
         f"""<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);border-radius:8px;margin:4px 0;border:1px solid #333;'>
             <div style='display:flex;align-items:center;gap:8px;'>
-                <span style='font-size:18px;'>{sport_emoji}</span>
-                <span style='font-weight:600;color:#fff;font-size:14px;'>{sport_name}</span>
+                <span style='font-size:20px;'>{sport_emoji}</span>
+                <span style='font-weight:600;color:#fff;font-size:16px;'>{sport_name}</span>
             </div>
             <div style='display:flex;align-items:center;gap:12px;'>
-                <span style='background:#0f9d58;color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;'>{count} LIVE</span>
-                <span style='color:#9aa0a6;font-size:10px;'>Updated: {datetime.now().strftime("%H:%M")}</span>
+                <span style='background:#0f9d58;color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;'>{count} LIVE</span>
+                <span style='color:#9aa0a6;font-size:12px;'>Updated: {datetime.now().strftime("%H:%M")}</span>
             </div>
         </div>""",
         unsafe_allow_html=True
     )
     
     if picks:
-        # Compact filters for specific sports
+        # Sport-specific filters based on actual prop types
         original_picks = picks
-        if sport_key in ('csgo', 'valorant'):
-            map_filter = st.selectbox('📍 Map Filter', ['All Maps', 'Map 1', 'Map 2', 'Map 3'], key=f"{sport_key}_map")
-            if map_filter != 'All Maps':
-                picks = [p for p in picks if map_filter.lower().replace(' ', '') in str(p.get('stat_type','')).lower()]
-        elif sport_key == 'league_of_legends':
-            stat_filter = st.selectbox('⚔️ Stat Filter', ['All Stats', 'Kills+Assists', 'KDA', 'Creep Score'], key=f"{sport_key}_stat")
+        
+        if sport_key == 'basketball':
+            stat_filter = st.selectbox('🏀 Stat Filter', ['All Stats', 'Points', 'Rebounds', 'Assists', 'Combos', '3-Pointers', 'Defense', 'Special'], key=f"{sport_key}_stat")
             if stat_filter != 'All Stats':
-                stat_map = {'Kills+Assists': ['kills+assists'], 'KDA': ['kda'], 'Creep Score': ['creep', 'cs']}
+                stat_map = {
+                    'Points': ['points', 'pts', 'points per game'],
+                    'Rebounds': ['rebounds', 'rebs', 'rebounds per game'],
+                    'Assists': ['assists', 'asts', 'assists per game'],
+                    'Combos': ['pts+rebs+asts', 'pts+rebs', 'pts+asts', 'rebs+asts', 'triple-doubles', 'double-double'],
+                    '3-Pointers': ['3pt made', '3-pt', 'three', '3pt made per game'],
+                    'Defense': ['blocks', 'steals', 'blk', 'stl'],
+                    'Special': ['40+ points games', '50+ point games', 'game avg']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key in ('football', 'college_football'):
+            stat_filter = st.selectbox('🏈 Stat Filter', ['All Stats', 'Passing', 'Rushing', 'Receiving', 'Defense', 'Fantasy/Combos', 'Special'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Passing': ['pass yards', 'passing yards', 'pass', 'passing', 'completions', 'td passes'],
+                    'Rushing': ['rush yards', 'rushing yards', 'rush', 'rushing', 'carries', 'rush attempts', 'longest rush'],
+                    'Receiving': ['receiving yards', 'receptions', 'rec', 'receiving', 'catches', 'rec targets', 'longest reception'],
+                    'Defense': ['tackles', 'sacks', 'interceptions', 'fumbles', 'defensive'],
+                    'Fantasy/Combos': ['rush+rec tds', 'rush+rec yds', 'fantasy score', 'touchdown'],
+                    'Special': ['halves with', 'quarters with', 'yards on first reception', 'yards on first rush attempt']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'baseball':
+            stat_filter = st.selectbox('⚾ Stat Filter', ['All Stats', 'Hitting', 'Pitching', 'Fielding', 'Base Running'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Hitting': ['hits', 'home runs', 'rbis', 'total bases', 'runs', 'doubles', 'triples', 'batting'],
+                    'Pitching': ['strikeouts', 'walks', 'earned runs', 'innings', 'wins', 'saves', 'era', 'whip'],
+                    'Base Running': ['stolen bases', 'steals', 'caught stealing'],
+                    'Fielding': ['errors', 'putouts', 'assists', 'fielding']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'hockey':
+            stat_filter = st.selectbox('🏒 Stat Filter', ['All Stats', 'Scoring', 'Goalie', 'Physical', 'Special Teams'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Scoring': ['goals', 'assists', 'points', 'shots'],
+                    'Goalie': ['saves', 'goalie saves', 'goals against', 'save percentage', 'shutouts'],
+                    'Physical': ['penalty minutes', 'hits', 'blocked shots', 'plus/minus'],
+                    'Special Teams': ['power play', 'faceoff', 'faceoffs', 'time on ice']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'soccer':
+            stat_filter = st.selectbox('⚽ Stat Filter', ['All Stats', 'Scoring', 'Assists', 'Shots', 'Defensive', 'Goalkeeping'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Scoring': ['goals', 'goal'],
+                    'Assists': ['assists', 'assist', 'goal + assist'],
+                    'Shots': ['shots', 'shots on target', 'shots on goal'],
+                    'Defensive': ['tackles', 'fouls', 'cards'],
+                    'Goalkeeping': ['saves', 'goalie saves', 'clean sheets']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'tennis':
+            stat_filter = st.selectbox('🎾 Stat Filter', ['All Stats', 'Serving', 'Games/Sets', 'Other'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Serving': ['aces', 'double faults', 'service'],
+                    'Games/Sets': ['games won', 'sets won', 'total games'],
+                    'Other': ['winners', 'errors', 'break points']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'csgo':
+            stat_filter = st.selectbox('🔫 Stat Filter', ['All Stats', 'Kills', 'Multi-Map Kills', 'Headshots', 'Other'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Kills': ['kills', 'kill'],
+                    'Multi-Map Kills': ['maps 1-2 kills', 'maps 1-3 kills', 'map kills'],
+                    'Headshots': ['headshots', 'headshot', 'maps 1-2 headshots'],
+                    'Other': ['adr', 'clutch', 'awp', 'bomb', 'round kills']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'valorant':
+            stat_filter = st.selectbox('🎯 Stat Filter', ['All Stats', 'Kills', 'Multi-Map Stats', 'Objective', 'Other'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Kills': ['kills', 'kill'],
+                    'Multi-Map Stats': ['maps kills', 'maps deaths', 'maps assists'],
+                    'Objective': ['spike plants', 'spike defuses', 'first bloods'],
+                    'Other': ['acs', 'headshot', 'clutch']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'league_of_legends':
+            stat_filter = st.selectbox('🧙 Stat Filter', ['All Stats', 'Kills/Deaths', 'Assists', 'Farm', 'Objectives'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Kills/Deaths': ['kills', 'deaths', 'kda', 'k/d'],
+                    'Assists': ['assists', 'kills+assists'],
+                    'Farm': ['creep score', 'cs', 'last hits', 'gpm'],
+                    'Objectives': ['towers', 'dragons', 'barons', 'wards']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'dota2':
+            stat_filter = st.selectbox('🐉 Stat Filter', ['All Stats', 'Kills/Deaths', 'Farm', 'Objectives'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Kills/Deaths': ['kills', 'deaths', 'assists'],
+                    'Farm': ['last hits', 'denies', 'gpm', 'xpm'],
+                    'Objectives': ['towers', 'roshan', 'barracks']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'apex':
+            stat_filter = st.selectbox('🔺 Stat Filter', ['All Stats', 'Combat', 'Placement', 'Support'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Combat': ['kills', 'knockdowns', 'damage'],
+                    'Placement': ['placement', 'top', 'wins'],
+                    'Support': ['revives', 'respawns', 'assists']
+                }
+                needles = stat_map.get(stat_filter, [])
+                picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
+        
+        elif sport_key == 'golf':
+            stat_filter = st.selectbox('⛳ Stat Filter', ['All Stats', 'Scoring', 'Accuracy', 'Putting'], key=f"{sport_key}_stat")
+            if stat_filter != 'All Stats':
+                stat_map = {
+                    'Scoring': ['strokes', 'birdies', 'eagles', 'bogeys', 'pars'],
+                    'Accuracy': ['fairways', 'greens in regulation'],
+                    'Putting': ['putts', 'putting']
+                }
                 needles = stat_map.get(stat_filter, [])
                 picks = [p for p in picks if any(n in str(p.get('stat_type','')).lower() for n in needles)]
         
         # Display filtered count
         if len(picks) != len(original_picks):
-            st.markdown(f"<div style='color:#9aa0a6;font-size:11px;padding:0 12px;'>Showing {len(picks)} of {len(original_picks)} props</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='color:#9aa0a6;font-size:13px;padding:0 12px;'>Showing {len(picks)} of {len(original_picks)} props</div>", unsafe_allow_html=True)
         
         # Render props in ultra-compact grid
         rows_html = []
@@ -184,13 +355,16 @@ def display_sport_picks(sport_name, picks, sport_emoji, sport_key=None):
         
         if rows_html:
             # Sleek table container with compact headers
+            # Adjust header for home tab to show agent source instead of type
+            type_header = "AGENT" if sport_key == "home" else "TYPE"
             full_html = f"""
             <div style='background:#111;border-radius:8px;padding:6px;margin:8px 0;border:1px solid #333;'>
-                <div style='display:grid;grid-template-columns:20px 1.8fr 1.4fr 1fr 80px 60px 60px 50px;gap:8px;padding:6px 8px;border-bottom:1px solid #333;color:#9aa0a6;font-size:9px;font-weight:600;text-transform:uppercase;'>
+                <div style='display:grid;grid-template-columns:20px 1.2fr 1.5fr 1.2fr 1fr 80px 60px 60px 50px;gap:10px;padding:8px 12px;border-bottom:1px solid #333;color:#9aa0a6;font-size:11px;font-weight:600;text-transform:uppercase;'>
                     <span></span>
-                    <span>PLAYER • BET</span>
+                    <span>PLAYER</span>
+                    <span>BET</span>
                     <span>MATCHUP</span>
-                    <span>TYPE</span>
+                    <span>{type_header}</span>
                     <span>CONF</span>
                     <span>EDGE</span>
                     <span>ODDS</span>
@@ -201,13 +375,15 @@ def display_sport_picks(sport_name, picks, sport_emoji, sport_key=None):
                 </div>
             </div>
             """
+            print("==HOME TAB MARKDOWN==", repr(full_html))
             st.markdown(full_html, unsafe_allow_html=True)
+            st.markdown("END_HOME_TAB_MARKER", unsafe_allow_html=True)
             
     else:
         st.markdown(f"""<div style='text-align:center;padding:40px;color:#666;'>
-            <div style='font-size:24px;margin-bottom:8px;'>{sport_emoji}</div>
-            <div>Loading {sport_name.lower()} props...</div>
-            <div style='font-size:10px;color:#999;margin-top:4px;'>Fresh data incoming...</div>
+            <div style='font-size:28px;margin-bottom:8px;'>{sport_emoji}</div>
+            <div style='font-size:16px;'>Loading {sport_name.lower()} props...</div>
+            <div style='font-size:12px;color:#999;margin-top:4px;'>Fresh data incoming...</div>
         </div>""", unsafe_allow_html=True)
 
 
@@ -222,10 +398,23 @@ def render_compact_prop_row(pick: dict, sport_emoji: str, index: int) -> str:
     edge = (pick.get('ml_edge') or pick.get('expected_value', 0) / 100.0) * 100
     odds = pick.get('odds', -110)
     
+    # Check if this is an agent pick (for home tab)
+    agent_emoji = pick.get('agent_emoji', '')
+    agent_name = pick.get('agent_name', '')
+    
+    # Use agent emoji if available, otherwise use sport emoji
+    display_emoji = agent_emoji if agent_emoji else sport_emoji
+    
     # Get classification for styling
     classification = pick.get('prizepicks_classification', '')
     if isinstance(classification, dict):
         classification = classification.get('classification', '')
+    
+    # For agent picks, show abbreviated agent name in classification column
+    if agent_name:
+        # Shorten agent names for display
+        agent_short = agent_name.replace(' Agent', '').replace('League of Legends', 'LoL').replace('Basketball', 'NBA')[:8]
+        classification = agent_short
     
     # Color coding based on confidence/classification
     if confidence >= 85 or '👹' in str(classification):
@@ -258,20 +447,18 @@ def render_compact_prop_row(pick: dict, sport_emoji: str, index: int) -> str:
     zebra_bg = '#161616' if index % 2 == 0 else '#1a1a1a'
     
     return f"""
-    <div style='display:grid;grid-template-columns:20px 1.8fr 1.4fr 1fr 80px 60px 60px 50px;gap:8px;padding:6px 8px;border-bottom:1px solid #222;background:{zebra_bg};font-size:11px;transition:all 0.2s;' 
-         onmouseover="this.style.background='{row_bg}'" 
-         onmouseout="this.style.background='{zebra_bg}'">
-        <span style='font-size:12px;text-align:center;'>{sport_emoji}</span>
-        <div style='color:#fff;'>
-            <div style='font-weight:600;font-size:12px;line-height:1.2;'>{player_name}</div>
-            <div style='color:#bbb;font-size:10px;line-height:1.1;'>{bet_label} {line_val} {stat_label[:20]}</div>
-        </div>
-        <span style='color:#ccc;font-size:10px;line-height:1.3;'>{matchup}</span>
-        <span style='color:#888;font-size:9px;'>{str(classification)[:8] if classification else '—'}</span>
-        <span style='color:{conf_color};font-weight:600;text-align:right;'>{confidence:.0f}%</span>
-        <span style='color:#0f9d58;text-align:right;font-size:10px;'>+{edge:.1f}%</span>
-        <span style='color:#1a73e8;text-align:right;font-size:10px;'>{int(abs(odds)) if isinstance(odds, (int, float)) else odds}</span>
-        <span style='color:#666;text-align:center;font-size:9px;'>{time_display}</span>
+    <div style='display:grid;grid-template-columns:20px 1.2fr 1.5fr 1.2fr 1fr 80px 60px 60px 50px;gap:10px;padding:8px 12px;border-bottom:1px solid #222;background:{zebra_bg};font-size:13px;transition:all 0.2s;' 
+         onmouseover=\"this.style.background='{row_bg}'\" 
+         onmouseout=\"this.style.background='{zebra_bg}'\">
+        <span style='font-size:14px;text-align:center;'>{display_emoji}</span>
+        <span style='color:#fff;font-weight:600;font-size:14px;line-height:1.3;'>{player_name}</span>
+        <span style='color:#4ade80;font-size:13px;font-weight:600;line-height:1.3;'>{bet_label} {line_val} {stat_label[:25]}</span>
+        <span style='color:#ccc;font-size:12px;line-height:1.3;'>{matchup}</span>
+        <span style='color:#888;font-size:11px;'>{str(classification)[:8] if classification else '—'}</span>
+        <span style='color:{conf_color};font-weight:600;text-align:right;font-size:13px;'>{confidence:.0f}%</span>
+        <span style='color:#0f9d58;text-align:right;font-size:12px;'>+{edge:.1f}%</span>
+        <span style='color:#1a73e8;text-align:right;font-size:12px;'>{int(abs(odds)) if isinstance(odds, (int, float)) else odds}</span>
+        <span style='color:#666;text-align:center;font-size:11px;'>{time_display}</span>
     </div>
     """
 
@@ -295,9 +482,9 @@ st.markdown("""
     }
     
     .stTabs [data-baseweb="tab"] {
-        font-size: 9px;
-        padding: 3px 8px;
-        height: 20px;
+        font-size: 11px;
+        padding: 4px 10px;
+        height: 24px;
         min-width: auto;
         white-space: nowrap;
         border-radius: 4px;
@@ -368,9 +555,9 @@ st.markdown("""
         color: white;
         border: none;
         border-radius: 6px;
-        font-size: 11px;
-        padding: 4px 12px;
-        height: 28px;
+        font-size: 13px;
+        padding: 6px 14px;
+        height: 32px;
         transition: all 0.2s ease;
     }
     
@@ -384,7 +571,7 @@ st.markdown("""
         background: #1a1a1a;
         border: 1px solid #333;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 13px;
     }
     
     /* Remove excess spacing */
@@ -407,7 +594,7 @@ st.markdown("""
     }
     
     .stMetric [data-testid="metric-label"] {
-        font-size: 10px;
+        font-size: 12px;
         color: #9aa0a6;
         text-transform: uppercase;
         font-weight: 600;
@@ -631,8 +818,8 @@ def _select_favorite_today(picks: list):
 
 # Home tab: Agent contributions board (favorite prop per agent for TODAY)
 with tabs[0]:
-    st.markdown("### 🏠 Today's Agent Contributions")
-    st.caption("Each agent's highest-confidence pick for today's games")
+    # Collect all picks from all agents for today
+    all_today_picks = []
     
     # Map of (agent_name, emoji, cache_key, sport_key for renderer)
     boards = [
@@ -646,41 +833,27 @@ with tabs[0]:
         ("CS:GO Agent", "🔫", "csgo_props", "csgo"),
         ("League of Legends Agent", "🧙", "league_of_legends_props", "league_of_legends"),
         ("Dota 2 Agent", "🐉", "dota2_props", "dota2"),
-    ("Valorant Agent", "🎯", "valorant_props", "valorant"),
-    ("Apex Agent", "🔺", "apex_props", "apex"),
+        ("Valorant Agent", "🎯", "valorant_props", "valorant"),
+        ("Apex Agent", "🔺", "apex_props", "apex"),
         ("Golf Agent", "⛳", "golf_props", "golf"),
     ]
-    cols = st.columns(3)  # Use 3 columns to accommodate more agents
-    shown = 0
-    for idx, (agent_name, emoji, cache_key, sport_key) in enumerate(boards):
+    
+    # Collect favorite pick from each agent for today
+    for agent_name, emoji, cache_key, sport_key in boards:
         data = (get_cached_data(cache_key) or {}).get('data', [])
         fav = _select_favorite_today(data)
-        if not fav:
-            continue
-        # Render favorite as a single compact row with agent attribution
-        with cols[idx % 3]:  # Use modulo 3 for 3-column layout
-            st.markdown(
-                f"<div style='margin:6px 0;font-weight:600;color:#667eea;font-size:13px;border-bottom:1px solid #333;padding-bottom:2px;'>{emoji} {agent_name}</div>",
-                unsafe_allow_html=True,
-            )
-            try:
-                st.markdown(render_prop_row_html(fav, emoji), unsafe_allow_html=True)
-                shown += 1
-            except Exception:
-                # Fallback simple render with agent attribution
-                player = fav.get('player_name') or fav.get('description') or 'Unknown'
-                stat = fav.get('stat_type', '').title()
-                line = fav.get('line', 'N/A')
-                conf = fav.get('confidence', 0)
-                st.markdown(f"{emoji} {player} — {stat} {line} • {conf}%", unsafe_allow_html=True)
-    if shown == 0:
-        from datetime import datetime
-        today_str = datetime.now().strftime("%B %d, %Y")
-        st.warning(f"⚠️ No props available for today's matchups ({today_str}). All agents are configured to show only today's games.")
-    st.markdown("---")
-    from datetime import datetime
-    today_str = datetime.now().strftime("%B %d, %Y")
-    st.caption(f"Showing today's picks only ({today_str}) • Favorites auto-select the highest-confidence pick per agent for today's games • Toggle reasoning in sidebar for analysis")
+        if fav:
+            # Add agent attribution to the pick
+            fav_copy = fav.copy()
+            fav_copy['agent_name'] = agent_name
+            fav_copy['agent_emoji'] = emoji
+            all_today_picks.append(fav_copy)
+    
+    # Sort by confidence descending to show best picks first
+    all_today_picks.sort(key=lambda p: float(p.get('confidence', 0)), reverse=True)
+    
+    # Use the consistent display function
+    display_sport_picks("Today's Top Agent Picks", all_today_picks, "🏠", sport_key="home")
 
 # Load PrizePicks CSV and group props by sport/esport (cached for 5 minutes)
 def load_prizepicks_csv_cached(csv_path: str) -> dict:
@@ -1014,7 +1187,7 @@ except Exception:
 
 # ===================== Health Check =====================
 def _status_chip(text: str, color: str) -> str:
-    return f"<span style='background:{color};color:#111;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:6px;'>{text}</span>"
+    return f"<span style='background:{color};color:#111;padding:3px 10px;border-radius:10px;font-size:12px;margin-right:6px;font-weight:600;'>{text}</span>"
 
 def _fmt_bytes(n: int) -> str:
     try:
@@ -1055,40 +1228,23 @@ try:
     banner_color = '#34a853' if overall_ok else ('#fbbc05' if file_exists else '#ea4335')
     banner_text = 'Healthy' if overall_ok else ('Degraded' if file_exists else 'Unavailable')
 
-    st.markdown(
-        f"""
-        <div style='margin:8px 0;padding:8px 12px;border-radius:8px;background:{banner_color}22;border:1px solid {banner_color};'>
-            <strong>System Health:</strong> {_status_chip(banner_text, banner_color)}
-            {_status_chip('CSV OK' if (file_exists and fresh) else 'CSV STALE' if file_exists else 'CSV MISSING', '#34a853' if (file_exists and fresh) else ('#fbbc05' if file_exists else '#ea4335'))}
-            {_status_chip('Scraper ON' if scraper_ok else 'Scraper OFF', '#34a853' if scraper_ok else '#fbbc05')}
-            {_status_chip('Server UP' if (server_ok and endpoint_ok) else 'Server DOWN', '#34a853' if (server_ok and endpoint_ok) else '#ea4335')}
-            {_status_chip(f"Props {total_props}", '#34a853' if any_props else '#fbbc05')}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    with st.expander("Health check details"):
-        st.write({
-            'csv_path': effective_csv_path,
-            'csv_exists': file_exists,
-            'csv_size': _fmt_bytes(file_size),
-            'csv_age_seconds': int(age_sec if age_sec < 1e8 else -1),
-            'fresh_threshold_seconds': int(max_age),
-            'scraper_started': scraper_ok,
-            'json_server_started': server_ok,
-            'endpoint_ok': endpoint_ok,
-            'props_total': total_props,
-        })
+    # Move health info to sidebar to keep main interface clean
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**System Status**")
+    st.sidebar.markdown(f"Overall: {_status_chip(banner_text, banner_color)}", unsafe_allow_html=True)
+    st.sidebar.markdown(f"Props: {total_props}", unsafe_allow_html=False)
+    
+    # Only show detailed health info in sidebar expander for debugging
+    with st.sidebar.expander("Debug Info", expanded=False):
+        st.write(f"CSV: {'✅' if file_exists else '❌'} {'Fresh' if fresh else 'Stale' if file_exists else 'Missing'}")
+        st.write(f"Scraper: {'✅' if scraper_ok else '❌'}")
+        st.write(f"Server: {'✅' if (server_ok and endpoint_ok) else '❌'}")
         if file_exists:
             try:
                 ct = datetime.fromtimestamp(mtime, ZoneInfo('America/Chicago'))
-                st.write(f"CSV last update (CT): {ct.strftime('%Y-%m-%d %H:%M:%S')}")
+                st.write(f"Last update: {ct.strftime('%H:%M:%S')}")
             except Exception:
                 pass
-        # Per-sport quick counts
-        if isinstance(csv_props, dict):
-            st.write({k: len(v) for k, v in csv_props.items()})
 except Exception:
     pass
 
@@ -1175,8 +1331,8 @@ with tabs[13]:
 # Footer
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #666; margin-top: 30px;">
-    <p>🤖 Powered by AI Sport Agents with ML Prediction Engine</p>
-    <p>📊 Real-time prop analysis with confidence scoring and edge calculation</p>
+<div style="text-align: center; color: #888; margin-top: 30px; font-size: 14px;">
+    <p style="margin: 8px 0;">🤖 Powered by AI Sport Agents with ML Prediction Engine</p>
+    <p style="margin: 8px 0;">📊 Real-time prop analysis with confidence scoring and edge calculation</p>
 </div>
 """, unsafe_allow_html=True)

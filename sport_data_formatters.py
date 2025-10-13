@@ -4,10 +4,8 @@ Handles formatting of props, stats, and context data for each sport
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from datetime import datetime
-from dataclasses import dataclass, asdict
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 

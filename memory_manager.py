@@ -16,8 +16,7 @@ Environment toggles:
 from __future__ import annotations
 
 import os
-import json
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from datetime import datetime
 
 DISABLE = os.getenv("DISABLE_MEMORY", "0") == "1"
@@ -25,7 +24,7 @@ DISABLE = os.getenv("DISABLE_MEMORY", "0") == "1"
 try:
     from mem0 import Memory
     _HAS_MEM0 = True
-except Exception as e:
+except Exception:
     Memory = None  # type: ignore
     _HAS_MEM0 = False
 

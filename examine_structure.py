@@ -4,7 +4,6 @@ Examine PrizePicks API for team/matchup data structure
 """
 import requests
 import json
-import time
 import random
 
 USER_AGENTS = [

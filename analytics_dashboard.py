@@ -6,16 +6,13 @@ Real-time visualization of system health, performance metrics, and analytics ins
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional, Tuple
-import json
+from datetime import datetime
+from typing import List, Optional
 
 from agent_logger import get_logger
-from agent_monitor import get_monitor, PerformanceMetrics, PickAnalytics
-from agent_analytics_tracker import get_analytics_tracker, QualityMetrics, PatternInsight
+from agent_monitor import get_monitor, PickAnalytics
+from agent_analytics_tracker import get_analytics_tracker, PatternInsight
 from agent_prompt_manager import get_prompt_manager
 from ui_error_handler import get_ui_error_handler
 

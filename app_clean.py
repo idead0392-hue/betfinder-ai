@@ -1,12 +1,5 @@
 import streamlit as st
-import pandas as pd
-import requests
-import os
 import time
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-from lxml import etree
 
 # Page configuration
 st.set_page_config(
@@ -231,7 +224,23 @@ with tabs[6]:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; margin-top: 30px;">
-    <p>🤖 Powered by AI Sport Agents with ML Prediction Engine</p>
-    <p>📊 Real-time prop analysis with confidence scoring and edge calculation</p>
+        <p>🤖 Powered by AI Sport Agents with ML Prediction Engine</p>
+        <p>📊 Real-time prop analysis with confidence scoring and edge calculation</p>
 </div>
 """, unsafe_allow_html=True)
+
+# Failsafe: Remove any literal stray </div> tags from the DOM
+st.components.v1.html('''
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove any text nodes containing only stray </div>
+    Array.from(document.querySelectorAll('body *')).forEach(function(el) {
+        el.childNodes.forEach(function(node) {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "</div>") {
+                node.remove();
+            }
+        });
+    });
+});
+</script>
+''', height=0)

@@ -1,9 +1,0 @@
-# Ignore secrets stored for Streamlit sharing and local testing
-# Add the following line to `.streamlit/secrets.toml` and keep it out of git:
-# NEW_API_TOKEN = "your_token_here"
-
-# Ensure you do NOT commit this file when storing secrets locally.
-secrets.toml
-
-# Optional: if you create an env file for local development, ignore it too
-secrets.env

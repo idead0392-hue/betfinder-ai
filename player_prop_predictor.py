@@ -18,7 +18,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 from typing import Dict, List, Any, Optional, Tuple
-import time
 import random
 
 # Esports restrictions
