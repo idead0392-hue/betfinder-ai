@@ -822,7 +822,7 @@ sport_emojis = {
 
 def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
     player_name = pick.get('player_name', 'Unknown')
-    stat_label = pick.get('stat_type', '')
+    stat_label = pick.get('stat_type', '').capitalize()
     line_val = pick.get('line', None)
     bet_label = pick.get('over_under', '')
     matchup = pick.get('matchup', '')
@@ -833,6 +833,166 @@ def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
     l10_display = f"L10 {pick.get('avg_l10','-')}" if pick.get('avg_l10') is not None else ""
     h2h_display = f"H2H {pick.get('h2h','-')}" if pick.get('h2h') is not None else ""
     
+    # Add PrizePicks classification display
+    prizepicks_class = pick.get('prizepicks_classification', '')
+    classification_text = ''
+    
+    if isinstance(prizepicks_class, dict):
+        # Handle dict format: {'classification': 'DISCOUNT 💰', 'emoji': '💰', ...}
+        classification_text = prizepicks_class.get('classification', '')
+    elif isinstance(prizepicks_class, str):
+        # Handle string format: 'DISCOUNT 💰'
+        classification_text = prizepicks_class
+    else:
+        # Handle any other format by converting to string
+        classification_text = str(prizepicks_class) if prizepicks_class else ''
+    
+    # Clean up any potential HTML encoding issues
+    classification_text = classification_text.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    
+    # Fallback if no classification found - generate one based on confidence
+    if not classification_text:
+        conf = pick.get('confidence', 0)
+        if conf >= 85:
+            classification_text = 'DEMON 👹'
+        elif conf >= 75:
+            classification_text = 'DISCOUNT 💰'
+        elif conf >= 65:
+            classification_text = 'DECENT ✅'
+        else:
+            classification_text = 'GOBLIN 👺'
+    
+    # Use plain text badges instead of HTML to avoid escaping issues
+    type_display = f" [{classification_text}]" if classification_text else ""
+    confidence_text = f"[Conf {confidence:.0f}%]"
+    ev_text = f"[EV +{edge*100:.1f}%]" if edge and edge > 0 else ""
+    odds_text = f"[-{abs(int(odds))}]" if isinstance(odds, (int, float)) else ""
+    
+    # Datetime display: prefer event_start_time ISO; fall back to ET string
+    when_text = ''
+    try:
+        tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+        from zoneinfo import ZoneInfo  # py3.9+
+        user_tz = ZoneInfo(tz_env)
+        iso = pick.get('event_start_time') or ''
+        if isinstance(iso, str) and iso:
+            # Normalize Z to +00:00 for fromisoformat
+            dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            dt_local = dt.astimezone(user_tz)
+            when_text = dt_local.strftime('%b %d, %I:%M %p %Z')
+        else:
+            # Fallback: combine date/time et
+            d = pick.get('event_date') or ''
+            t = pick.get('event_time_et') or ''
+            if d and t:
+                when_text = f"{d} {t}"
+    except Exception:
+        when_text = pick.get('event_time_et') or ''
+    
+    # Last updated display
+    updated_text = ''
+    try:
+        lu = pick.get('last_updated') or ''
+        if lu:
+            dt = datetime.fromisoformat(str(lu).replace('Z', '+00:00'))
+            tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+            from zoneinfo import ZoneInfo
+            updated_text = dt.astimezone(ZoneInfo(tz_env)).strftime('Updated: %I:%M %p %Z')
+    except Exception:
+        pass
+    
+    reasoning_html = ''
+    if st.session_state.get('show_reasoning') and pick.get('detailed_reasoning'):
+        dr = pick['detailed_reasoning']
+        summary = dr.get('summary', '')
+        details = dr.get('details', [])
+        lines = []
+        for d in details:
+            label = d.get('label', '•')
+            score = d.get('score')
+            reason = d.get('reason', '')
+            lines.append(f"• <strong>{label}</strong> {f'({score:.1f}/10)' if isinstance(score,(int,float)) else ''} – {reason}")
+        details_html = f"""
+    # Add PrizePicks classification display
+    prizepicks_class = pick.get('prizepicks_classification', '')
+    classification_text = ''
+    
+    if isinstance(prizepicks_class, dict):
+        # Handle dict format: {'classification': 'DISCOUNT 💰', 'emoji': '💰', ...}
+        classification_text = prizepicks_class.get('classification', '')
+    elif isinstance(prizepicks_class, str):
+        # Handle string format: 'DISCOUNT 💰'
+        classification_text = prizepicks_class
+    else:
+        # Handle any other format by converting to string
+        classification_text = str(prizepicks_class) if prizepicks_class else ''
+    
+    # Clean up any potential HTML encoding issues
+    classification_text = classification_text.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    
+    # Fallback if no classification found - generate one based on confidence
+    if not classification_text:
+        conf = pick.get('confidence', 0)
+        if conf >= 85:
+            classification_text = 'DEMON 👹'
+        elif conf >= 75:
+            classification_text = 'DISCOUNT 💰'
+        elif conf >= 65:
+            classification_text = 'DECENT ✅'
+        else:
+            classification_text = 'GOBLIN 👺'
+    
+    # Use plain text badges instead of HTML to avoid escaping issues
+    type_display = f" [{classification_text}]" if classification_text else ""
+    confidence_text = f"[Conf {confidence:.0f}%]"
+    ev_text = f"[EV +{edge*100:.1f}%]" if edge and edge > 0 else ""
+    odds_text = f"[-{abs(int(odds))}]" if isinstance(odds, (int, float)) else ""
+    
+    # Datetime display: prefer event_start_time ISO; fall back to ET string
+    when_text = ''
+    try:
+        tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+        from zoneinfo import ZoneInfo  # py3.9+
+        user_tz = ZoneInfo(tz_env)
+        iso = pick.get('event_start_time') or ''
+        if isinstance(iso, str) and iso:
+            # Normalize Z to +00:00 for fromisoformat
+            dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            dt_local = dt.astimezone(user_tz)
+            when_text = dt_local.strftime('%b %d, %I:%M %p %Z')
+        else:
+            # Fallback: combine date/time et
+            d = pick.get('event_date') or ''
+            t = pick.get('event_time_et') or ''
+            if d and t:
+                when_text = f"{d} {t}"
+    except Exception:
+        when_text = pick.get('event_time_et') or ''
+    
+    # Last updated display
+    updated_text = ''
+    try:
+        lu = pick.get('last_updated') or ''
+        if lu:
+            dt = datetime.fromisoformat(str(lu).replace('Z', '+00:00'))
+            tz_env = os.environ.get('USER_TIMEZONE') or os.environ.get('TZ') or 'America/Chicago'
+            from zoneinfo import ZoneInfo
+            updated_text = dt.astimezone(ZoneInfo(tz_env)).strftime('Updated: %I:%M %p %Z')
+    except Exception:
+        pass
+    
+    reasoning_html = ''
+    if st.session_state.get('show_reasoning') and pick.get('detailed_reasoning'):
+        dr = pick['detailed_reasoning']
+        summary = dr.get('summary', '')
+        details = dr.get('details', [])
+        lines = []
+        for d in details:
+            label = d.get('label', '•')
+            score = d.get('score')
+            reason = d.get('reason', '')
+            lines.append(f"• <strong>{label}</strong> {f'({score:.1f}/10)' if isinstance(score,(int,float)) else ''} – {reason}")
+        details_html = f"""
     # Add PrizePicks classification display
     prizepicks_class = pick.get('prizepicks_classification', '')
     classification_text = ''
@@ -1103,11 +1263,29 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
         pass
 
     # Render
-    # Use markdown and emojis for formatting, no raw HTML
+    # Use markdown and emojis for formatting, then render picks in a 2-column layout
     section_title = f"### {title}  ({len(picks)} shown)"
     if last_updated_display:
         section_title += f"  **Updated:** {last_updated_display}"
     st.markdown(section_title)
-    for p in picks:
-        html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
-        st.markdown(html_row, unsafe_allow_html=True)
+
+    # --- START LAYOUT & PERFORMANCE LIMIT ---
+    MAX_CARDS_TO_DISPLAY = 20
+    NUM_COLUMNS = 2
+
+    display_picks = picks[:MAX_CARDS_TO_DISPLAY]
+
+    if not display_picks:
+        st.info(f"No picks generated for {title} (0/{len(picks)} props passed filters).")
+        return
+
+    cols = st.columns(NUM_COLUMNS)
+    for i, p in enumerate(display_picks):
+        current_col = cols[i % NUM_COLUMNS]
+        with current_col:
+            html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
+            st.markdown(html_row, unsafe_allow_html=True)
+
+    if len(picks) > MAX_CARDS_TO_DISPLAY:
+        st.info(f"Showing first {MAX_CARDS_TO_DISPLAY} picks out of {len(picks)} total for performance.")
+    # --- END LAYOUT & PERFORMANCE LIMIT ---
