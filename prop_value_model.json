@@ -7,7 +7,7 @@
     "recency_factor": 0.1
   },
   "version": "automl_2.0",
-  "last_training_time": "2025-10-13T19:43:06.383663",
+  "last_training_time": "2025-10-14T15:17:15.861107",
   "training_sample_size": 0,
   "feature_importance": {},
   "accuracy": 0.0

@@ -1,0 +1,33 @@
+# Comprehensive par_scrape commands for NFL props from FanDuel
+
+# 1. Scrape NFL main page for all props (headless, parallel, CSV+JSON output)
+par_scrape --url "https://sportsbook.fanduel.com/navigation/nfl" \
+  -f "Prop Name" -f "Line" -f "Odds" -f "Game Date" -f "Player" -f "Team" -f "Market" \
+  --scraper playwright --headless --scrape-max-parallel 4 --crawl-type single_level \
+  -O csv -O json --display-output csv
+
+# 2. Scrape NFL player props tab (headless, parallel, CSV+JSON output)
+par_scrape --url "https://sportsbook.fanduel.com/navigation/nfl?tab=player-props" \
+  -f "Prop Name" -f "Line" -f "Odds" -f "Game Date" -f "Player" -f "Team" -f "Market" \
+  --scraper playwright --headless --scrape-max-parallel 4 --crawl-type single_level \
+  -O csv -O json --display-output csv
+
+# 3. Example: Scrape with custom prompt for advanced extraction
+par_scrape --url "https://sportsbook.fanduel.com/navigation/nfl?tab=player-props" \
+  -f "Prop Name" -f "Line" -f "Odds" -f "Game Date" -f "Player" -f "Team" -f "Market" \
+  --scraper playwright --headless --scrape-max-parallel 4 --crawl-type single_level \
+  --prompt "Extract all player prop bets and their lines, odds, teams, and game dates." \
+  -O csv -O json --display-output csv
+
+# 4. Example: Scrape with domain crawl for deeper coverage
+par_scrape --url "https://sportsbook.fanduel.com/navigation/nfl" \
+  -f "Prop Name" -f "Line" -f "Odds" -f "Game Date" -f "Player" -f "Team" -f "Market" \
+  --scraper playwright --headless --scrape-max-parallel 4 --crawl-type domain \
+  -O csv -O json --display-output csv
+
+# Tips:
+# - Adjust -f flags to match the exact field names on FanDuel for best results.
+# - Use --scrape-max-parallel to speed up scraping (default: 4, increase if needed).
+# - --crawl-type single_level is fastest; use domain for deeper multi-page coverage.
+# - --prompt can be customized for more advanced AI-powered extraction.
+# - Output files will be saved in the current directory as .csv and .json.

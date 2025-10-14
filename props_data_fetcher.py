@@ -11,6 +11,8 @@ import os
 import csv
 from datetime import datetime
 from typing import List, Dict, Optional, Any
+import subprocess
+import json
 
 # External source for PrizePicks scraping/API
 try:
@@ -53,26 +55,23 @@ class PropsDataFetcher:
     """
 
     def __init__(self):
-        # Optional path to cached CSV from previous scrape
-        self.pp_csv_path = os.getenv('PRIZEPICKS_CSV_PATH', 'prizepicks_props.csv')
+        # List of sportsbook Playwright scripts
+        self.sportsbook_scripts = [
+            'scrape_sportsbook.js',  # Example script path
+            # Add more scripts for other sportsbooks as needed
+        ]
     
     def fetch_all_props(self, max_props: int = 250) -> List[Dict]:
-        """Fetch props from supported sources and return normalized list."""
+        """Fetch props from all sportsbook Playwright scripts and return normalized list."""
         all_props: List[Dict] = []
 
-        # PrizePicks first
-        try:
-            pp = self.fetch_prizepicks_props(max_items=max_props)
-            all_props.extend(pp)
-        except Exception as e:
-            print(f"⚠️ Error fetching PrizePicks: {e}")
-
-        # Underdog (optional; currently returns empty list)
-        try:
-            ud = self.fetch_underdog_props(max_items=max(0, max_props - len(all_props)))
-            all_props.extend(ud)
-        except Exception as e:
-            print(f"⚠️ Error fetching Underdog: {e}")
+        # Sportsbook Playwright scripts only
+        for script_path in self.sportsbook_scripts:
+            try:
+                sb_props = self.fetch_sportsbook_props(script_path, max_items=max(0, max_props - len(all_props)))
+                all_props.extend(sb_props)
+            except Exception as e:
+                print(f"⚠️ Error fetching props from {script_path}: {e}")
 
         # Filter by valid time
         all_props = [p for p in all_props if is_event_time_valid(p.get('start_time', '')) or p.get('start_time') == '']
@@ -94,83 +93,3 @@ class PropsDataFetcher:
                 # print(f"📄 Loaded {len(items)} PrizePicks rows from CSV")
             except Exception as e:
                 print(f"⚠️ Failed to read CSV {self.pp_csv_path}: {e}")
-
-        # If CSV empty, try API
-        if not items and fetch_prizepicks_api:
-            try:
-                items = fetch_prizepicks_api()
-                # print(f"🌐 Loaded {len(items)} PrizePicks rows from API")
-            except Exception as e:
-                print(f"⚠️ PrizePicks API error: {e}")
-
-        # Normalize
-        props: List[Dict] = []
-        for it in items[:max_items]:
-            norm = self._normalize_prizepicks_item(it)
-            if norm:
-                props.append(norm)
-        return props
-
-    def fetch_underdog_props(self, max_items: int = 500) -> List[Dict]:
-        """Placeholder for Underdog fetch. Currently returns empty list."""
-        return []
-    
-    def _normalize_prizepicks_item(self, item: Dict[str, Any]) -> Optional[Dict]:
-        """Normalize a PrizePicks row (CSV or API) into internal prop format."""
-        try:
-            # Keys may be different casing depending on source
-            name = item.get('Name') or item.get('name') or item.get('player_name') or ''
-            line = item.get('Points') or item.get('line') or item.get('Line') or ''
-            prop = item.get('Prop') or item.get('prop') or ''
-            league = item.get('League') or item.get('league') or ''
-            sport = item.get('Sport') or item.get('sport') or ''
-            team = item.get('Team') or item.get('team') or ''
-            matchup = item.get('Matchup') or item.get('matchup') or ''
-            game_date = item.get('Game_Date') or ''
-            game_time = item.get('Game_Time') or ''
-            last_updated = item.get('Last_Updated') or ''
-
-            # Compose start_time (best-effort ISO)
-            start_time = ''
-            try:
-                if game_date and game_time:
-                    # We don't have timezone offset; keep as plain string
-                    start_time = f"{game_date} {game_time}"
-                elif last_updated:
-                    start_time = str(last_updated)
-            except Exception:
-                start_time = str(last_updated or '')
-
-            # Parse numeric line
-            try:
-                line_val = float(line) if str(line).strip() != '' else 0.0
-            except Exception:
-                line_val = 0.0
-
-            # Normalize sport label (keep as-is; agents handle mapping)
-            over_under = None  # Not derivable reliably from PP data
-
-            return {
-                'player_name': name,
-                'team': team,
-                'pick': prop,
-                'stat_type': str(prop).lower(),
-                'line': line_val,
-                'odds': -110,
-                'confidence': 70.0,
-                'expected_value': 0.0,
-                'avg_l10': 0.0,
-                'start_time': start_time,
-                'sport': sport,
-                'league': league,
-                'matchup': matchup,
-                'over_under': over_under,
-            }
-        except Exception:
-            return None
-        
-        return 0.0  # Default
-
-
-# Global instance
-props_fetcher = PropsDataFetcher()
