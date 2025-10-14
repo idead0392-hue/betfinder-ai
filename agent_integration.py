@@ -5,7 +5,7 @@ Provides seamless routing to OpenAI Assistants while maintaining compatibility
 
 import logging
 import os
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 import json
 
@@ -13,7 +13,6 @@ import json
 from openai_agent_router import OpenAIAgentRouter, PropData, StatsData, ContextData
 from sport_data_formatters import format_props_for_sport, extract_prop_insights
 from sport_agents import SportAgent, BasketballAgent, FootballAgent, CollegeFootballAgent
-from picks_ledger import picks_ledger
 
 # Import comprehensive logging and monitoring
 from agent_logger import AgentLogger

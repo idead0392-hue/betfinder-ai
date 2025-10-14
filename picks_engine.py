@@ -8,7 +8,7 @@ import requests
 import random
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 import json
 
 # OpenAI integration
@@ -169,7 +169,6 @@ JSON Format (respond with ONLY this array):
             ai_content = ''.join(char for char in ai_content if ord(char) >= 32 or char in '\n\r\t')
             
             # Extract JSON from the response with improved parsing
-            import re
             
             # Find the JSON array boundaries more precisely
             start_idx = ai_content.find('[')

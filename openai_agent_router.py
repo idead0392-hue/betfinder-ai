@@ -9,7 +9,6 @@ import logging
 from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, asdict
 from datetime import datetime
-import openai
 from openai import OpenAI
 
 # Import configuration manager

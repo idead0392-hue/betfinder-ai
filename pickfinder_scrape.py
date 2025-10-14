@@ -37,8 +37,6 @@ df = pd.DataFrame(rows, columns=columns[:len(rows[0])])
 df.to_csv('pickfinder_all_projections.csv', index=False)
 print('CSV exported: pickfinder_all_projections.csv')
 EOFcat > pickfinder_scrape.py << 'EOF'
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 
 def get_table_rows(html):

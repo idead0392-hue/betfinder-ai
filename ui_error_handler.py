@@ -5,15 +5,13 @@ Provides retry mechanisms, fallback displays, and user-friendly error messages
 
 import streamlit as st
 import time
-import traceback
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, Callable, List, Tuple
+from typing import Dict, Any, Optional, Callable, List
 from dataclasses import dataclass
 from enum import Enum
-import json
 
 from agent_logger import get_logger, LogLevel, AgentEvent
-from agent_error_handler import ErrorType, AgentErrorHandler, ErrorConfig
+from agent_error_handler import AgentErrorHandler
 from agent_monitor import get_monitor
 
 class UIErrorLevel(Enum):

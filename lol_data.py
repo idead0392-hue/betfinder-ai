@@ -30,7 +30,7 @@ DISABLE = os.getenv("DISABLE_EXTERNAL_LOL_DATA", "0") == "1"
 try:
     import leaguepedia_parser_thomasbarrepitous as lp
     _PKG_AVAILABLE = True
-except Exception as e:
+except Exception:
     lp = None  # type: ignore
     _PKG_AVAILABLE = False
 

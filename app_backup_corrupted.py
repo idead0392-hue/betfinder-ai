@@ -33,6 +33,32 @@ if 'bankroll_manager' not in st.session_state:
 
 # CSV file for storing AI picks history with outcomes
 PICKS_HISTORY_CSV = "ai_picks_history.csv"
+CSV_FILE = "ai_picks_history.csv"  # Used for historical picks data
+
+def ensure_csv_exists():
+    pass  # TODO: Implement CSV existence check
+def initialize_csv():
+    """Stub for CSV initialization. TODO: Implement actual logic."""
+    ensure_csv_exists()
+
+def low_risk_agent(max_picks=5):
+    """Stub for low risk agent. TODO: Implement actual logic."""
+    return []
+
+def append_picks_to_csv(picks, agent_name, description):
+    """Stub for appending picks to CSV. TODO: Implement actual logic."""
+    pass
+
+# Dummy client stub for OpenAI API
+class DummyClient:
+
+    class chat:
+        class completions:
+            @staticmethod
+            def create(*args, **kwargs):
+                return type('obj', (object,), {'choices': [type('msg', (object,), {'message': type('content', (object,), {'content': '{}'})()})()]})()
+
+client = DummyClient()
 
 def ensure_csv_exists():
     """Ensure the CSV file exists with proper headers"""
@@ -553,14 +579,6 @@ with tabs[5]:
 
 # Ensure CSV file exists on app startup
 ensure_csv_exists()
-            temperature=0.3,
-            max_tokens=2000
-        )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
-    except Exception as e:
-        st.error(f"Low Risk Agent Error: {str(e)}")
-        return []
 
 # Agent 2: High Expected Value Strategy
 def high_ev_agent(max_picks: int = 5) -> List[Dict]:
@@ -598,8 +616,7 @@ def high_ev_agent(max_picks: int = 5) -> List[Dict]:
             temperature=0.5,
             max_tokens=2000
         )
-        picks = json.loads(response.choices[0].message.content)
-        return picks
+        return json.loads(response.choices[0].message.content)
     except Exception as e:
         st.error(f"High EV Agent Error: {str(e)}")
         return []

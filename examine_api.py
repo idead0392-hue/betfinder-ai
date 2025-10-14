@@ -52,13 +52,13 @@ def examine_api_structure():
                 
                 # Look at new_player objects for team/opponent info
                 if 'new_player' in types_found:
-                    print(f"\n👤 Sample new_player object:")
+                    print("\n👤 Sample new_player object:")
                     sample_player = types_found['new_player'][0]
                     print(json.dumps(sample_player, indent=2)[:600] + "...")
             
             # Look at a sample projection
             if 'data' in data and data['data']:
-                print(f"\n📊 Sample projection structure:")
+                print("\n📊 Sample projection structure:")
                 sample_proj = data['data'][0]
                 print(json.dumps(sample_proj, indent=2)[:600] + "...")
                 

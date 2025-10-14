@@ -149,12 +149,12 @@ def run_predictions():
         
         try:
             # Step 3a: Learn from historical data
-            print(f"[2/3] Learning from history...")
+            print("[2/3] Learning from history...")
             agent.learn_from_history()
-            print(f"      ✓ Learning complete")
+            print("      ✓ Learning complete")
             
             # Step 3b: Generate predictions
-            print(f"[3/3] Generating predictions...")
+            print("[3/3] Generating predictions...")
             predictions = agent.make_picks(props_data=sport_props)
             print(f"      ✓ Generated {len(predictions)} predictions")
             

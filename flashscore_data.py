@@ -15,7 +15,7 @@ Notes:
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ DISABLE = os.getenv("DISABLE_FLASHSCORE_SCRAPE", "0") == "1"
 try:
     from flashscore_scraper import FlexibleScraper
     _HAS_FS = True
-except Exception as e:
+except Exception:
     FlexibleScraper = None  # type: ignore
     _HAS_FS = False
 

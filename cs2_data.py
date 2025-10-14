@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 try:
     from cs2api import CS2

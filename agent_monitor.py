@@ -4,17 +4,15 @@ Tracks performance metrics, pick quality, outcomes, and provides real-time insig
 """
 
 import json
-import time
 import statistics
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, asdict
 from enum import Enum
 import pandas as pd
-import numpy as np
 from pathlib import Path
 
-from agent_logger import get_logger, AgentLogEntry, AgentEvent, LogLevel
+from agent_logger import get_logger
 
 class MetricType(Enum):
     """Types of metrics to track"""

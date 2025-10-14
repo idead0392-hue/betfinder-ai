@@ -19,8 +19,8 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Sequence
-from datetime import datetime, timedelta
+from typing import Any, Dict, List
+from datetime import datetime
 
 import mcp.server.stdio
 import mcp.types as types
@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 # Import our existing BetFinder AI components
 import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Initialize components with fallback handling

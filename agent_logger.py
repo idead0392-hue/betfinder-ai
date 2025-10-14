@@ -5,11 +5,10 @@ Tracks requests, responses, errors, performance metrics, and outcomes
 
 import logging
 import json
-import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 from enum import Enum
 import uuid

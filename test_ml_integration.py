@@ -4,8 +4,7 @@ Test script for ML model integration in sport_agents.py
 """
 
 import sys
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Import our sport agents
 from sport_agents import BasketballAgent, PropValueMLModel, ml_model

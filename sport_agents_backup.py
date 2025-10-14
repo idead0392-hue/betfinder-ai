@@ -12,11 +12,10 @@ import statistics
 import numpy as np
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from typing import Dict, List, Optional, Any, Tuple
-from abc import ABC, abstractmethod
-from collections import defaultdict, Counter
+from typing import Dict, List, Optional, Any
+from abc import ABC
 
 # Import the picks ledger for logging and analytics
 
@@ -35,16 +34,13 @@ from picks_ledger import picks_ledger
 
 
 class PropValueMLModel:
-    """
-    Machine Learning model for predicting prop value/edge/ROI using historical data
-    
+    """Machine Learning model for predicting prop value/edge/ROI using historical data."""
     def __init__(self):
         self.weights = {
             'confidence_factor': 0.25,
             'historical_performance': 0.30,
             'stat_type_success': 0.20,
             'over_under_preference': 0.15,
-        return factors
             'recency_factor': 0.10
         }
         self.model_version = "1.0"
@@ -52,7 +48,6 @@ class PropValueMLModel:
         self.training_sample_size = 0
         self.feature_importance = {}
         self.model_accuracy = 0.0
-        
         # Load existing model if available
         self.load_model()
     
@@ -92,9 +87,10 @@ class PropValueMLModel:
         except Exception as e:
             print(f"⚠️ Error saving ML model: {e}")
     
+    def train_model(self, historical_picks: List[Dict]) -> None:
         """
-        Train/update the model using historical pick outcomes
-        
+        Train/update the model using historical pick outcomes.
+
         Args:
             historical_picks: List of historical picks with outcomes
         """
@@ -103,10 +99,8 @@ class PropValueMLModel:
         if len(historical_picks) < 10:
             print("ℹ️ ML cold-start: sparse historical data (" + str(len(historical_picks)) + " picks). Using heuristics + incremental learning.")
             is_cold_start = True
-        
         # Filter for completed picks only
         completed_picks = [p for p in historical_picks if p.get('outcome') in ['won', 'lost']]
-        
         if len(completed_picks) < 5:
             # Proceed in heuristic-only mode; keep existing weights, compute default metrics
             print("ℹ️ ML cold-start: insufficient completed picks; retaining baseline weights.")
@@ -116,51 +110,82 @@ class PropValueMLModel:
             # Save current model state for consistency
             self.save_model()
             return
-        
         self.training_sample_size = len(completed_picks)
-        
         # Extract features and outcomes
         features = []
         outcomes = []
-        
         for pick in completed_picks:
             feature_vector = self._extract_features(pick)
             outcome = 1 if pick['outcome'] == 'won' else 0
-            
-            features.append(feature_vector)
+            features.append(list(feature_vector.values()))
             outcomes.append(outcome)
-        
         # Simple logistic regression-style weight updates
         features_array = np.array(features)
         outcomes_array = np.array(outcomes)
-        
         # Calculate feature importance
         self.feature_importance = self._calculate_feature_importance(features_array, outcomes_array)
-        
         # Update weights based on correlation with success
         self._update_weights(features_array, outcomes_array)
-        
         # Calculate model accuracy
         self.model_accuracy = self._calculate_accuracy(features_array, outcomes_array)
-        
         # Save updated model
         self.save_model()
-        
         # Report training status
         status = "(cold-start) " if is_cold_start else ""
         print(f"🤖 ML model {status}trained on {self.training_sample_size} picks (accuracy: {self.model_accuracy:.1%})")
     
     def predict_value(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
-        """
-        Predict value/edge/ROI for a given prop
-        
+        """Predict value/edge/ROI for a given prop.
         Args:
             prop: Prop data dictionary
             agent_context: Additional context from the sport agent
-            
         Returns:
             Dict with predicted_value, confidence, edge, expected_roi
         """
+        try:
+                # Extract features for prediction
+                features = self._extract_features_for_prediction(prop, agent_context)
+            
+                # Calculate weighted score
+                predicted_value = sum(
+                    features.get(feature, 0.5) * weight 
+                    for feature, weight in self.weights.items()
+                )
+            
+                # Convert to probability
+                probability = self._sigmoid(predicted_value)
+            
+                # Calculate edge (value over market)
+                odds = prop.get('odds', -110)
+                implied_probability = self._american_odds_to_probability(odds)
+                edge = probability - implied_probability
+            
+                # Calculate expected ROI
+                if edge > 0:
+                    expected_roi = edge * 100  # Simple ROI calculation
+                else:
+                    expected_roi = edge * 50   # Penalty for negative edge
+            
+                return {
+                    'predicted_value': round(predicted_value, 3),
+                    'confidence': round(probability * 100, 1),
+                    'edge': round(edge, 3),
+                    'expected_roi': round(expected_roi, 2),
+                    'model_version': self.model_version,
+                    'prediction_time': datetime.now().isoformat()
+                }
+            
+        except Exception as e:
+            print(f"⚠️ Error in ML prediction: {e}")
+            return {
+                'predicted_value': 0.5,
+                'confidence': 50.0,
+                'edge': 0.0,
+                'expected_roi': 0.0,
+                'model_version': self.model_version,
+                'prediction_time': datetime.now().isoformat(),
+                'error': str(e)
+            }
         try:
             # Extract features for prediction
             features = self._extract_features_for_prediction(prop, agent_context)
@@ -207,7 +232,7 @@ class PropValueMLModel:
             }
     
     def _extract_features(self, pick: Dict) -> Dict[str, float]:
-        """Extract numerical features from a historical pick"""
+        """Extract numerical features from a historical pick."""
         return {
             'confidence_factor': pick.get('confidence', 50) / 100,
             'historical_performance': 0.6,  # Will be enhanced with more data
@@ -217,28 +242,23 @@ class PropValueMLModel:
         }
     
     def _extract_features_for_prediction(self, prop: Dict, agent_context: Dict = None) -> Dict[str, float]:
-        """Extract features for making predictions on new props"""
+        """Extract features for making predictions on new props."""
         confidence = agent_context.get('confidence', 50) if agent_context else 50
-        
         # Get historical performance for this stat type
         stat_type_performance = 0.5
         over_under_performance = 0.5
-        
         if agent_context and agent_context.get('learning_insights'):
             insights = agent_context['learning_insights']
-            
             # Stat type performance
             best_stats = insights.get('best_stat_types', [])
             for stat_info in best_stats:
                 if stat_info.get('stat_type') == prop.get('stat_type'):
                     stat_type_performance = stat_info.get('win_rate', 50) / 100
                     break
-            
             # Over/under preference
             over_under_pref = insights.get('best_over_under_preference')
             if over_under_pref:
                 over_under_performance = over_under_pref.get('win_rate', 50) / 100
-        
         return {
             'confidence_factor': confidence / 100,
             'historical_performance': agent_context.get('overall_win_rate', 50) / 100 if agent_context else 0.5,
@@ -248,36 +268,31 @@ class PropValueMLModel:
         }
     
     def _calculate_feature_importance(self, features: np.ndarray, outcomes: np.ndarray) -> Dict[str, float]:
-        """Calculate feature importance using correlation with outcomes"""
+        """Calculate feature importance using correlation with outcomes."""
         importance = {}
         feature_names = list(self.weights.keys())
-        
         for i, feature_name in enumerate(feature_names):
             if features.shape[1] > i:
                 correlation = np.corrcoef(features[:, i], outcomes)[0, 1]
                 importance[feature_name] = abs(correlation) if not np.isnan(correlation) else 0.0
-        
         return importance
     
     def _update_weights(self, features: np.ndarray, outcomes: np.ndarray) -> None:
-        """Update model weights based on feature importance"""
+        """Update model weights based on feature importance."""
         feature_names = list(self.weights.keys())
-        
         for i, feature_name in enumerate(feature_names):
             if features.shape[1] > i:
                 importance = self.feature_importance.get(feature_name, 0.0)
                 # Adjust weights based on importance (learning rate = 0.1)
                 self.weights[feature_name] = 0.9 * self.weights[feature_name] + 0.1 * importance
-        
         # Normalize weights to sum to 1
         total_weight = sum(self.weights.values())
         if total_weight > 0:
             self.weights = {k: v / total_weight for k, v in self.weights.items()}
     
     def _calculate_accuracy(self, features: np.ndarray, outcomes: np.ndarray) -> float:
-        """Calculate model accuracy on training data"""
+        """Calculate model accuracy on training data."""
         predictions = []
-        
         for feature_vector in features:
             feature_dict = dict(zip(self.weights.keys(), feature_vector))
             predicted_value = sum(
@@ -286,16 +301,15 @@ class PropValueMLModel:
             )
             probability = self._sigmoid(predicted_value)
             predictions.append(1 if probability > 0.5 else 0)
-        
         correct = sum(p == o for p, o in zip(predictions, outcomes))
         return correct / len(outcomes) if outcomes else 0.0
     
     def _sigmoid(self, x: float) -> float:
-        """Sigmoid activation function"""
+        """Sigmoid activation function."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     
     def _american_odds_to_probability(self, odds: int) -> float:
-        """Convert American odds to implied probability"""
+        """Convert American odds to implied probability."""
         if odds > 0:
             return 100 / (odds + 100)
         else:
@@ -307,25 +321,16 @@ ml_model = PropValueMLModel()
 
 
 class SportAgent(ABC):
-    """
-    Base class for all sport-specific agents with PicksLedger integration
-    and machine learning capabilities from historical performance
-    """
-    
+    """Base class for all sport-specific agents with PicksLedger integration and machine learning capabilities from historical performance."""
+
     def __init__(self, sport_name: str):
-        """
-        Initialize the sport agent
-        
-        Args:
-            sport_name (str): Name of the sport this agent handles
-        """
+        """Initialize the sport agent. Args: sport_name (str): Name of the sport this agent handles"""
         self.sport_name = sport_name
         self.agent_type = f"{sport_name}_agent"
         self.props_data = []
         self.picks = []
         self.learning_insights = {}
         self.performance_metrics = {}
-        
         # Load historical insights and train ML model on initialization
         self.learn_from_history()
         if os.getenv('DISABLE_ML_TRAINING_IN_UI') == '1':
@@ -334,11 +339,10 @@ class SportAgent(ABC):
             self.train_ml_model()
     
     def train_ml_model(self) -> None:
-        """Train the shared ML model using this agent's historical data"""
+        """Train the shared ML model using this agent's historical data."""
         try:
             # Get historical picks for this agent
             historical_picks = picks_ledger.get_picks_by_agent(self.agent_type, days_back=90)
-            
             if len(historical_picks) >= 5:
                 print(f"🤖 Training ML model for {self.agent_type} with {len(historical_picks)} historical picks")
                 ml_model.train_model(historical_picks)
@@ -348,31 +352,16 @@ class SportAgent(ABC):
             print(f"⚠️ Error training ML model for {self.agent_type}: {e}")
     
     def get_ml_prediction(self, prop: Dict) -> Dict[str, float]:
-        """
-        Get ML model prediction for a prop's value/edge/ROI
-        
-        Args:
-            prop: Prop data dictionary
-            
-        Returns:
-            Dict with ML predictions and confidence metrics
-        """
+        """Get ML model prediction for a prop's value/edge/ROI. Args: prop: Prop data dictionary Returns: Dict with ML predictions and confidence metrics"""
         agent_context = {
             'confidence': prop.get('confidence', 50),
             'learning_insights': self.learning_insights,
             'overall_win_rate': self.performance_metrics.get('win_rate', 50)
         }
-        
         return ml_model.predict_value(prop, agent_context)
     
     def fetch_props(self, max_props: int = 50) -> List[Dict]:
-        """
-        Fetch props exclusively from PrizePicks board (CSV produced by the scraper).
-
-        - No mock props. No alternate providers. Strictly PrizePicks-displayed lines.
-        - Reads CSV from PRIZEPICKS_CSV env var or 'prizepicks_props.csv'.
-        - Returns only rows that map to this agent's sport.
-        """
+        """Fetch props exclusively from PrizePicks board (CSV produced by the scraper). No mock props. No alternate providers. Strictly PrizePicks-displayed lines. Reads CSV from PRIZEPICKS_CSV env var or 'prizepicks_props.csv'. Returns only rows that map to this agent's sport."""
         import os
         import pandas as pd
 
@@ -816,7 +805,7 @@ class SportAgent(ABC):
     
     def _analyze_historical_performance(self, prop: Dict) -> Dict[str, Any]:
         """Analyze historical performance against the line"""
-        stat_type = prop.get('stat_type', '')
+        _stat_type = prop.get('stat_type', '')  # unused, for debugging/placeholder
         line = prop.get('line', 0)
         
         # Simulate historical analysis
@@ -984,7 +973,7 @@ class SportAgent(ABC):
             float: Confidence score (0-100)
         """
         # Base confidence from overall factor score
-        base_confidence = analysis_factors['overall_score'] * 10
+        _base_confidence = analysis_factors['overall_score'] * 10  # unused, for debugging/placeholder
         
         # Apply weights to different factors
         factor_weights = {
@@ -1100,14 +1089,14 @@ class SportAgent(ABC):
         
         # Line value analysis
         line_value = analysis_factors.get('line_value', {})
-        edge = line_value.get('edge', 0)
+        _edge = line_value.get('edge', 0)  # unused, for debugging/placeholder
         true_prob = line_value.get('estimated_true_probability', 0.5)
-        
+
         if true_prob > 0.5:
             over_factors += 1
         else:
             under_factors += 1
-        
+
         # Make decision based on factors and insights
         if over_factors > under_factors:
             base_decision = 'over'
@@ -1228,84 +1217,6 @@ class SportAgent(ABC):
         """
         Generate comprehensive reasoning for the pick using PrizePicks terminology
         """
-        player = prop.get('player_name', 'Player')
-        stat = prop.get('stat_type', 'stat')
-        line = prop.get('line', 0)
-        
-        # Extract key insights from analysis
-        player_form = analysis_factors.get('player_form', {})
-        matchup = analysis_factors.get('matchup_analysis', {})
-        hist_perf = analysis_factors.get('historical_performance', {})
-        injury = analysis_factors.get('injury_impact', {})
-        line_value = analysis_factors.get('line_value', {})
-        
-        # Get PrizePicks classification
-        line_edge = line_value.get('edge', 0)
-        pp_classification = self._classify_pick_with_prizepicks_terms(prop, confidence, line_edge, over_under)
-        
-        # Build detailed reasoning with PrizePicks flavor
-        summary_parts = []
-        
-        # Start with PrizePicks classification
-        summary_parts.append(pp_classification['description'])
-        
-        # Add supporting factors with PrizePicks terminology
-        if player_form.get('score', 5) > 7:
-            form_terms = ['Player is cooking 🔥', 'This guy is dialed in 🎯', 'Player locked in 💪']
-            summary_parts.append(random.choice(form_terms))
-        elif player_form.get('score', 5) < 4:
-            bad_form_terms = ['Player struggling lately 📉', 'Cold streak vibes ❄️', 'Player not it right now 🚫']
-            summary_parts.append(random.choice(bad_form_terms))
-        
-        if matchup.get('score', 5) > 7:
-            matchup_terms = ['Smash spot matchup 💥', 'Perfect setup 🎪', 'Get up game 🚀', 'Cupcake matchup 🧁']
-            summary_parts.append(random.choice(matchup_terms))
-        elif matchup.get('score', 5) < 4:
-            tough_terms = ['Tough matchup but fade the public 🚫', 'Chalk spot avoid 🚮', 'Sweat incoming 😰']
-            summary_parts.append(random.choice(tough_terms))
-        
-        if hist_perf.get('score', 5) > 6:
-            hist_terms = ['History backs this play 📊', 'Numbers dont lie 📈', 'Trend is your friend 🤝']
-            summary_parts.append(random.choice(hist_terms))
-        
-        if line_edge > 0.15:
-            value_terms = ['Line is cooked - hammer this 🔨', 'Sportsbook sleeping 😴', 'Max bet territory 💰']
-            summary_parts.append(random.choice(value_terms))
-        elif line_edge > 0.08:
-            decent_terms = ['Nice value here 💎', 'Good number 👍', 'Solid spot 💪']
-            summary_parts.append(random.choice(decent_terms))
-        
-        # Special day references
-        day_of_week = datetime.now().weekday()
-        if day_of_week == 1:  # Tuesday
-            summary_parts.append("Taco Tuesday vibes 🌮")
-        elif day_of_week == 4:  # Friday  
-            summary_parts.append("Friday night lights energy ⚡")
-        elif day_of_week == 6:  # Sunday
-            summary_parts.append("Sunday slate special 🏈")
-        
-        summary = ". ".join(summary_parts)
-        
-        return {
-            'summary': summary,
-            'prizepicks_classification': pp_classification,
-            'key_factors': summary_parts[1:] if len(summary_parts) > 1 else [],
-            'confidence_level': pp_classification['classification'],
-            'analysis_breakdown': {
-                'player_form': player_form.get('reasoning', ''),
-                'matchup': matchup.get('reasoning', ''),
-                'historical': hist_perf.get('reasoning', ''),
-                'injury_status': injury.get('reasoning', ''),
-                'line_value': line_value.get('reasoning', ''),
-                'weather': analysis_factors.get('weather_conditions', {}).get('reasoning', ''),
-                'team_dynamics': analysis_factors.get('team_dynamics', {}).get('reasoning', '')
-            },
-            'decision_factors': {
-                'over_indicators': [],
-                'under_indicators': [],
-                'neutral_factors': []
-            }
-        }
     
     def _calculate_expected_value(self, confidence: float, odds: int) -> float:
         """Calculate expected value of the bet"""
@@ -1515,12 +1426,12 @@ class SportAgent(ABC):
             prediction_time = ml_prediction.get('prediction_time')
             if not prediction_time:
                 return True
-            
+
             pred_dt = datetime.fromisoformat(prediction_time.replace('Z', '+00:00'))
             age = datetime.now() - pred_dt.replace(tzinfo=None)
-            
+
             return age.total_seconds() > 3600  # 1 hour threshold
-        except:
+        except Exception:
             return True
     def learn_from_history(self) -> None:
         """
@@ -1665,7 +1576,7 @@ class SportAgent(ABC):
 
 
 class TennisAgent(SportAgent):
-    """Tennis-specific agent for analyzing tennis props with enhanced analytics"""
+    """Tennis-specific agent for analyzing tennis props with enhanced analytics."""
     
     def __init__(self):
         super().__init__("tennis")
@@ -1676,15 +1587,16 @@ class TennisAgent(SportAgent):
         }
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
+        """Generate mock props for tennis agent (currently returns empty list)."""
         return []
     
     def _analyze_tennis_specific_factors(self, prop: Dict) -> Dict[str, Any]:
-        """Analyze tennis-specific factors"""
-        surface = prop.get('surface', 'hard')
+        """Analyze tennis-specific factors."""
+        _surface = prop.get('surface', 'hard')  # unused, for debugging/placeholder
         tournament_round = prop.get('tournament_round', 'R1')
         match_format = prop.get('match_format', 'best_of_3')
         surface_win_rate = prop.get('surface_win_rate', 0.6)
-        
+
         score = 5.0
         
         # Surface preference analysis
@@ -1717,7 +1629,7 @@ class TennisAgent(SportAgent):
         }
     
     def _perform_detailed_analysis(self, prop: Dict) -> Dict[str, Any]:
-        """Enhanced analysis including tennis-specific factors"""
+        """Enhanced analysis including tennis-specific factors."""
         # Get base analysis
         factors = super()._perform_detailed_analysis(prop)
         
@@ -1732,7 +1644,7 @@ class TennisAgent(SportAgent):
 
 
 class BasketballAgent(SportAgent):
-    """Basketball-specific agent for analyzing basketball props with advanced NBA analytics"""
+    """Basketball-specific agent for analyzing basketball props with advanced NBA analytics."""
     
     def __init__(self):
         super().__init__("basketball")
@@ -1751,6 +1663,15 @@ class BasketballAgent(SportAgent):
         usage_rate = prop.get('usage_rate', 0.25)
         team_pace = prop.get('team_pace', 100)
         opp_def_rating = prop.get('opponent_defense_rating', 110)
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
+
+        def _analyze_basketball_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+            """Analyze basketball-specific factors like pace, usage, matchups."""
+            _minutes_proj = prop.get('minutes_projection', 32)  # unused, for debugging/placeholder
+            _usage_rate = prop.get('usage_rate', 0.25)  # unused, for debugging/placeholder
+            _team_pace = prop.get('team_pace', 100)  # unused, for debugging/placeholder
+            _opp_def_rating = prop.get('opponent_defense_rating', 110)  # unused, for debugging/placeholder
         back_to_back = prop.get('back_to_back', False)
         days_rest = prop.get('days_rest', 1)
         
@@ -1975,7 +1896,7 @@ class BasketballAgent(SportAgent):
 
 
 class FootballAgent(SportAgent):
-    """Football-specific agent for analyzing NFL props with advanced analytics"""
+    """Football-specific agent for analyzing NFL props with advanced analytics."""
     
     def __init__(self):
         super().__init__("football")
@@ -1991,6 +1912,12 @@ class FootballAgent(SportAgent):
     def _analyze_football_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze football-specific factors"""
         stat_type = prop.get('stat_type', '')
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
+
+        def _analyze_football_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+            """Analyze football-specific factors."""
+            _stat_type = prop.get('stat_type', '')  # unused, for debugging/placeholder
         target_share = prop.get('target_share')
         red_zone_touches = prop.get('red_zone_touches')
         game_script = prop.get('game_script', 'balanced')
@@ -2076,37 +2003,43 @@ class FootballAgent(SportAgent):
 
 
 class BaseballAgent(SportAgent):
-    """Baseball-specific agent for analyzing baseball props"""
+    """Baseball-specific agent for analyzing baseball props."""
     
     def __init__(self):
         super().__init__("baseball")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         return []
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
 
 
 class HockeyAgent(SportAgent):
-    """Hockey-specific agent for analyzing hockey props"""
+    """Hockey-specific agent for analyzing hockey props."""
     
     def __init__(self):
         super().__init__("hockey")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         return []
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
 
 
 class SoccerAgent(SportAgent):
-    """Soccer-specific agent for analyzing soccer props"""
+    """Soccer-specific agent for analyzing soccer props."""
     
     def __init__(self):
         super().__init__("soccer")
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         return []
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
 
 
 class EsportsAgent(SportAgent):
-    """Base esports agent for analyzing esports props"""
+    """Base esports agent for analyzing esports props."""
     
     def __init__(self, game_title: str = "esports"):
         super().__init__(game_title)
@@ -2134,6 +2067,8 @@ class CSGOAgent(EsportsAgent):
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         return []
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze CSGO-specific factors"""
@@ -2141,6 +2076,15 @@ class CSGOAgent(EsportsAgent):
         side_pref = prop.get('side_preference', 'balanced')
         team_chemistry = prop.get('team_chemistry', 0.8)
         map_performance = prop.get('recent_map_performance', 0.6)
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
+
+        def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+            """Analyze CSGO-specific factors."""
+            _map_name = prop.get('map', 'unknown')  # unused, for debugging/placeholder
+            _side_pref = prop.get('side_preference', 'balanced')  # unused, for debugging/placeholder
+            _team_chemistry = prop.get('team_chemistry', 0.8)  # unused, for debugging/placeholder
+            _map_performance = prop.get('recent_map_performance', 0.6)  # unused, for debugging/placeholder
         
         score = 5.0
         
@@ -2211,6 +2155,12 @@ class LeagueOfLegendsAgent(EsportsAgent):
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze League of Legends specific factors"""
         role = prop.get('role', 'unknown')
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
+
+        def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
+            """Analyze League of Legends specific factors."""
+            _role = prop.get('role', 'unknown')  # unused, for debugging/placeholder
         champion_pool = prop.get('champion_pool', 'meta')
         patch_adaptation = prop.get('patch_adaptation', 0.8)
         team_style = prop.get('team_playstyle', 'balanced')
@@ -2271,6 +2221,8 @@ class Dota2Agent(EsportsAgent):
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         return []
+        def _generate_mock_props(self, max_props: int) -> List[Dict]:
+            return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Analyze Dota 2 specific factors"""
@@ -2521,7 +2473,7 @@ def demonstrate_picks_ledger_integration():
     if picks:
         # Show example pick with detailed reasoning
         example_pick = picks[0]
-        print(f"\n=== Example Pick ===")
+        print("\n=== Example Pick ===")
         print(f"Pick: {example_pick['pick']}")
         print(f"Confidence: {example_pick['confidence']:.1f}%")
         print(f"Expected Value: {example_pick['expected_value']:.2f}")
@@ -2529,7 +2481,7 @@ def demonstrate_picks_ledger_integration():
         print(f"Reasoning: {example_pick['reasoning']}")
         
         if 'detailed_reasoning' in example_pick:
-            print(f"\nDetailed Analysis:")
+            print("\nDetailed Analysis:")
             detailed = example_pick['detailed_reasoning']
             if 'analysis_breakdown' in detailed:
                 for factor, reasoning in detailed['analysis_breakdown'].items():
@@ -2537,7 +2489,7 @@ def demonstrate_picks_ledger_integration():
                         print(f"  - {factor.title()}: {reasoning}")
         
         # Simulate updating pick outcome
-        print(f"\n=== Simulating Pick Outcome Update ===")
+        print("\n=== Simulating Pick Outcome Update ===")
         pick_id = example_pick.get('pick_id')
         if pick_id:
             # Simulate a win
@@ -2545,7 +2497,7 @@ def demonstrate_picks_ledger_integration():
             print(f"Updated pick outcome: {'Success' if success else 'Failed'}")
     
     # Show performance summary
-    print(f"\n=== Performance Summary ===")
+    print("\n=== Performance Summary ===")
     summary = agent.get_performance_summary()
     
     if summary['performance_metrics']:
@@ -2557,7 +2509,7 @@ def demonstrate_picks_ledger_integration():
     
     if summary['learning_insights'] and not summary['learning_insights'].get('insufficient_data'):
         insights = summary['learning_insights']
-        print(f"\nLearning Insights:")
+        print("\nLearning Insights:")
         
         if insights.get('optimal_confidence_threshold'):
             threshold = insights['optimal_confidence_threshold']
@@ -2574,7 +2526,7 @@ if __name__ == "__main__":
     # Demonstrate the enhanced system
     agent, picks = demonstrate_picks_ledger_integration()
     
-    print(f"\n=== Testing All Agents ===")
+    print("\n=== Testing All Agents ===")
     # Test all agents briefly
     sports = ['tennis', 'basketball', 'football', 'baseball', 'hockey', 'soccer', 'college_football', 
               'csgo', 'league_of_legends', 'dota2', 'valorant', 'overwatch', 'rocket_league']
@@ -2600,10 +2552,10 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"  - Error testing {sport}: {e}")
     
-    print(f"\n=== Test Complete ===")
+    print("\n=== Test Complete ===")
     print(f"Total picks generated across all sports: {total_picks}")
     print(f"PicksLedger integration: {'✓' if total_picks > 0 else '✗'}")
-    print(f"All picks logged with detailed reasoning and analytics")
+    print("All picks logged with detailed reasoning and analytics")
     
     # Show picks ledger summary
     try:

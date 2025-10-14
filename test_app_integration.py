@@ -6,7 +6,6 @@ This script tests the key integration points without running the full Streamlit 
 """
 
 import sys
-import os
 
 # Add the project directory to the path
 sys.path.insert(0, '/workspaces/betfinder-ai')
@@ -18,7 +17,7 @@ def test_provider_integration():
     
     try:
         # Import the updated app module
-        from api_providers import SportType
+    # Removed unused import: SportType
         
         # Import SportbexProvider directly 
         try:
@@ -44,7 +43,7 @@ def test_provider_integration():
             else:
                 print(f"   Raw response type: {type(data)}")
         else:
-            print(f"⚠️ Provider API call: TIMEOUT/ERROR (expected in testing)")
+            print("⚠️ Provider API call: TIMEOUT/ERROR (expected in testing)")
             print(f"   Error: {response.error_message}")
             if "timeout" in str(response.error_message).lower():
                 print("   ✅ Error handling working correctly")

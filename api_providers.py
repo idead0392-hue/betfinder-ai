@@ -8,7 +8,7 @@ used throughout the BetFinder AI platform.
 import logging
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, List, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
 
@@ -170,7 +170,7 @@ class BaseAPIProvider(ABC):
         pass
 
 if TYPE_CHECKING:
-    from sportbex_provider import SportbexProvider as _SportbexProvider
+    pass
 
 def create_sportbex_provider(api_key: str = None):
     """Factory function to create a SportbexProvider instance"""

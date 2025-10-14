@@ -3,8 +3,6 @@
 Generate realistic test props data for BetFinder AI
 """
 import pandas as pd
-import random
-from datetime import datetime
 
 def generate_realistic_props():
     """Generate realistic current props data"""
