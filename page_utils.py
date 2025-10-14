@@ -685,7 +685,7 @@ def _get_trusted_sport_data() -> Dict[str, Dict[str, List[str]]]:
                 'padres', 'mets', 'cardinals', 'blue jays', 'rangers', 'orioles', 'marlins',
                 'cubs', 'brewers', 'twins', 'guardians', 'white sox', 'tigers', 'royals',
                 'angels', 'athletics', 'mariners', 'rays', 'nationals', 'pirates', 'reds',
-                'rockies', 'diamondbacks'
+               
             ],
             'stats': ['hits', 'home runs', 'rbis', 'strikeouts', 'total bases', 'stolen bases'],
             'leagues': ['mlb', 'mlblive']
@@ -710,226 +710,6 @@ def _get_trusted_sport_data() -> Dict[str, Dict[str, List[str]]]:
             'leagues': ['tennis']
         }
     }
-
-
-def _strict_validate_before_render(prop: dict, target_sport: str) -> bool:
-    """
-    ULTRA-STRICT validation before rendering - ZERO tolerance for cross-sport contamination
-    Returns True only if prop passes ALL validation checks for the target sport
-    ANY doubt = REJECT
-    """
-    if not prop or not target_sport:
-        return False
-        
-    player_name = str(prop.get('player_name', '')).lower()
-    team = str(prop.get('team', '')).lower()
-    matchup = str(prop.get('matchup', '')).lower()
-    stat_type = str(prop.get('stat_type', '')).lower()
-    league = str(prop.get('league', '')).lower()
-    
-    # ABSOLUTE BLOCKLIST - these NEVER belong in certain sports
-    soccer_indicators = [
-        'poland', 'lithuania', 'lewandowski', 'messi', 'ronaldo', 'mbappe', 'neymar',
-        'benzema', 'haaland', 'salah', 'mane', 'de bruyne', 'modric', 'kroos',
-        'real madrid', 'barcelona', 'manchester', 'liverpool', 'chelsea', 'arsenal',
-        'juventus', 'bayern munich', 'psg', 'atletico', 'tottenham', 'inter',
-        'ac milan', 'napoli', 'dortmund', 'ajax', 'porto', 'benfica'
-    ]
-    
-    tennis_indicators = [
-        'djokovic', 'nadal', 'federer', 'alcaraz', 'medvedev', 'tsitsipas',
-        'zverev', 'rublev', 'berrettini', 'sinner', 'auger-aliassime',
-        'wimbledon', 'roland garros', 'us open', 'australian open'
-    ]
-    
-    if target_sport == 'basketball':
-        # ZERO tolerance for non-basketball elements
-        forbidden_elements = soccer_indicators + tennis_indicators + [
-            'patriots', 'saints', 'cowboys', 'packers', 'steelers', 'eagles',
-            'nfl', 'passing', 'rushing', 'receiving', 'touchdowns', 'field goal',
-            'yankees', 'dodgers', 'astros', 'mlb', 'home run', 'strikeout',
-            'rangers', 'bruins', 'penguins', 'nhl', 'penalty', 'goalie'
-        ]
-        
-        # Check ALL fields for forbidden content
-        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
-        if any(forbidden in all_text for forbidden in forbidden_elements):
-            return False
-            
-        # MUST have basketball league OR basketball stat
-        basketball_leagues = ['nba', 'nbaszn', 'nbap', 'wnba', 'cbb']
-        basketball_stats = ['points', 'rebounds', 'assists', 'blocks', 'steals', '3pt', 'three']
-        
-        has_basketball_league = any(bl in league for bl in basketball_leagues)
-        has_basketball_stat = any(bs in stat_type for bs in basketball_stats)
-        
-        if not (has_basketball_league or has_basketball_stat):
-            return False
-            
-        # MUST have recognizable NBA team OR player
-        nba_teams = [
-            'lakers', 'knicks', 'warriors', 'celtics', 'bulls', 'nets', 'suns', 'mavericks',
-            'clippers', 'spurs', 'heat', 'bucks', '76ers', 'nuggets', 'hawks', 'pelicans',
-            'grizzlies', 'timberwolves', 'magic', 'wizards', 'pacers', 'pistons', 'hornets',
-            'jazz', 'thunder', 'raptors', 'rockets', 'kings', 'blazers', 'trail blazers'
-        ]
-        nba_abbrevs = ['lal', 'nyk', 'gsw', 'bos', 'chi', 'bkn', 'phx', 'dal', 'lac', 'sas',
-                      'mia', 'mil', 'phi', 'den', 'atl', 'nop', 'mem', 'min', 'orl', 'was',
-                      'ind', 'det', 'cha', 'uta', 'okc', 'tor', 'hou', 'sac', 'por']
-        
-        nba_players = [
-            'lebron', 'curry', 'durant', 'giannis', 'luka', 'jokic', 'embiid', 'tatum',
-            'davis', 'harden', 'lillard', 'butler', 'leonard', 'george', 'booker',
-            'mitchell', 'westbrook', 'paul', 'wembanyama', 'banchero', 'edwards',
-            'morant', 'young', 'williamson', 'ball', 'barnes'
-        ]
-        
-        has_nba_team = any(team_name in f"{team} {matchup}" for team_name in nba_teams + nba_abbrevs)
-        has_nba_player = any(player in player_name for player in nba_players)
-        
-        if not (has_nba_team or has_nba_player):
-            return False
-    
-    elif target_sport == 'football':
-        # ZERO tolerance for non-football elements
-        forbidden_elements = soccer_indicators + tennis_indicators + [
-            'lakers', 'celtics', 'warriors', 'knicks', 'bulls', 'nets',
-            'nba', 'rebounds', 'assists', 'blocks', 'steals', '3pt',
-            'yankees', 'dodgers', 'astros', 'mlb', 'home run', 'strikeout',
-            'rangers', 'bruins', 'penguins', 'nhl', 'penalty', 'goalie'
-        ]
-        
-        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
-        if any(forbidden in all_text for forbidden in forbidden_elements):
-            return False
-            
-        # MUST have football league OR football stat
-        football_leagues = ['nfl', 'nfl1h', 'nfl1q', 'nfl2h']
-        football_stats = ['pass', 'passing', 'rush', 'rushing', 'receiving', 'reception',
-                         'touchdown', 'completion', 'attempt', 'fantasy', 'field goal', 'kick']
-        
-        has_football_league = any(fl in league for fl in football_leagues)
-        has_football_stat = any(fs in stat_type for fs in football_stats)
-        
-        if not (has_football_league or has_football_stat):
-            return False
-            
-        # MUST have recognizable NFL team
-        nfl_teams = [
-            'patriots', 'saints', 'packers', 'cowboys', 'giants', 'jets', 'bears', 'steelers',
-            'eagles', 'chiefs', '49ers', 'ravens', 'bengals', 'bills', 'dolphins', 'broncos',
-            'lions', 'jaguars', 'panthers', 'raiders', 'chargers', 'seahawks', 'buccaneers',
-            'cardinals', 'commanders', 'colts', 'vikings', 'texans', 'falcons', 'rams', 'titans'
-        ]
-        nfl_abbrevs = ['ne', 'no', 'gb', 'dal', 'nyg', 'nyj', 'chi', 'pit', 'phi', 'kc', 'sf',
-                      'bal', 'cin', 'buf', 'mia', 'den', 'det', 'jax', 'car', 'lv', 'lac',
-                      'sea', 'tb', 'ari', 'was', 'ind', 'min', 'hou', 'atl', 'lar', 'ten']
-        
-        has_nfl_team = any(team_name in f"{team} {matchup}" for team_name in nfl_teams + nfl_abbrevs)
-        
-        if not has_nfl_team:
-            return False
-    
-    elif target_sport == 'baseball':
-        # Block non-baseball content
-        forbidden_elements = soccer_indicators + tennis_indicators + [
-            'patriots', 'lakers', 'nfl', 'nba', 'nhl', 'passing', 'rebounds'
-        ]
-        
-        all_text = f"{player_name} {team} {matchup} {stat_type} {league}"
-        if any(forbidden in all_text for forbidden in forbidden_elements):
-            return False
-            
-        mlb_leagues = ['mlb', 'mlblive']
-        mlb_stats = ['hits', 'home run', 'rbi', 'strikeout', 'total base', 'stolen base']
-        
-        has_mlb_league = any(ml in league for ml in mlb_leagues)
-        has_mlb_stat = any(ms in stat_type for ms in mlb_stats)
-        
-        if not (has_mlb_league or has_mlb_stat):
-            return False
-    
-    elif target_sport == 'hockey':
-        # Use the centralized strict NHL filter for consistency
-        return hockey_strict_filter(prop)
-    
-    elif target_sport == 'soccer':
-        # Only allow explicit soccer content
-        soccer_leagues = ['soccer']
-        if 'soccer' not in league:
-            return False
-    
-    elif target_sport == 'tennis':
-        # Only allow explicit tennis content
-        tennis_leagues = ['tennis']
-        tennis_stats = ['aces', 'double fault', 'games won', 'sets won']
-        
-        has_tennis_league = 'tennis' in league
-        has_tennis_stat = any(ts in stat_type for ts in tennis_stats)
-        
-        if not (has_tennis_league or has_tennis_stat):
-            return False
-    
-    elif target_sport == 'csgo':
-        # Allow CS:GO/CS2 esports content
-        csgo_leagues = ['cs2', 'csgo', 'cs:go', 'counter-strike', 'counter strike']
-        csgo_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'headshots', 'kd ratio', 'adr', 'rating']
-        
-        has_csgo_league = any(cl in league.lower() for cl in csgo_leagues) or ('esports' in league.lower())
-        has_csgo_stat = any(cs in stat_type.lower() for cs in csgo_stats)
-        
-        if not (has_csgo_league or has_csgo_stat):
-            return False
-    
-    elif target_sport == 'league_of_legends':
-        # Allow League of Legends content
-        lol_leagues = ['lol', 'league of legends', 'lcs', 'lec', 'lck', 'lpl', 'worlds', 'msi']
-        lol_stats = ['kills', 'deaths', 'assists', 'cs', 'creep score', 'gold', 'damage', 'vision score', 
-                    'kda', 'towers', 'dragons', 'barons', 'inhibitors', 'games', 'maps']
-        
-        has_lol_league = any(ll in league.lower() for ll in lol_leagues) or ('esports' in league.lower())
-        has_lol_stat = any(ls in stat_type.lower() for ls in lol_stats)
-        
-        if not (has_lol_league or has_lol_stat):
-            return False
-    
-    elif target_sport == 'dota2':
-        # Allow Dota 2 content
-        dota_leagues = ['dota2', 'dota 2', 'dota', 'ti', 'the international', 'dpc', 'major']
-        dota_stats = ['kills', 'deaths', 'assists', 'last hits', 'denies', 'gpm', 'xpm', 'networth',
-                     'damage', 'healing', 'tower damage', 'roshan', 'games', 'maps', 'duration']
-        
-        has_dota_league = any(dl in league.lower() for dl in dota_leagues) or ('esports' in league.lower())
-        has_dota_stat = any(ds in stat_type.lower() for ds in dota_stats)
-        
-        if not (has_dota_league or has_dota_stat):
-            return False
-    
-    elif target_sport in ['valorant', 'overwatch', 'rocket_league', 'apex']:
-        # Allow other esports content - less strict validation for now
-        esports_leagues = ['lol', 'league of legends', 'dota2', 'dota 2', 'valorant', 'overwatch', 'rocket league', 'apex', 'apex legends', 'esports']
-        esports_stats = ['kills', 'deaths', 'assists', 'maps', 'rounds', 'damage', 'objectives', 'cs', 'gold', 'saves', 'goals', 'shots']
-        
-        has_esports_league = any(el in league.lower() for el in esports_leagues)
-        has_esports_stat = any(es in stat_type.lower() for es in esports_stats)
-        
-        # For esports, be more permissive - if it doesn't match traditional sports, allow it
-        is_traditional_sport = any(indicator in f"{player_name} {team} {matchup} {stat_type} {league}".lower() for indicator in [
-            'nfl', 'nba', 'mlb', 'nhl', 'patriots', 'lakers', 'yankees', 'bruins',
-            'passing', 'rushing', 'rebounds', 'assists', 'home run', 'penalty'
-        ])
-        
-        if is_traditional_sport:
-            return False
-        
-        # Allow if it has esports indicators OR doesn't match traditional sports
-        return has_esports_league or has_esports_stat or not is_traditional_sport
-    
-    else:
-        # Unknown sport - reject
-        return False
-    
-    return True
 
 
 def compute_rejection_reason(p: dict, sport: str) -> tuple[bool, str]:
@@ -959,10 +739,15 @@ def compute_rejection_reason(p: dict, sport: str) -> tuple[bool, str]:
     if any(x in all_text for x in forbid):
         return False, 'forbidden keyword for target sport'
 
-    # Esports special cases
+    # Esports special cases (UPDATED BLOCK FOR CONTAMINATION CHECK)
     if sport in ['csgo','league_of_legends','dota2','valorant','overwatch','rocket_league','apex']:
-        if any(x in all_text for x in ['nfl','nba','mlb','nhl']):
-            return False, 'looks like traditional sport'
+        traditional_contamination_indicators = [
+            'nfl', 'nba', 'mlb', 'nhl', 'passing', 'rushing', 'rebounds', 'assists', 'home run', 
+            'strikeout', 'field goal', 'penalty', 'goalie', 'lal', 'gsw', 'bos', 'chi', 'nyk', 'phi',
+            'lebron', 'curry', 'mahomes', 'tatum', 'trout', 'crosby', 'ovechkin', 'basketball', 'football'
+        ]
+        if any(x in all_text for x in traditional_contamination_indicators):
+            return False, 'looks like traditional sport (cross-sport contamination check)'
         if (
             not any(k in league for k in ['lol','league of legends','dota','valorant','overwatch','rocket league','apex','apex legends','csgo','cs:go','cs2','counter-strike','esports'])
             and not any(k in stat_type for k in ['kill','kills','deaths','assists','maps','rounds','adr','kda','creep score','cs','gpm','xpm'])
