@@ -56,89 +56,85 @@ def ensure_fresh_csv(path: str, max_age_sec: int = 300, target_sport: str | None
         return
 
     lock_path = f"{path}.lock"
-    lock_acquired = False
-    try:
-        # Try to acquire a simple PID-based lock
-        if not os.path.exists(lock_path):
-            with open(lock_path, 'w') as f:
-                f.write(str(os.getpid()))
-            lock_acquired = True
-        else:
-            # If lock is stale (>3 minutes), override
-            try:
-                lmtime = os.path.getmtime(lock_path)
-            except Exception:
-                lmtime = 0
-            if (time.time() - lmtime) > 180:
-                with open(lock_path, 'w') as f:
-                    f.write(str(os.getpid()))
-                lock_acquired = True
+    import os
+    import time
+    from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
+    from typing import Dict, List
 
-        if lock_acquired:
-            os.environ['PRIZEPICKS_CSV'] = path
-            # Hint the scraper to fetch a specific sport only (best-effort)
-            if target_sport:
-                sport_hint_map = {
-                    'basketball': 'nba',
-                    'football': 'nfl',
-                    'college_football': 'cfb',
-                    'baseball': 'mlb',
-                    'hockey': 'nhl',
-                    'soccer': 'soccer'
-                }
-                os.environ['PRIZEPICKS_SPORT_PARAM'] = sport_hint_map.get(target_sport, '')
-            from prizepicks_scrape import main as scrape_main
-            scrape_main()
-    except Exception:
-        pass
-    finally:
-        if lock_acquired:
-            try:
-                os.remove(lock_path)
-            except Exception:
-                pass
+    import streamlit as st
 
+    # Note: This simplified page_utils removes CSV handling; agents fetch data directly.
 
-def _normalize_league_to_sport(value: str) -> str:
-    if not value:
-        return ''
-    s = str(value).strip().lower()
-    aliases = {
-        # Core traditional sports
-        'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-        'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
-        'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
-        # Esports titles
-        'league of legends': 'league_of_legends', 'lol': 'league_of_legends',
-        'valorant': 'valorant', 'valo': 'valorant',
-        'dota 2': 'dota2', 'dota2': 'dota2',
-        'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
-        'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
-        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
-        'apex': 'apex', 'apex legends': 'apex'
+    sport_emojis = {
+        'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
+        'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗', 'apex': '⚡'
     }
-    return aliases.get(s, s)
 
 
-# --------------------
-# Strict NHL filtering
-# --------------------
+    def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
+        # Keep a compact renderer tolerant of missing keys
+        player_name = pick.get('player_name', 'Unknown')
+        stat_label = pick.get('stat_type', '')
+        line_val = pick.get('line', '')
+        bet_label = pick.get('over_under', '') or pick.get('pick_type', '')
+        matchup = pick.get('matchup', '') or pick.get('event', '') or 'N/A'
+        confidence = pick.get('confidence', 0) or 0
+        ev = pick.get('expected_value', pick.get('ml_edge', 0)) or 0
+        odds = pick.get('odds', '')
+        source = pick.get('source', '')
 
-NHL_TEAM_NAMES = [
-    'bruins', 'sabres', 'red wings', 'panthers', 'canadiens', 'senators', 'lightning', 'maple leafs',
-    'hurricanes', 'blue jackets', 'devils', 'islanders', 'rangers', 'flyers', 'penguins', 'capitals',
-    'blackhawks', 'avalanche', 'stars', 'wild', 'predators', 'blues', 'jets', 'ducks', 'coyotes',
-    'flames', 'oilers', 'kings', 'sharks', 'kraken', 'canucks', 'golden knights'
-]
+        when_text = pick.get('event_time_et') or pick.get('event_start_time') or ''
 
-NHL_TEAM_ABBREVS = [
-    'bos','buf','det','fla','mtl','ott','tbl','tb','tor','car','cbj','njd','nj','nyi','nyr','phi','pit','wsh','chi','col','dal','min','nsh','stl','wpg','ana','ari','cgy','edm','lak','la','sjs','sj','sea','van','vgk'
-]
+        return f"""
+        <div class='prop-row' style='display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #222;font-size:12px;'>
+            <div style='width:30px;text-align:center;font-size:16px;'>{sport_emoji}</div>
+            <div style='flex:1.6;font-weight:600;color:#fff;'>{player_name}</div>
+            <div style='flex:1.2;color:#dbeafe;font-size:12px;'>{bet_label} {line_val} {stat_label}</div>
+            <div style='flex:1;color:#b8b8b8;font-size:11px;'>{matchup}</div>
+            <div style='flex:0.8;color:#9aa0a6;font-size:11px;text-align:right;'>{when_text}</div>
+            <div style='min-width:80px;text-align:right;color:#34a853;font-size:11px;'>Conf {confidence:.0f}%</div>
+            <div style='min-width:80px;text-align:right;color:#0f9d58;font-size:11px;'>EV {ev:+.2f}</div>
+            <div style='min-width:60px;text-align:right;color:#1a73e8;font-size:11px;'>{odds}</div>
+            <div style='min-width:60px;text-align:right;color:#9aa0a6;font-size:10px;margin-left:8px;'>{source}</div>
+        </div>
+        """
 
-NHL_HOCKEY_STATS = [
-    'goals', 'assists', 'shots on goal', 'sog', 'saves'
-]
 
+    def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -> None:
+        st.set_page_config(page_title=f"{title} - BetFinder AI", page_icon="🎯", layout="wide", initial_sidebar_state="collapsed")
+
+        st.markdown(f"<h2>{title} {sport_emojis.get(sport_key,'')}</h2>", unsafe_allow_html=True)
+
+        with st.spinner(f"Loading {title} props from TheEsportsLab..."):
+            agent = AgentClass()
+            try:
+                props = agent.fetch_props(max_props=cap)
+            except Exception:
+                props = []
+
+            picks = []
+            try:
+                if props:
+                    picks = agent.make_picks(props_data=props, log_to_ledger=False)
+                else:
+                    picks = agent.make_picks(log_to_ledger=False)
+            except Exception:
+                picks = []
+
+        if not picks:
+            st.info(f"ℹ️ **No {title} props available right now from TheEsportsLab.**")
+            st.write("This could be due to no live projections or an issue with scraping.")
+            return
+
+        st.markdown(
+            f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span></div>",
+            unsafe_allow_html=True,
+        )
+
+        for p in picks:
+            html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
+            st.markdown(html_row, unsafe_allow_html=True)
 SOCCER_ONLY_STATS = ['goals conceded', 'yellow cards', 'red cards', 'clean sheets']
 
 

@@ -17,6 +17,15 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Optional, Any
 from abc import ABC
+from collections import defaultdict
+
+# Import the new esports scraper shim
+try:
+    from esportslab_scraper import scrape_esportslab
+except Exception:
+    # Fallback: local module may not be available in some environments
+    scrape_esportslab = None
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -511,11 +520,16 @@ class SportAgent(ABC):
     
     def fetch_props(self, max_props: int = 50) -> List[Dict]:
         """
-        Fetch props exclusively from PrizePicks board (CSV produced by the scraper).
+        Default fetch_props for non-esports agents.
+        Per the recent refactor, non-esports agents return an empty list by default.
+        Use `fetch_props_from_prizepicks_csv` if you need to load PrizePicks CSVs.
+        """
+        return []
 
-        - No mock props. No alternate providers. Strictly PrizePicks-displayed lines.
-        - Reads CSV from PRIZEPICKS_CSV env var or 'prizepicks_props.csv'.
-        - Returns only rows that map to this agent's sport.
+    def fetch_props_from_prizepicks_csv(self, max_props: int = 50) -> List[Dict]:
+        """
+        Backwards-compatible helper to read props from the PrizePicks CSV file.
+        This preserves the original CSV parsing logic for callers that still need it.
         """
         import os
         import pandas as pd
@@ -2518,10 +2532,68 @@ class EsportsAgent(SportAgent):
     def __init__(self, game_title: str = "esports"):
         super().__init__(game_title)
         self.game_title = game_title
+        self.source_url = self._get_source_url()
     
     def _generate_mock_props(self, max_props: int) -> List[Dict]:
         """Generate mock esports props - to be overridden by specific games"""
         return []
+
+    def _get_source_url(self) -> str:
+        """Returns the URL for the specific game on TheEsportsLab."""
+        url_map = {
+            "csgo": "https://theesportslab.com/projections/cs2",
+            "league_of_legends": "https://theesportslab.com/projections/lol",
+            "dota2": "https://theesportslab.com/projections/dota2",
+        }
+        return url_map.get(self.game_title, "")
+
+    def fetch_props(self, max_props: int = 200) -> List[Dict]:
+        """
+        Fetches props from TheEsportsLab using the Playwright scraper.
+        """
+        if not getattr(self, 'source_url', ''):
+            self.logger.warning(f"No source URL defined for {self.game_title}")
+            return []
+
+        if scrape_esportslab is None:
+            self.logger.error("esportslab scraper is not available in this environment")
+            return []
+
+        try:
+            # Run the async scraper
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # Running inside an existing event loop; create a new one in a thread
+                import nest_asyncio
+                nest_asyncio.apply()
+                props = asyncio.run(scrape_esportslab(self.source_url))
+            else:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                props = loop.run_until_complete(scrape_esportslab(self.source_url))
+
+            # Standardize the data structure
+            standardized_props = []
+            for prop in props:
+                standardized_props.append({
+                    'player_name': prop.get('player_name', 'Unknown'),
+                    'stat_type': prop.get('stat_type', prop.get('Stat', 'Unknown')),
+                    'line': prop.get('line', prop.get('Projection', 0)) or 0,
+                    'team': prop.get('team', ''),
+                    'odds': -110,
+                    'confidence': 50.0,
+                    'source': 'TheEsportsLab'
+                })
+
+            return standardized_props[:max_props]
+        except Exception as e:
+            self.logger.error(f"Error fetching props for {self.game_title} from {self.source_url}: {e}")
+            return []
     
     def _analyze_esports_specific_factors(self, prop: Dict) -> Dict[str, Any]:
         """Base esports analysis - to be overridden by specific games"""
