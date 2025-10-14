@@ -1,343 +1,70 @@
 import os
-import time
-from datetime import datetime, timezone
-from typing import Dict, List
-
-import pandas as pd
+from typing import Dict, List, Any
 import streamlit as st
-from streamlit.components.v1 import html as components_html
 
-# Failsafe: Remove any rendered literal </div> text from the DOM
-components_html("""
-<script>
-function removeStrayDivText() {
-    // Remove any text nodes with stray closing tags
-    const container = document.querySelector('[data-testid=\"stAppViewContainer\"]');
-    if (!container) return;
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
-    const nodes = [];
-    let n;
-    while (n = walker.nextNode()) {
-        if (n.textContent && n.textContent.trim().includes("</div>")) {
-            nodes.push(n);
-        }
-    }
-    nodes.forEach(t => {
-        if (t.parentNode) t.parentNode.removeChild(t);
-    });
+sport_emojis = {
+    'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
+    'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗', 'apex': '⚡'
 }
-// Run repeatedly for dynamic content (covers tabs)
-setInterval(removeStrayDivText, 400);
-</script>
-""", height=0)
-from functools import lru_cache
 
 
-def get_effective_csv_path() -> str:
-    if 'prizepicks_csv_path' not in st.session_state:
-        st.session_state['prizepicks_csv_path'] = 'prizepicks_props.csv'
-    return st.session_state['prizepicks_csv_path']
+def _safe_str(val: Any) -> str:
+    if val is None:
+        import os
+        from datetime import datetime, timezone
+        from zoneinfo import ZoneInfo
+        from typing import Dict, List
+        import streamlit as st
 
-
-def ensure_fresh_csv(path: str, max_age_sec: int = 300, target_sport: str | None = None) -> None:
-    """
-    Ensure the CSV is fresh, with a lightweight cross-process lock to avoid
-    multiple concurrent scrapes triggered by multiple tabs/pages.
-    """
-    try:
-        mtime = os.path.getmtime(path)
-    except Exception:
-        mtime = 0
-    age = time.time() - mtime if mtime else 1e9
-
-    # If the file is fresh within the configured interval, skip re-scrape
-    # Keep a small minimum window to avoid thrashing if interval is very low
-    if age <= max(15, max_age_sec):
-        return
-
-    lock_path = f"{path}.lock"
-    import os
-    import time
-    from datetime import datetime, timezone
-    from zoneinfo import ZoneInfo
-    from typing import Dict, List
-
-    import streamlit as st
-
-    # Note: This simplified page_utils removes CSV handling; agents fetch data directly.
-
-    sport_emojis = {
-        'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
-        'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗', 'apex': '⚡'
-    }
-
-
-    def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
-        # Keep a compact renderer tolerant of missing keys
-        player_name = pick.get('player_name', 'Unknown')
-        stat_label = pick.get('stat_type', '')
-        line_val = pick.get('line', '')
-        bet_label = pick.get('over_under', '') or pick.get('pick_type', '')
-        matchup = pick.get('matchup', '') or pick.get('event', '') or 'N/A'
-        confidence = pick.get('confidence', 0) or 0
-        ev = pick.get('expected_value', pick.get('ml_edge', 0)) or 0
-        odds = pick.get('odds', '')
-        source = pick.get('source', '')
-
-        when_text = pick.get('event_time_et') or pick.get('event_start_time') or ''
-
-        return f"""
-        <div class='prop-row' style='display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #222;font-size:12px;'>
-            <div style='width:30px;text-align:center;font-size:16px;'>{sport_emoji}</div>
-            <div style='flex:1.6;font-weight:600;color:#fff;'>{player_name}</div>
-            <div style='flex:1.2;color:#dbeafe;font-size:12px;'>{bet_label} {line_val} {stat_label}</div>
-            <div style='flex:1;color:#b8b8b8;font-size:11px;'>{matchup}</div>
-            <div style='flex:0.8;color:#9aa0a6;font-size:11px;text-align:right;'>{when_text}</div>
-            <div style='min-width:80px;text-align:right;color:#34a853;font-size:11px;'>Conf {confidence:.0f}%</div>
-            <div style='min-width:80px;text-align:right;color:#0f9d58;font-size:11px;'>EV {ev:+.2f}</div>
-            <div style='min-width:60px;text-align:right;color:#1a73e8;font-size:11px;'>{odds}</div>
-            <div style='min-width:60px;text-align:right;color:#9aa0a6;font-size:10px;margin-left:8px;'>{source}</div>
-        </div>
-        """
-
-
-    def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -> None:
-        st.set_page_config(page_title=f"{title} - BetFinder AI", page_icon="🎯", layout="wide", initial_sidebar_state="collapsed")
-
-        st.markdown(f"<h2>{title} {sport_emojis.get(sport_key,'')}</h2>", unsafe_allow_html=True)
-
-        with st.spinner(f"Loading {title} props from TheEsportsLab..."):
-            agent = AgentClass()
-            try:
-                props = agent.fetch_props(max_props=cap)
-            except Exception:
-                props = []
-
-            picks = []
-            try:
-                if props:
-                    picks = agent.make_picks(props_data=props, log_to_ledger=False)
-                else:
-                    picks = agent.make_picks(log_to_ledger=False)
-            except Exception:
-                picks = []
-
-        if not picks:
-            st.info(f"ℹ️ **No {title} props available right now from TheEsportsLab.**")
-            st.write("This could be due to no live projections or an issue with scraping.")
-            return
-
-        st.markdown(
-            f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} shown</span></div>",
-            unsafe_allow_html=True,
-        )
-
-        for p in picks:
-            html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
-            st.markdown(html_row, unsafe_allow_html=True)
-SOCCER_ONLY_STATS = ['goals conceded', 'yellow cards', 'red cards', 'clean sheets']
-
-
-@lru_cache(maxsize=1)
-def _load_nhl_roster() -> List[str]:
-    """Load NHL roster from data file, fallback to a core whitelist of star players.
-    The list is lowercase names. To expand coverage, add data/nhl_roster.txt (one name per line)."""
-    roster: List[str] = []
-    try:
-        roster_path = os.path.join(os.getcwd(), 'data', 'nhl_roster.txt')
-        if os.path.exists(roster_path):
-            with open(roster_path, 'r', encoding='utf-8') as f:
-                roster = [line.strip().lower() for line in f if line.strip()]
-    except Exception:
-        pass
-    if not roster:
-        roster = [
-            'sidney crosby','evgeni malkin','auston matthews','mitch marner','nathan mackinnon','mikko rantanen',
-            'connor mcdavid','leon draisaitl','nikita kucherov','brayden point','matthew tkachuk','brady tkachuk',
-            'cale makar','adam fox','victor hedman','roman josi','david pastrnak','brad marchand','igor shesterkin',
-            'andrei vasilevskiy','ilja sorokin','jason robertson','alex ovechkin','patrick kane','jack eichel',
-        ]
-    return roster
-
-
-def _is_team_nhl(team: str, matchup: str) -> bool:
-    t = (team or '').lower()
-    m = (matchup or '').lower()
-    if any(name in t for name in NHL_TEAM_NAMES) or any(ab in t for ab in NHL_TEAM_ABBREVS):
-        return True
-    if any(name in m for name in NHL_TEAM_NAMES) or any(ab in m for ab in NHL_TEAM_ABBREVS):
-        return True
-    return False
-
-
-def hockey_strict_filter(prop: dict) -> bool:
-    """Strict NHL prop filter: require NHL team, NHL player (if enabled), and hockey stats only."""
-    if not prop:
-        return False
-    player = str(prop.get('player_name','')).lower()
-    team = str(prop.get('team','')).lower()
-    stat = str(prop.get('stat_type','')).lower()
-    matchup = str(prop.get('matchup','')).lower()
-    league = str(prop.get('league','')).lower()
-
-    # League must be NHL when present
-    if league and not any(x in league for x in ['nhl','nhl1p']):
-        return False
-
-    # Team/matchup must be NHL
-    if not _is_team_nhl(team, matchup):
-        return False
-
-    # Stat must be allowed hockey type and not soccer-only
-    if not any(s in stat for s in NHL_HOCKEY_STATS):
-        return False
-    if any(s in stat for s in SOCCER_ONLY_STATS):
-        return False
-
-    # Optional strict player roster enforcement (requires a reasonably complete roster)
-    if os.getenv('STRICT_NHL_PLAYER_FILTER','1') == '1':
-        roster = _load_nhl_roster()
-        if len(roster) >= 50 and player not in roster:
-            return False
-
-    return True
-
-
-def _log_misclassified(prop: dict, sport: str, reason: str = "") -> None:
-    """Append misclassified prop details to a per-sport log file for admin review, including reason."""
-    try:
-        log_dir = os.path.join(os.getcwd(), 'logs')
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, f'misclassified_{sport}.log')
-        # Keep it simple: one-line JSON-ish dict for easy tailing
-        payload = {
-            'player': prop.get('player_name'),
-            'team': prop.get('team'),
-            'stat': prop.get('stat_type'),
-            'league': prop.get('league'),
-            'matchup': prop.get('matchup'),
-            'reason': reason,
-            'timestamp': datetime.now().isoformat()
+        sport_emojis = {
+            'basketball': '🏀', 'football': '🏈', 'tennis': '🎾', 'baseball': '⚾', 'hockey': '🏒', 'soccer': '⚽',
+            'college_football': '🎓', 'csgo': '🔫', 'league_of_legends': '🧙', 'dota2': '🐉', 'valorant': '🎯', 'overwatch': '🛡️', 'rocket_league': '🚗', 'apex': '⚡'
         }
-        with open(log_path, 'a', encoding='utf-8') as f:
-            f.write(str(payload) + "\n")
-    except Exception:
-        # Best-effort logging only
-        pass
+
+        def render_prop_row_html(pick: dict, sport_emoji: str) -> str:
+            player_name = pick.get('player_name', 'Unknown')
+            stat_label = pick.get('stat_type', '')
+            line_val = pick.get('line', None)
+            bet_label = pick.get('over_under', '')
+            matchup = pick.get('matchup', 'N/A')
+            confidence = pick.get('confidence', 0)
+            # keep a small guard for missing values
+            player_name = player_name or 'Unknown'
+            # Note: function will gracefully handle missing keys
+
+            return f"""
+            <div class='prop-row' style='display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #222;font-size:11px;'>
+                <span style='width:20px;text-align:center;font-size:14px;'>{sport_emoji}</span>
+                <span style='flex:1.5;font-weight:600;color:#fff;font-size:12px;'>{player_name}</span>
+                <span style='flex:1.2;color:#e8e8e8;font-size:11px;'>{bet_label or ''} {line_val if line_val is not None else ''} {stat_label}</span>
+                <span style='flex:1;color:#b8b8b8;font-size:10px;'>{matchup}</span>
+                {f"<span style='flex:1;color:#9aa0a6;font-size:10px;'>...</span>"}
+            </div>
+            """
 
 
-def _map_to_sport(p: dict) -> str:
+        def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -> None:
+            st.set_page_config(page_title=f"{title} - BetFinder AI", page_icon="🎯", layout="wide", initial_sidebar_state="collapsed")
 
-    player = str(p.get('player_name', '')).lower()
-    stat = str(p.get('stat_type', '')).lower()
-    team = str(p.get('team', '')).lower()
-    matchup = str(p.get('matchup', '')).lower()
-    orig_sport = str(p.get('sport', '')).lower()
-
-    # --- Sport-specific cheat sheets ---
-    football_terms = ["kicking points", "field goals made", "touchdowns", "pass yards", "passing yards", "rush yards", "rushing yards", "receiving yards", "receptions", "field goals", "extra points"]
-    basketball_terms = ["points", "rebounds", "assists", "blocks", "steals", "3pt made", "pts+rebs+asts"]
-    hockey_terms = ["shots", "penalty minutes", "power play", "faceoff", "time on ice", "plus/minus", "blocked shots", "goalie saves"]
-    baseball_terms = ["hits", "home runs", "rbis", "strikeouts", "total bases", "stolen bases"]
-    tennis_terms = ["aces", "double faults", "games won", "sets won"]
-    soccer_terms = ["goals", "assists", "shots on goal", "shots on target", "goal + assist", "fouls", "cards", "clean sheets", "saves", "goalie saves"]
+            st.markdown(f"<h2>{title} {sport_emojis.get(sport_key,'')}</h2>", unsafe_allow_html=True)
     
-    # Esports-specific terms
-    csgo_terms = ["map kills", "map deaths", "map assists", "rounds won", "headshots", "adr", "rating", "maps won"]
-    lol_terms = ["creep score", "cs", "vision score", "gold earned", "damage dealt", "towers destroyed", "dragons killed", "barons killed"]
-    dota_terms = ["last hits", "denies", "gpm", "xpm", "networth", "tower damage", "healing done", "roshan kills"]
+            with st.spinner(f"Fetching live {title} projections..."):
+                agent = AgentClass()
+                picks = agent.make_picks(log_to_ledger=False, max_props=cap)
 
-    football_teams = ["patriots", "saints", "packers", "cowboys", "giants", "jets", "bears", "steelers", "eagles", "chiefs", "49ers", "ravens", "bengals", "bills", "dolphins", "broncos", "lions", "jaguars", "panthers", "raiders", "chargers", "seahawks", "buccaneers", "cardinals", "commanders", "colts", "vikings", "texans", "falcons", "rams", "titans"]
-    basketball_teams = ["lakers", "knicks", "warriors", "celtics", "bulls", "nets", "suns", "mavericks", "clippers", "spurs", "heat", "bucks", "76ers", "nuggets", "hawks", "pelicans", "grizzlies", "timberwolves", "magic", "wizards", "pacers", "pistons", "hornets", "jazz", "thunder", "raptors", "rockets", "kings", "trail blazers"]
+            if not picks:
+                st.info(f"ℹ️ **No {title} props available right now.**")
+                return
 
-    football_kickers = ["jason myers", "chris boswell", "cam little", "michael badgley", "justin tucker", "harrison butker", "younghoe koo", "daniel carlson", "greg joseph", "matt gay", "brandon mcmanus", "evan mcpherson", "eddie pineiro", "riley patterson", "brett maher", "nick folk", "cairo santos", "dustin hopkins", "jake elliott", "graham gano", "chase mclaughlin", "andrew mevis", "joey slye", "chris naggar", "sam ficken"]
+            st.markdown(
+                f"<div class='section-title'>{title}<span class='time' style='margin-left:8px;opacity:0.8;'>{len(picks)} props found</span></div>",
+                unsafe_allow_html=True,
+            )
 
-    # 1. Check league/sport mapping first for esports (more reliable than stats)
-    aliases = {
-        'nba': 'basketball', 'wnba': 'basketball', 'cbb': 'basketball',
-        'nfl': 'football', 'cfb': 'college_football', 'ncaa football': 'college_football',
-        'mlb': 'baseball', 'nhl': 'hockey', 'epl': 'soccer', 'soccer': 'soccer',
-        'league of legends': 'league_of_legends', 'lol': 'league_of_legends', 'league_of_legends': 'league_of_legends',
-        'valorant': 'valorant', 'valo': 'valorant',
-        'dota 2': 'dota2', 'dota2': 'dota2',
-        'overwatch': 'overwatch', 'overwatch 2': 'overwatch', 'ow': 'overwatch',
-        'rocket league': 'rocket_league', 'rocket_league': 'rocket_league', 'rl': 'rocket_league',
-        'csgo': 'csgo', 'cs:go': 'csgo', 'cs2': 'csgo', 'counter-strike': 'csgo', 'counter strike': 'csgo', 'counter-strike 2': 'csgo',
-        'apex': 'apex', 'apex legends': 'apex'
-    }
-    mapped = aliases.get(orig_sport.lower())
-    if mapped:
-        return mapped
+            for p in picks:
+                html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
+                st.markdown(html_row, unsafe_allow_html=True)
 
-    # 2. Stat label check (most robust for traditional sports)
-    if stat in football_terms:
-        return "football"
-    if stat in basketball_terms:
-        return "basketball"
-    if stat in hockey_terms:
-        return "hockey"
-    if stat in baseball_terms:
-        return "baseball"
-    if stat in tennis_terms:
-        return "tennis"
-    if stat in soccer_terms:
-        return "soccer"
-    
-    # Esports stat detection - only if league mapping didn't work
-    if any(cs in stat for cs in csgo_terms):
-        return "csgo"
-    elif "kills" in stat and ("map" in stat or "round" in stat):
-        return "csgo"
-    elif any(ls in stat for ls in lol_terms):
-        return "league_of_legends"
-    elif "cs" in stat and "creep" in stat:
-        return "league_of_legends"
-    elif any(ds in stat for ds in dota_terms):
-        return "dota2"
-    elif "gpm" in stat or "xpm" in stat:
-        return "dota2"
-
-    # 3. Team name check (matchup, team, or player)
-    if any(t in team for t in football_teams) or any(t in matchup for t in football_teams):
-        return "football"
-    if any(t in team for t in basketball_teams) or any(t in matchup for t in basketball_teams):
-        return "basketball"
-
-    # 3. Football kicker check
-    if stat == "kicking points" and (any(k in player for k in football_kickers) or any(k in team for k in football_teams)):
-        return "football"
-
-    # 4. Football kicker check
-    if stat == "kicking points" and (any(k in player for k in football_kickers) or any(k in team for k in football_teams)):
-        return "football"
-
-    # 5. Legacy player/stat heuristics (for esports, hockey, etc.)
-    # ...existing code...
-
-    return ''
-
-
-def _validate_prop_consistency(prop_data: dict) -> bool:
-    """
-    Validate that prop data is internally consistent (team, matchup, sport alignment)
-    Returns False if the prop should be filtered out due to inconsistencies
-    """
-    player_name = str(prop_data.get('player_name', '')).lower()
-    stat_type = str(prop_data.get('stat_type', '')).lower()
-    team = str(prop_data.get('team', '')).lower()
-    matchup = str(prop_data.get('matchup', '')).lower()
-    league = str(prop_data.get('league', '')).lower()
-    
-    # Skip props with missing essential data
-    if not player_name or not stat_type:
-        return False
-    
-    # Skip if team is completely inconsistent with matchup
-    if team and matchup and '@' in matchup:
-        # Extract teams from matchup (e.g., "CHI @ WAS" -> ["chi", "was"])
-        parts = matchup.split('@')
-        if len(parts) == 2:
-            away_team = parts[0].strip().lower()
             home_team = parts[1].strip().lower()
             
             # Team should appear in either away or home position
