@@ -1,17 +1,12 @@
-# requirements.txt
-
 streamlit>=1.28.0
 pandas>=2.0.0
 requests>=2.31.0
 lxml>=4.9.0
 pyarrow
 python-dotenv>=1.0.0
-numpy>=1.24.0
 plotly>=5.17.0
-scikit-learn>=1.0.0
 PyYAML
 matplotlib
-scipy
 beautifulsoup4
 selenium
 openpyxl
@@ -21,4 +16,10 @@ ruff
 black
 autoflake
 playwright
+
+# Pinning ML libraries to prevent compilation errors
+numpy==1.24.0
+scipy==1.11.1
+scikit-learn==1.3.0
+cython==3.0.0
 auto-machine-learning
