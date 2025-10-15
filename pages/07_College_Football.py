@@ -1,4 +1,3 @@
-from page_utils import display_sport_page
-from sport_agents import CollegeFootballAgent
+from page_utils import create_sport_page
 
-display_sport_page('college_football', 'College Football', CollegeFootballAgent)
+create_sport_page(sport_name="College Football", sport_emoji="🏈")
