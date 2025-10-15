@@ -1,4 +1,3 @@
-from page_utils import display_sport_page
-from sport_agents import BasketballAgent
+from page_utils import create_sport_page
 
-display_sport_page('basketball', 'Basketball', BasketballAgent)
+create_sport_page(sport_name="Basketball", sport_emoji="🏀")
