@@ -1,6 +1,5 @@
 # src/scrapers/esports_prop_fetcher.py
-import requests
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 from typing import List, Dict, Any
 
 # Base URL for the projections
@@ -16,7 +15,7 @@ SPORT_URL_MAP = {
 
 def fetch_esports_props(sport: str) -> List[Dict[str, Any]]:
     """
-    Fetches player props for a given eSport by scraping The Esports Lab.
+    Fetches player props for a given eSport by scraping The Esports Lab using Playwright.
     """
     sport_path = SPORT_URL_MAP.get(sport.lower())
     if sport_path is None:
@@ -24,52 +23,59 @@ def fetch_esports_props(sport: str) -> List[Dict[str, Any]]:
         return []
 
     url = f"{BASE_URL}{sport_path}"
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching URL: {e}")
-        return []
-
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
     props = []
-    
-    # Find the table containing the props - this may need adjustment if the site structure changes
-    prop_table = soup.find('table')
-    if not prop_table:
-        print(f"Could not find prop table on {url}")
-        return []
 
-    # Find all rows in the table body
-    rows = prop_table.find('tbody').find_all('tr') if prop_table.find('tbody') else []
-    
-    for row in rows:
-        cols = row.find_all('td')
-        if len(cols) > 4:  # Ensure there are enough columns to parse
-            try:
-                player_name = cols[0].text.strip()
-                stat_type = cols[1].text.strip()
-                prop_line = float(cols[2].text.strip())
-                projection = float(cols[4].text.strip())
-                
-                props.append({
-                    'sport': sport,
-                    'player_name': player_name,
-                    'stat_type': stat_type,
-                    'prop_line': prop_line,
-                    'ai_projection': projection, # Using their projection as our 'AI projection'
-                    'sportsbook': 'The Esports Lab', # Source of the data
-                    'matchup': 'N/A', # This data is not available on the page
-                    'team': 'N/A' # This data is not available on the page
-                })
-            except (ValueError, IndexError):
-                # Skip rows that don't parse correctly
-                continue
-                
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        try:
+            # Navigate to the page and wait for it to be fully loaded
+            page.goto(url, wait_until='networkidle', timeout=30000)
+
+            # Locate the main props table
+            table = page.locator('table').first
+            if not table.is_visible():
+                print(f"Could not find a visible prop table on {url}")
+                browser.close()
+                return []
+
+            # Get all rows from the table body
+            rows = table.locator('tbody tr').all()
+
+            for row in rows:
+                cols = row.locator('td').all()
+                if len(cols) > 4:
+                    try:
+                        player_name = cols[0].text_content().strip()
+                        stat_type = cols[1].text_content().strip()
+                        prop_line_text = cols[2].text_content().strip()
+                        projection_text = cols[4].text_content().strip()
+
+                        # Ensure the text can be converted to a float
+                        if prop_line_text and projection_text:
+                            prop_line = float(prop_line_text)
+                            projection = float(projection_text)
+                        else:
+                            continue
+
+                        props.append({
+                            'sport': sport,
+                            'player_name': player_name,
+                            'stat_type': stat_type,
+                            'prop_line': prop_line,
+                            'ai_projection': projection,
+                            'sportsbook': 'The Esports Lab',
+                            'matchup': 'N/A',
+                            'team': 'N/A'
+                        })
+                    except (ValueError, IndexError) as e:
+                        print(f"Skipping a row due to parsing error: {e}")
+                        continue
+        
+        except Exception as e:
+            print(f"An error occurred while scraping {url}: {e}")
+        
+        finally:
+            browser.close()
+            
     return props
