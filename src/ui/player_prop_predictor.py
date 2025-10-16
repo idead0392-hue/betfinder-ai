@@ -23,8 +23,7 @@ st.set_page_config(
 )
 
 # Custom CSS
-st.markdown("""
-<style>
+st.markdown("""<style>
     .main-header {
         background: linear-gradient(90deg, #1f4e79 0%, #2c5aa0 100%);
         padding: 2rem;
@@ -41,8 +40,19 @@ st.markdown("""
         background-color: #f8d7da;
         color: #721c24;
     }
-</style>
-""", unsafe_allow_html=True)
+</style>""", unsafe_allow_html=True)
+
+# --- Start of eSports Configuration ---
+ESPORTS_TITLES = {"cs2", "league_of_legends", "dota2", "valorant"}
+
+# Define allowed stat types for eSports to filter out non-standard props
+ALLOWED_ESPORTS_STATS_PER_SPORT = {
+    "cs2": ['Kills', 'Headshots', 'ADR', 'Fantasy Points', 'Maps 1-2 Kills'],
+    "league_of_legends": ['Kills', 'Assists', 'Creep Score', 'KDA', 'Fantasy Points', 'Maps 1-2 Kills'],
+    "dota2": ['Kills', 'Assists', 'Last Hits', 'GPM', 'Fantasy Points', 'Maps 1-2 Kills'],
+    "valorant": ['Kills', 'Headshots', 'ACS', 'First Bloods', 'Fantasy Points', 'Maps 1-2 Kills']
+}
+# --- End of eSports Configuration ---
 
 # Initialize session state
 if 'props_data' not in st.session_state:
@@ -89,6 +99,12 @@ def generate_mock_props_data(sport: str, num_props: int = 50) -> List[Dict]:
     sports_config = {
         'basketball': {'stat_types': ['Points', 'Rebounds', 'Assists'], 'teams': ['Lakers', 'Warriors']},
         'football': {'stat_types': ['Passing Yards', 'Rushing Yards'], 'teams': ['Chiefs', 'Bills']},
+        'baseball': {'stat_types': ['Hits', 'RBIs', 'Strikeouts'], 'teams': ['Yankees', 'Red Sox']},
+        'hockey': {'stat_types': ['Goals', 'Assists', 'Saves'], 'teams': ['Maple Leafs', 'Canadiens']},
+        'cs2': {'stat_types': ['Kills', 'Headshots', 'ADR'], 'teams': ['FaZe', 'Navi'], 'sport': 'cs2'},
+        'league of legends': {'stat_types': ['Kills', 'Assists', 'Creep Score'], 'teams': ['T1', 'Gen.G'], 'sport': 'league_of_legends'},
+        'dota 2': {'stat_types': ['Kills', 'Assists', 'Last Hits'], 'teams': ['OG', 'Team Spirit'], 'sport': 'dota2'},
+        'valorant': {'stat_types': ['Kills', 'Headshots', 'ACS'], 'teams': ['Sentinels', 'Fnatic'], 'sport': 'valorant'},
     }
     config = sports_config.get(sport.lower(), sports_config['basketball'])
     props_data = []
@@ -110,8 +126,30 @@ def generate_mock_props_data(sport: str, num_props: int = 50) -> List[Dict]:
             'edge_over': projection_data['edge_over'],
             'edge_under': round(-projection_data['edge_over'], 1),
             'game_date': (datetime.now() + timedelta(days=random.randint(0, 7))).strftime('%Y-%m-%d'),
+            'sport': config.get('sport', sport.lower()),
         })
     return props_data
+
+def _filter_esports_props(df: pd.DataFrame) -> pd.DataFrame:
+    """Filters the DataFrame to only include allowed stat types for eSports."""
+    if df.empty:
+        return df
+        
+    esports_df = df[df['sport'].str.lower().isin(ESPORTS_TITLES)]
+    non_esports_df = df[~df['sport'].str.lower().isin(ESPORTS_TITLES)]
+    
+    filtered_esports_dfs = []
+    for sport, group in esports_df.groupby('sport'):
+        allowed_stats = ALLOWED_ESPORTS_STATS_PER_SPORT.get(sport.lower(), [])
+        # Ensure case-insensitivity for stat types
+        allowed_stats_lower = [stat.lower() for stat in allowed_stats]
+        filtered_group = group[group['stat_type'].str.lower().isin(allowed_stats_lower)]
+        filtered_esports_dfs.append(filtered_group)
+        
+    if not filtered_esports_dfs:
+        return non_esports_df
+        
+    return pd.concat([non_esports_df] + filtered_esports_dfs)
 
 @st.cache_data(ttl=300)
 def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
@@ -120,7 +158,7 @@ def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
         return generate_mock_props_data(sport), "Using mock data - provider unavailable"
     
     try:
-        sport_type = getattr(SportType, sport.upper(), SportType.BASKETBALL)
+        sport_type = getattr(SportType, sport.upper().replace(' ', '_'), SportType.BASKETBALL)
         response = provider.get_props(sport=sport_type)
         
         if response.success and response.data:
@@ -135,7 +173,7 @@ def fetch_props_data(sport: str, provider) -> Tuple[List[Dict], Optional[str]]:
 def main():
     st.markdown("""
     <div class="main-header">
-        <h1>Player Prop Predictor</h1>
+        <h1>🎯 Player Prop Predictor</h1>
         <p>AI-powered analysis of player prop betting opportunities</p>
     </div>
     """, unsafe_allow_html=True)
@@ -147,28 +185,39 @@ def main():
             if error:
                 st.warning(f"Provider initialization issue: {error}")
     
-    st.sidebar.header("Filters")
-    selected_sport = st.sidebar.selectbox("Sport", ['Basketball', 'Football'])
+    st.sidebar.header("🔍 Filters")
     
-    if st.sidebar.button("Refresh Data", type="primary"):
+    # Add eSports to the sport selection dropdown
+    sport_options = ['Basketball', 'Football', 'Baseball', 'Hockey', 'CS2', 'League of Legends', 'Dota 2', 'Valorant']
+    selected_sport = st.sidebar.selectbox("Sport", sport_options, index=0)
+    
+    if st.sidebar.button("🔄 Refresh Data", type="primary"):
         st.cache_data.clear()
         st.session_state.last_fetch_time = datetime.now()
         st.rerun()
     
+    # Load and filter data
     with st.spinner(f"Loading {selected_sport.lower()} props data..."):
         props_data, fetch_error = fetch_props_data(selected_sport, st.session_state.provider)
     
     if fetch_error:
-        st.warning(fetch_error)
+        st.warning(f"⚠️ {fetch_error}")
     
     if not props_data:
-        st.error("No props data available.")
+        st.error("❌ No props data available. Please try again later.")
         st.stop()
-    
+        
     df = pd.DataFrame(props_data)
     
-    st.subheader(f"Props Analysis ({len(df)} opportunities)")
-    st.dataframe(df)
+    # Apply eSports-specific filtering
+    df = _filter_esports_props(df)
+    
+    if df.empty:
+        st.warning("No props available after filtering.")
+        st.stop()
+    
+    st.subheader(f"📊 Props Analysis ({len(df)} opportunities)")
+    st.dataframe(df, use_container_width=True)
 
 if __name__ == "__main__":
     main()
