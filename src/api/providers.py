@@ -10,6 +10,11 @@ class SportType(Enum):
     HOCKEY = "hockey"
     SOCCER = "soccer"
     TENNIS = "tennis"
+    # Added eSports
+    CS2 = "cs2"
+    LEAGUE_OF_LEGENDS = "league_of_legends"
+    DOTA2 = "dota2"
+    VALORANT = "valorant"
 
 class HealthCheckResponse(NamedTuple):
     success: bool
