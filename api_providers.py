@@ -179,3 +179,51 @@ def create_sportbex_provider(api_key: str = None):
     
     from sportbex_provider import SportbexProvider
     return SportbexProvider(api_key=api_key)
+
+
+class PrizePicksProvider:
+    """
+    Provider wrapper for PrizePicks data fetching.
+    Uses PropsDataFetcher to get normalized PrizePicks props.
+    """
+    
+    def __init__(self):
+        """Initialize PrizePicksProvider"""
+        try:
+            from props_data_fetcher import PropsDataFetcher
+            self.fetcher = PropsDataFetcher()
+        except Exception as e:
+            logger.error(f"Failed to initialize PropsDataFetcher: {e}")
+            self.fetcher = None
+    
+    def get_props(self, sport: str = None, max_props: int = 1000) -> APIResponse:
+        """
+        Fetch PrizePicks props data.
+        
+        Args:
+            sport: Optional sport filter (not currently used by fetcher)
+            max_props: Maximum number of props to return
+            
+        Returns:
+            APIResponse with props data or error
+        """
+        if not self.fetcher:
+            return APIResponse.error_response("PropsDataFetcher not available")
+        
+        try:
+            start_time = time.time()
+            props = self.fetcher.fetch_prizepicks_props(max_items=max_props)
+            response_time = time.time() - start_time
+            
+            # Filter by sport if specified
+            if sport and isinstance(props, list):
+                sport_lower = str(sport).lower()
+                props = [p for p in props if str(p.get('sport', '')).lower() == sport_lower or 
+                        str(p.get('league', '')).lower() == sport_lower]
+            
+            return APIResponse.success_response(
+                data={"data": props, "count": len(props)},
+                response_time=response_time
+            )
+        except Exception as e:
+            return APIResponse.error_response(f"Failed to fetch PrizePicks props: {str(e)}")
