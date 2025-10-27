@@ -1326,3 +1326,91 @@ def display_sport_page(sport_key: str, title: str, AgentClass, cap: int = 200) -
     for p in picks:
         html_row = render_prop_row_html(p, sport_emojis.get(sport_key, ''))
         st.markdown(html_row, unsafe_allow_html=True)
+
+
+def render_props(props_data: List[Dict], top_n: int = 25) -> None:
+    """
+    Render props data in a clean, structured format using Streamlit and Pandas.
+    
+    Args:
+        props_data: List of prop dictionaries with player, stat, line, etc.
+        top_n: Maximum number of props to display (default 25)
+    """
+    if not props_data:
+        st.warning("⚠️ No props data available to display")
+        return
+    
+    # Limit to top_n props
+    display_props = props_data[:top_n]
+    
+    try:
+        # Convert to DataFrame for better display
+        df = pd.DataFrame(display_props)
+        
+        # Select and order key columns if they exist
+        preferred_columns = [
+            'player_name', 'team', 'stat_type', 'line', 'matchup', 
+            'league', 'odds', 'confidence', 'expected_value'
+        ]
+        
+        # Use only columns that exist in the data
+        display_columns = [col for col in preferred_columns if col in df.columns]
+        if display_columns:
+            df_display = df[display_columns]
+        else:
+            df_display = df
+        
+        # Format numeric columns
+        if 'line' in df_display.columns:
+            df_display['line'] = df_display['line'].apply(lambda x: f"{x:.1f}" if pd.notnull(x) else "-")
+        if 'confidence' in df_display.columns:
+            df_display['confidence'] = df_display['confidence'].apply(lambda x: f"{x:.0f}%" if pd.notnull(x) else "-")
+        if 'expected_value' in df_display.columns:
+            df_display['expected_value'] = df_display['expected_value'].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "-")
+        
+        # Rename columns for better readability
+        column_names = {
+            'player_name': 'Player',
+            'team': 'Team',
+            'stat_type': 'Stat',
+            'line': 'Line',
+            'matchup': 'Matchup',
+            'league': 'League',
+            'odds': 'Odds',
+            'confidence': 'Confidence',
+            'expected_value': 'EV'
+        }
+        df_display = df_display.rename(columns=column_names)
+        
+        # Display header
+        st.markdown(f"### 🎯 Props Display ({len(display_props)} shown)")
+        
+        # Display the dataframe
+        st.dataframe(
+            df_display,
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # Show summary stats
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Props", len(display_props))
+        with col2:
+            if 'League' in df_display.columns:
+                unique_leagues = df_display['League'].nunique()
+                st.metric("Leagues", unique_leagues)
+        with col3:
+            if 'Player' in df_display.columns:
+                unique_players = df_display['Player'].nunique()
+                st.metric("Players", unique_players)
+                
+    except Exception as e:
+        st.error(f"❌ Error rendering props: {str(e)}")
+        # Fallback to simple display
+        st.write(f"Showing {len(display_props)} props:")
+        for i, prop in enumerate(display_props[:10], 1):
+            player = prop.get('player_name', 'Unknown')
+            stat = prop.get('stat_type', 'Unknown')
+            line = prop.get('line', '-')
+            st.write(f"{i}. {player} - {stat}: {line}")
